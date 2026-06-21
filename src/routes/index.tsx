@@ -1,29 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SplashEntregadorPage } from "@/features/splash/SplashEntregadorPage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "ROTA 66 — Entregas sem fronteiras" },
+      { name: "description", content: "App do entregador ROTA 66. Acelera, a rota é sua." },
+      { property: "og:title", content: "ROTA 66 — App do Entregador" },
+      { property: "og:description", content: "Entregas sem fronteiras." },
     ],
   }),
-  component: Index,
+  component: SplashEntregadorPage,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
