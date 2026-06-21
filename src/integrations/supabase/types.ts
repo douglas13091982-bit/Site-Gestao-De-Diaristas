@@ -214,6 +214,8 @@ export type Database = {
           tipo_veiculo: Database["public"]["Enums"]["tipo_veiculo"]
           updated_at: string
           valor: number
+          valor_minimo: number
+          valor_por_km: number
         }
         Insert: {
           ativa?: boolean
@@ -224,6 +226,8 @@ export type Database = {
           tipo_veiculo: Database["public"]["Enums"]["tipo_veiculo"]
           updated_at?: string
           valor: number
+          valor_minimo?: number
+          valor_por_km?: number
         }
         Update: {
           ativa?: boolean
@@ -234,6 +238,8 @@ export type Database = {
           tipo_veiculo?: Database["public"]["Enums"]["tipo_veiculo"]
           updated_at?: string
           valor?: number
+          valor_minimo?: number
+          valor_por_km?: number
         }
         Relationships: []
       }
@@ -303,6 +309,7 @@ export type Database = {
         | "em_preparo"
         | "pronto"
         | "em_rota"
+        | "coletado"
         | "entregue"
         | "cancelado"
       tipo_veiculo: "moto" | "carro" | "caminhonete"
@@ -441,6 +448,7 @@ export const Constants = {
         "em_preparo",
         "pronto",
         "em_rota",
+        "coletado",
         "entregue",
         "cancelado",
       ],
