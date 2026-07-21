@@ -363,6 +363,58 @@ function Dashboard() {
               </table>
             </div>
           )}
+
+          {totalCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <p className="text-xs text-muted-foreground">
+                Mostrando{" "}
+                <span className="font-medium text-foreground">
+                  {(page - 1) * pageSize + 1}
+                </span>
+                –
+                <span className="font-medium text-foreground">
+                  {Math.min(page * pageSize, totalCount)}
+                </span>{" "}
+                de{" "}
+                <span className="font-medium text-foreground">{totalCount}</span>
+                {profQuery ? " (busca por profissional filtra a página atual)" : ""}
+              </p>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="f-size" className="text-xs">Por página</Label>
+                <select
+                  id="f-size"
+                  value={pageSize}
+                  onChange={(e) =>
+                    update({ pageSize: Number(e.target.value), page: 1 })
+                  }
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                >
+                  {[10, 20, 50, 100].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1 || bookingsQ.isFetching}
+                >
+                  Anterior
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages || bookingsQ.isFetching}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>
