@@ -16,6 +16,8 @@ const searchSchema = z.object({
   professional: fallback(z.string(), "").default(""),
   page: fallback(z.number().int(), 1).default(1),
   pageSize: fallback(z.number().int(), 20).default(20),
+  sort: fallback(z.string(), "booking_date").default("booking_date"),
+  dir: fallback(z.string(), "desc").default("desc"),
 });
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -74,6 +76,9 @@ function Dashboard() {
   const { from, to, status, professional } = search;
   const page = Math.max(1, search.page);
   const pageSize = [10, 20, 50, 100].includes(search.pageSize) ? search.pageSize : 20;
+  const sort: "booking_date" | "status" =
+    search.sort === "status" ? "status" : "booking_date";
+  const dir: "asc" | "desc" = search.dir === "asc" ? "asc" : "desc";
   const isProfessional = roles.includes("professional");
   const isAdmin = roles.includes("admin");
 
@@ -112,7 +117,7 @@ function Dashboard() {
       "bookings",
       user?.id,
       isProfessional ? professionalId : "client",
-      { from, to, status, page, pageSize },
+      { from, to, status, page, pageSize, sort, dir },
     ],
     enabled: !!user && (!isProfessional || !!professionalId),
     queryFn: async () => {
@@ -126,7 +131,7 @@ function Dashboard() {
           ),
           { count: "exact" },
         )
-        .order("booking_date", { ascending: false })
+        .order(sort, { ascending: dir === "asc" })
         .range(fromIdx, toIdx);
       q = isProfessional && professionalId
         ? q.eq("professional_id", professionalId)
