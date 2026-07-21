@@ -182,10 +182,10 @@ function Dashboard() {
     (from ? 1 : 0) + (to ? 1 : 0) + (status ? 1 : 0) + (professional ? 1 : 0);
 
   function update(patch: Partial<typeof search>) {
-    navigate({ search: (prev) => ({ ...prev, ...patch }) });
+    navigate({ search: (prev: typeof search) => ({ ...prev, ...patch }) });
   }
   function reset() {
-    navigate({ search: () => ({ from: "", to: "", status: "", professional: "" }) });
+    navigate({ search: { from: "", to: "", status: "", professional: "" } });
   }
 
   const displayName =
