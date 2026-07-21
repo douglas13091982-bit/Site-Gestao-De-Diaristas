@@ -478,6 +478,38 @@ function Stat({ label, value, loading }: { label: string; value: React.ReactNode
 function Th({ children, className }: { children: React.ReactNode; className?: string }) {
   return <th className={`px-3 py-2 font-medium text-xs uppercase tracking-wider text-muted-foreground ${className ?? ""}`}>{children}</th>;
 }
+
+function SortableTh({
+  field,
+  currentSort,
+  currentDir,
+  onSort,
+  children,
+  className,
+}: {
+  field: "booking_date" | "status";
+  currentSort: string;
+  currentDir: "asc" | "desc";
+  onSort: (field: "booking_date" | "status", dir: "asc" | "desc") => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const active = currentSort === field;
+  const nextDir: "asc" | "desc" = active && currentDir === "desc" ? "asc" : "desc";
+  const arrow = active ? (currentDir === "asc" ? " ↑" : " ↓") : "";
+  return (
+    <th className={`px-3 py-2 font-medium text-xs uppercase tracking-wider text-muted-foreground ${className ?? ""}`}>
+      <button
+        type="button"
+        onClick={() => onSort(field, nextDir)}
+        className={`inline-flex items-center gap-1 hover:text-foreground ${active ? "text-foreground" : ""}`}
+      >
+        {children}
+        <span aria-hidden>{arrow}</span>
+      </button>
+    </th>
+  );
+}
 function Td({ children, className }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-3 py-2 ${className ?? ""}`}>{children}</td>;
 }
