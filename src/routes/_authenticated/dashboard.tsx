@@ -211,7 +211,16 @@ function Dashboard() {
   }
   function reset() {
     navigate({
-      search: { from: "", to: "", status: "", professional: "", page: 1, pageSize },
+      search: {
+        from: "",
+        to: "",
+        status: "",
+        professional: "",
+        page: 1,
+        pageSize,
+        sort: "booking_date",
+        dir: "desc",
+      },
     });
   }
 
