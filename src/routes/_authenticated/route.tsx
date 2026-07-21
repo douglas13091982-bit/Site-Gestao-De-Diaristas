@@ -1,17 +1,14 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: "/auth", search: { redirect: location.href } });
     }
     return { user: data.user };
   },
-  errorComponent: ({ error, reset }) => <GlobalErrorBoundary error={error} reset={reset} />,
-  notFoundComponent: () => <GlobalErrorBoundary statusCode={404} />,
   component: () => <Outlet />,
 });

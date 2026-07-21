@@ -1,100 +1,34 @@
-import { useRouter, Link } from "@tanstack/react-router";
-import { AlertTriangle, RotateCcw, Home, Radio } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
-interface GlobalErrorBoundaryProps {
-  error?: Error;
-  reset?: () => void;
-  statusCode?: number;
-  title?: string;
-  description?: string;
-}
+type Props = { error?: unknown; reset?: () => void; statusCode?: number };
 
-export function GlobalErrorBoundary({
-  error,
-  reset,
-  statusCode = 500,
-  title,
-  description,
-}: GlobalErrorBoundaryProps) {
-  const router = useRouter();
-
-  const isNotFound = statusCode === 404;
-  const displayTitle = title || (isNotFound ? "ROTA NÃO ENCONTRADA" : "BURACO NO ASFALTO");
-  const displayDescription =
-    description ||
-    (isNotFound
-      ? "A página que você procura não existe ou foi removida. Verifique o endereço ou volte para a estrada principal."
-      : "Algo deu errado na nossa rota. Pode ser um problema temporário — tente recarregar ou volte para o início.");
-
+export function GlobalErrorBoundary({ error, reset, statusCode = 500 }: Props) {
+  const message =
+    statusCode === 404
+      ? "Página não encontrada."
+      : error instanceof Error
+        ? error.message
+        : "Ocorreu um erro inesperado.";
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
-      <div className="max-w-lg w-full text-center">
-        {/* Shield / Icon */}
-        <div className="mx-auto mb-8 inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-red shadow-red">
-          {isNotFound ? (
-            <Radio className="h-12 w-12 text-primary-foreground" strokeWidth={1.5} />
-          ) : (
-            <AlertTriangle className="h-12 w-12 text-primary-foreground" strokeWidth={1.5} />
-          )}
-        </div>
-
-        {/* Status code */}
-        <div className="font-display text-7xl md:text-8xl text-gradient-red mb-2">
-          {statusCode}
-        </div>
-
-        {/* Title */}
-        <h1 className="font-display text-3xl md:text-4xl tracking-wide mb-4">
-          {displayTitle}
+    <div className="min-h-screen grid place-items-center bg-background text-foreground p-6">
+      <div className="max-w-md text-center space-y-4">
+        <p className="text-sm text-muted-foreground uppercase tracking-widest">Erro {statusCode}</p>
+        <h1 className="text-3xl font-semibold">
+          {statusCode === 404 ? "Não encontrado" : "Algo deu errado"}
         </h1>
-
-        {/* Description */}
-        <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8">
-          {displayDescription}
-        </p>
-
-        {/* Error detail (dev only) */}
-        {error && import.meta.env.DEV && (
-          <div className="mb-8 text-left">
-            <details className="group">
-              <summary className="cursor-pointer text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2 select-none">
-                Detalhes técnicos
-              </summary>
-              <pre className="mt-2 text-xs bg-card border border-border rounded-md p-4 overflow-auto text-muted-foreground">
-                {error.message}
-                {"\n\n"}
-                {error.stack}
-              </pre>
-            </details>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex flex-wrap justify-center gap-3">
-          {reset && (
+        <p className="text-muted-foreground">{message}</p>
+        <div className="flex gap-3 justify-center pt-2">
+          {reset ? (
             <button
-              onClick={() => {
-                router.invalidate();
-                reset();
-              }}
-              className="inline-flex items-center gap-2 bg-gradient-red shadow-red px-6 py-3 rounded-md font-bold uppercase tracking-wider text-sm text-primary-foreground hover:opacity-90 transition-opacity"
+              onClick={reset}
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
             >
-              <RotateCcw className="h-4 w-4" />
               Tentar novamente
             </button>
-          )}
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 border-2 border-foreground/20 px-6 py-3 rounded-md font-bold uppercase tracking-wider text-sm hover:border-primary hover:text-primary transition-colors"
-          >
-            <Home className="h-4 w-4" />
-            Voltar para home
+          ) : null}
+          <Link to="/" className="px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-accent">
+            Voltar ao início
           </Link>
-        </div>
-
-        {/* Footer hint */}
-        <div className="mt-12 text-xs text-muted-foreground uppercase tracking-widest">
-          ROTA 66 — Entregas e Coletas
         </div>
       </div>
     </div>
