@@ -41,43 +41,44 @@
 :root {
   --radius: 0.5rem;
 
-  /* Gersepa — sage & cream palette (limpeza, frescor, confiança) */
-  --brand-sage: oklch(0.55 0.09 155);
-  --brand-sage-deep: oklch(0.42 0.10 155);
-  --brand-cream: #faf7f2;
-  --brand-ink: #1a2321;
-  --brand-gold: oklch(0.78 0.13 80);
-  --rota-red: oklch(0.60 0.20 25);
-  --rota-gold: var(--brand-gold);
-  --rota-navy: #1a2321;
+  /* Gersepa — purple palette (Mary-Help inspired) */
+  --brand-purple: #6b2c91;
+  --brand-purple-deep: #5a247a;
+  --brand-lilac: #c084c8;
+  --brand-blush: #f7e9f5;
+  --brand-ink: #1a1220;
+  --brand-gold: #c084c8;
+  --rota-red: #6b2c91;
+  --rota-gold: #c084c8;
+  --rota-navy: #1a1220;
 
-  --background: var(--brand-cream);
+  --background: #ffffff;
   --foreground: var(--brand-ink);
   --card: #ffffff;
   --card-foreground: var(--brand-ink);
   --popover: #ffffff;
   --popover-foreground: var(--brand-ink);
-  --primary: var(--brand-sage);
+  --primary: var(--brand-purple);
   --primary-foreground: #ffffff;
-  --secondary: #eef1ea;
-  --secondary-foreground: var(--brand-ink);
-  --muted: #f1ede5;
-  --muted-foreground: oklch(0.45 0.02 150);
-  --accent: var(--brand-gold);
-  --accent-foreground: #1a1305;
+  --secondary: var(--brand-blush);
+  --secondary-foreground: var(--brand-purple);
+  --muted: #f7f2f7;
+  --muted-foreground: #6b6070;
+  --accent: var(--brand-lilac);
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.60 0.20 25);
   --destructive-foreground: #ffffff;
-  --border: #e6e1d6;
-  --input: #e6e1d6;
-  --ring: var(--brand-sage);
-  --gold: var(--brand-gold);
+  --border: #ecdcec;
+  --input: #ecdcec;
+  --ring: var(--brand-lilac);
+  --gold: var(--brand-lilac);
   --navy: var(--brand-ink);
 
   --font-display: 'Sora', system-ui, sans-serif;
   --font-body: 'Manrope', system-ui, sans-serif;
 
-  --gradient-hero: linear-gradient(135deg, oklch(0.55 0.09 155 / 0.10), oklch(0.78 0.13 80 / 0.10));
-  --gradient-brand: linear-gradient(135deg, var(--brand-sage) 0%, var(--brand-sage-deep) 100%);
+  --gradient-hero: linear-gradient(135deg, #f7e9f5 0%, #ffffff 100%);
+  --gradient-brand: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-deep) 100%);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px -12px rgb(0 0 0 / 0.15);
   --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.06), 0 24px 60px -24px rgb(0 0 0 / 0.20);
   --shadow-red: var(--shadow-elevated);
