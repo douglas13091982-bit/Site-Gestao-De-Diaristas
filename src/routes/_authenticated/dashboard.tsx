@@ -16,6 +16,8 @@ const searchSchema = z.object({
   professional: fallback(z.string(), "").default(""),
   page: fallback(z.number().int(), 1).default(1),
   pageSize: fallback(z.number().int(), 20).default(20),
+  sort: fallback(z.string(), "booking_date").default("booking_date"),
+  dir: fallback(z.string(), "desc").default("desc"),
 });
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -74,6 +76,9 @@ function Dashboard() {
   const { from, to, status, professional } = search;
   const page = Math.max(1, search.page);
   const pageSize = [10, 20, 50, 100].includes(search.pageSize) ? search.pageSize : 20;
+  const sort: "booking_date" | "status" =
+    search.sort === "status" ? "status" : "booking_date";
+  const dir: "asc" | "desc" = search.dir === "asc" ? "asc" : "desc";
   const isProfessional = roles.includes("professional");
   const isAdmin = roles.includes("admin");
 
@@ -112,7 +117,7 @@ function Dashboard() {
       "bookings",
       user?.id,
       isProfessional ? professionalId : "client",
-      { from, to, status, page, pageSize },
+      { from, to, status, page, pageSize, sort, dir },
     ],
     enabled: !!user && (!isProfessional || !!professionalId),
     queryFn: async () => {
@@ -126,7 +131,7 @@ function Dashboard() {
           ),
           { count: "exact" },
         )
-        .order("booking_date", { ascending: false })
+        .order(sort, { ascending: dir === "asc" })
         .range(fromIdx, toIdx);
       q = isProfessional && professionalId
         ? q.eq("professional_id", professionalId)
@@ -206,7 +211,16 @@ function Dashboard() {
   }
   function reset() {
     navigate({
-      search: { from: "", to: "", status: "", professional: "", page: 1, pageSize },
+      search: {
+        from: "",
+        to: "",
+        status: "",
+        professional: "",
+        page: 1,
+        pageSize,
+        sort: "booking_date",
+        dir: "desc",
+      },
     });
   }
 
@@ -304,6 +318,23 @@ function Dashboard() {
                 disabled={isProfessional && !isAdmin}
               />
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="f-sort">Ordenar por</Label>
+              <select
+                id="f-sort"
+                value={`${sort}:${dir}`}
+                onChange={(e) => {
+                  const [nextSort, nextDir] = e.target.value.split(":");
+                  update({ sort: nextSort, dir: nextDir });
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="booking_date:desc">Data (mais recente)</option>
+                <option value="booking_date:asc">Data (mais antiga)</option>
+                <option value="status:asc">Status (A → Z)</option>
+                <option value="status:desc">Status (Z → A)</option>
+              </select>
+            </div>
           </div>
 
           {bookingsQ.isLoading ? (
@@ -324,10 +355,24 @@ function Dashboard() {
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <Th>Serviço</Th>
-                    <Th>Data</Th>
+                    <SortableTh
+                      field="booking_date"
+                      currentSort={sort}
+                      currentDir={dir}
+                      onSort={(f, d) => update({ sort: f, dir: d })}
+                    >
+                      Data
+                    </SortableTh>
                     <Th>Profissional</Th>
                     <Th>Cidade</Th>
-                    <Th>Status</Th>
+                    <SortableTh
+                      field="status"
+                      currentSort={sort}
+                      currentDir={dir}
+                      onSort={(f, d) => update({ sort: f, dir: d })}
+                    >
+                      Status
+                    </SortableTh>
                     <Th className="text-right">Valor</Th>
                     <Th className="text-right">Ações</Th>
                   </tr>
@@ -432,6 +477,38 @@ function Stat({ label, value, loading }: { label: string; value: React.ReactNode
 
 function Th({ children, className }: { children: React.ReactNode; className?: string }) {
   return <th className={`px-3 py-2 font-medium text-xs uppercase tracking-wider text-muted-foreground ${className ?? ""}`}>{children}</th>;
+}
+
+function SortableTh({
+  field,
+  currentSort,
+  currentDir,
+  onSort,
+  children,
+  className,
+}: {
+  field: "booking_date" | "status";
+  currentSort: string;
+  currentDir: "asc" | "desc";
+  onSort: (field: "booking_date" | "status", dir: "asc" | "desc") => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const active = currentSort === field;
+  const nextDir: "asc" | "desc" = active && currentDir === "desc" ? "asc" : "desc";
+  const arrow = active ? (currentDir === "asc" ? " ↑" : " ↓") : "";
+  return (
+    <th className={`px-3 py-2 font-medium text-xs uppercase tracking-wider text-muted-foreground ${className ?? ""}`}>
+      <button
+        type="button"
+        onClick={() => onSort(field, nextDir)}
+        className={`inline-flex items-center gap-1 hover:text-foreground ${active ? "text-foreground" : ""}`}
+      >
+        {children}
+        <span aria-hidden>{arrow}</span>
+      </button>
+    </th>
+  );
 }
 function Td({ children, className }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-3 py-2 ${className ?? ""}`}>{children}</td>;
