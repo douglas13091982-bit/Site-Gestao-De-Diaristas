@@ -14,6 +14,8 @@ const searchSchema = z.object({
   to: fallback(z.string(), "").default(""),
   status: fallback(z.string(), "").default(""),
   professional: fallback(z.string(), "").default(""),
+  page: fallback(z.number().int(), 1).default(1),
+  pageSize: fallback(z.number().int(), 20).default(20),
 });
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -70,6 +72,8 @@ function Dashboard() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const { from, to, status, professional } = search;
+  const page = Math.max(1, search.page);
+  const pageSize = [10, 20, 50, 100].includes(search.pageSize) ? search.pageSize : 20;
   const isProfessional = roles.includes("professional");
   const isAdmin = roles.includes("admin");
 
@@ -108,32 +112,37 @@ function Dashboard() {
       "bookings",
       user?.id,
       isProfessional ? professionalId : "client",
-      { from, to, status },
+      { from, to, status, page, pageSize },
     ],
     enabled: !!user && (!isProfessional || !!professionalId),
     queryFn: async () => {
+      const fromIdx = (page - 1) * pageSize;
+      const toIdx = fromIdx + pageSize - 1;
       let q = supabase
         .from("bookings")
         .select(
           sel(
             "id, service_type, booking_date, start_time, duration_hours, city, status, total_price, payment_status, professional_id, client_user_id",
           ),
+          { count: "exact" },
         )
         .order("booking_date", { ascending: false })
-        .limit(100);
+        .range(fromIdx, toIdx);
       q = isProfessional && professionalId
         ? q.eq("professional_id", professionalId)
         : q.eq("client_user_id", user!.id);
       if (status) q = q.eq("status", status);
       if (from) q = q.gte("booking_date", from);
       if (to) q = q.lte("booking_date", to);
-      const { data, error } = await q.returns<BookingRow[]>();
+      const { data, error, count } = await q.returns<BookingRow[]>();
       if (error) throw error;
-      return data ?? [];
+      return { rows: data ?? [], count: count ?? 0 };
     },
   });
 
-  const rawBookings = bookingsQ.data ?? [];
+  const rawBookings = bookingsQ.data?.rows ?? [];
+  const totalCount = bookingsQ.data?.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const professionalIds = useMemo(
     () =>
@@ -181,11 +190,24 @@ function Dashboard() {
   const activeFilterCount =
     (from ? 1 : 0) + (to ? 1 : 0) + (status ? 1 : 0) + (professional ? 1 : 0);
 
+  // Any filter change resets page to 1 unless the patch already sets page.
   function update(patch: Partial<typeof search>) {
-    navigate({ search: (prev: typeof search) => ({ ...prev, ...patch }) });
+    navigate({
+      search: (prev: typeof search) => ({
+        ...prev,
+        ...patch,
+        page: patch.page ?? 1,
+      }),
+    });
+  }
+  function goToPage(next: number) {
+    const clamped = Math.max(1, Math.min(totalPages, next));
+    navigate({ search: (prev: typeof search) => ({ ...prev, page: clamped }) });
   }
   function reset() {
-    navigate({ search: { from: "", to: "", status: "", professional: "" } });
+    navigate({
+      search: { from: "", to: "", status: "", professional: "", page: 1, pageSize },
+    });
   }
 
   const displayName =
