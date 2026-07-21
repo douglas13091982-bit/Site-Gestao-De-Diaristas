@@ -78,8 +78,7 @@ function QuickBooking() {
       total_price: pkg.price,
       status: "pending",
       payment_status: "pending",
-      client_phone: phone || null,
-      address: address || null,
+      address: [address, phone ? `Tel: ${phone}` : ""].filter(Boolean).join(" — ") || null,
     });
     setSaving(false);
     if (error) { setErrorMsg(error.message); return; }
