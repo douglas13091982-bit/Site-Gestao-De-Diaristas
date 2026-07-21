@@ -14,234 +14,691 @@ export type Database = {
   }
   public: {
     Tables: {
-      loja_entregadores: {
+      app_settings: {
         Row: {
-          ativo: boolean
           created_at: string
-          entregador_id: string
-          id: string
-          loja_id: string
-        }
-        Insert: {
-          ativo?: boolean
-          created_at?: string
-          entregador_id: string
-          id?: string
-          loja_id: string
-        }
-        Update: {
-          ativo?: boolean
-          created_at?: string
-          entregador_id?: string
-          id?: string
-          loja_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "loja_entregadores_loja_id_fkey"
-            columns: ["loja_id"]
-            isOneToOne: false
-            referencedRelation: "lojas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lojas: {
-        Row: {
-          ativa: boolean
-          cidade: string | null
-          created_at: string
-          endereco: string | null
-          estado: string | null
-          horario_funcionamento: Json
-          id: string
-          logo_url: string | null
-          nome: string
-          owner_id: string
-          slug: string
-          taxa_entrega_base: number
-          telefone: string | null
+          id: number
+          setting_group: string
+          setting_key: string
+          setting_label: string | null
+          setting_type: string
+          setting_value: string | null
           updated_at: string
         }
         Insert: {
-          ativa?: boolean
-          cidade?: string | null
           created_at?: string
-          endereco?: string | null
-          estado?: string | null
-          horario_funcionamento?: Json
-          id?: string
-          logo_url?: string | null
-          nome: string
-          owner_id: string
-          slug: string
-          taxa_entrega_base?: number
-          telefone?: string | null
+          id?: number
+          setting_group?: string
+          setting_key: string
+          setting_label?: string | null
+          setting_type?: string
+          setting_value?: string | null
           updated_at?: string
         }
         Update: {
-          ativa?: boolean
-          cidade?: string | null
           created_at?: string
-          endereco?: string | null
-          estado?: string | null
-          horario_funcionamento?: Json
-          id?: string
-          logo_url?: string | null
-          nome?: string
-          owner_id?: string
-          slug?: string
-          taxa_entrega_base?: number
-          telefone?: string | null
+          id?: number
+          setting_group?: string
+          setting_key?: string
+          setting_label?: string | null
+          setting_type?: string
+          setting_value?: string | null
           updated_at?: string
         }
         Relationships: []
       }
-      pedidos: {
+      available_cities: {
         Row: {
-          cidade: string | null
-          cliente_nome: string
-          cliente_telefone: string
-          cliente_user_id: string | null
-          complemento: string | null
           created_at: string
-          endereco_coleta: string | null
-          endereco_entrega: string
-          entregador_id: string | null
-          forma_pagamento: Database["public"]["Enums"]["forma_pagamento"]
-          id: string
-          itens: Json
-          loja_id: string
-          numero: number
-          observacoes: string | null
-          status: Database["public"]["Enums"]["pedido_status"]
-          taxa_entrega: number
-          troco_para: number | null
+          display_order: number
+          id: number
+          is_enabled: boolean
+          name: string
+          slug: string
+          state: string
           updated_at: string
-          valor_produtos: number
-          valor_total: number
         }
         Insert: {
-          cidade?: string | null
-          cliente_nome: string
-          cliente_telefone: string
-          cliente_user_id?: string | null
-          complemento?: string | null
           created_at?: string
-          endereco_coleta?: string | null
-          endereco_entrega: string
-          entregador_id?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
-          id?: string
-          itens?: Json
-          loja_id: string
-          numero?: number
-          observacoes?: string | null
-          status?: Database["public"]["Enums"]["pedido_status"]
-          taxa_entrega?: number
-          troco_para?: number | null
+          display_order?: number
+          id?: number
+          is_enabled?: boolean
+          name: string
+          slug: string
+          state: string
           updated_at?: string
-          valor_produtos?: number
-          valor_total?: number
         }
         Update: {
-          cidade?: string | null
-          cliente_nome?: string
-          cliente_telefone?: string
-          cliente_user_id?: string | null
-          complemento?: string | null
           created_at?: string
-          endereco_coleta?: string | null
-          endereco_entrega?: string
-          entregador_id?: string | null
-          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
-          id?: string
-          itens?: Json
-          loja_id?: string
-          numero?: number
-          observacoes?: string | null
-          status?: Database["public"]["Enums"]["pedido_status"]
-          taxa_entrega?: number
-          troco_para?: number | null
+          display_order?: number
+          id?: number
+          is_enabled?: boolean
+          name?: string
+          slug?: string
+          state?: string
           updated_at?: string
-          valor_produtos?: number
-          valor_total?: number
+        }
+        Relationships: []
+      }
+      blocked_emails: {
+        Row: {
+          blocked_by: string | null
+          created_at: string
+          email: string
+          id: number
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocked_by?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocked_by?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      booking_offers: {
+        Row: {
+          booking_id: number
+          created_at: string
+          id: number
+          notified_at: string | null
+          professional_id: number
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: number
+          created_at?: string
+          id?: number
+          notified_at?: string | null
+          professional_id: number
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: number
+          created_at?: string
+          id?: number
+          notified_at?: string | null
+          professional_id?: number
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "pedidos_loja_id_fkey"
-            columns: ["loja_id"]
+            foreignKeyName: "booking_offers_booking_id_fkey"
+            columns: ["booking_id"]
             isOneToOne: false
-            referencedRelation: "lojas"
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offers_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
             referencedColumns: ["id"]
           },
         ]
+      }
+      bookings: {
+        Row: {
+          address: string | null
+          address_complement: string | null
+          bathrooms: number | null
+          booking_date: string | null
+          booking_type: string
+          city: string | null
+          client_email: string | null
+          client_user_id: string | null
+          created_at: string
+          duration_hours: number | null
+          id: number
+          mp_payment_id: string | null
+          notes: string | null
+          payment_amount: number | null
+          payment_method: string
+          payment_pix_code: string | null
+          payment_status: string
+          professional_id: number | null
+          rooms: number | null
+          service_type: string | null
+          start_time: string | null
+          status: string
+          total_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          address_complement?: string | null
+          bathrooms?: number | null
+          booking_date?: string | null
+          booking_type?: string
+          city?: string | null
+          client_email?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          duration_hours?: number | null
+          id?: number
+          mp_payment_id?: string | null
+          notes?: string | null
+          payment_amount?: number | null
+          payment_method?: string
+          payment_pix_code?: string | null
+          payment_status?: string
+          professional_id?: number | null
+          rooms?: number | null
+          service_type?: string | null
+          start_time?: string | null
+          status?: string
+          total_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          address_complement?: string | null
+          bathrooms?: number | null
+          booking_date?: string | null
+          booking_type?: string
+          city?: string | null
+          client_email?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          duration_hours?: number | null
+          id?: number
+          mp_payment_id?: string | null
+          notes?: string | null
+          payment_amount?: number | null
+          payment_method?: string
+          payment_pix_code?: string | null
+          payment_status?: string
+          professional_id?: number | null
+          rooms?: number | null
+          service_type?: string | null
+          start_time?: string | null
+          status?: string
+          total_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      category_specialties: {
+        Row: {
+          category_id: number
+          created_at: string
+          display_order: number
+          id: number
+          is_enabled: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: number
+          created_at?: string
+          display_order?: number
+          id?: number
+          is_enabled?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: number
+          created_at?: string
+          display_order?: number
+          id?: number
+          is_enabled?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_specialties_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "profession_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_transactions: {
+        Row: {
+          amount: number
+          booking_id: number | null
+          created_at: string
+          description: string | null
+          id: number
+          pix_code: string | null
+          professional_id: number
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: number | null
+          created_at?: string
+          description?: string | null
+          id?: number
+          pix_code?: string | null
+          professional_id: number
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: number | null
+          created_at?: string
+          description?: string | null
+          id?: number
+          pix_code?: string | null
+          professional_id?: number
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_packages: {
+        Row: {
+          created_at: string
+          display_order: number
+          duration_hours: number
+          id: number
+          is_enabled: boolean
+          price: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          duration_hours: number
+          id?: number
+          is_enabled?: boolean
+          price: number
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          duration_hours?: number
+          id?: number
+          is_enabled?: boolean
+          price?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profession_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: number
+          is_enabled: boolean
+          max_hourly_rate: number
+          min_hourly_rate: number
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: number
+          is_enabled?: boolean
+          max_hourly_rate?: number
+          min_hourly_rate?: number
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: number
+          is_enabled?: boolean
+          max_hourly_rate?: number
+          min_hourly_rate?: number
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      professional_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: number
+          is_available: boolean
+          professional_id: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: number
+          is_available?: boolean
+          professional_id: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: number
+          is_available?: boolean
+          professional_id?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_availability_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_blocked_dates: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          id: number
+          professional_id: number
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          id?: number
+          professional_id: number
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          id?: number
+          professional_id?: number
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_blocked_dates_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          auth_user_id: string | null
+          bio: string | null
+          city: string | null
+          cpf: string | null
+          created_at: string
+          credits_balance: number
+          email: string | null
+          experience: string | null
+          hourly_rate: number | null
+          id: number
+          is_available: boolean
+          is_verified: boolean
+          name: string
+          neighborhoods: string | null
+          phone: string | null
+          photo_url: string | null
+          pix_key: string | null
+          profession_category: string
+          rating: number | null
+          regions: string | null
+          specialties: string | null
+          total_bookings: number
+          total_reviews: number
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          bio?: string | null
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          credits_balance?: number
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: number
+          is_available?: boolean
+          is_verified?: boolean
+          name: string
+          neighborhoods?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          pix_key?: string | null
+          profession_category?: string
+          rating?: number | null
+          regions?: string | null
+          specialties?: string | null
+          total_bookings?: number
+          total_reviews?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          bio?: string | null
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          credits_balance?: number
+          email?: string | null
+          experience?: string | null
+          hourly_rate?: number | null
+          id?: number
+          is_available?: boolean
+          is_verified?: boolean
+          name?: string
+          neighborhoods?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          pix_key?: string | null
+          profession_category?: string
+          rating?: number | null
+          regions?: string | null
+          specialties?: string | null
+          total_bookings?: number
+          total_reviews?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
-          avatar_url: string | null
+          address: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          city: string | null
+          cpf: string | null
           created_at: string
-          full_name: string | null
+          email: string | null
           id: string
+          name: string | null
           phone: string | null
+          profile_photo: string | null
+          property_type: string | null
           updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
+          address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
-          full_name?: string | null
+          email?: string | null
           id: string
+          name?: string | null
           phone?: string | null
+          profile_photo?: string | null
+          property_type?: string | null
           updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
+          address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
-          full_name?: string | null
+          email?: string | null
           id?: string
+          name?: string | null
           phone?: string | null
+          profile_photo?: string | null
+          property_type?: string | null
           updated_at?: string
         }
         Relationships: []
       }
-      tarifas_globais: {
+      push_subscriptions: {
         Row: {
-          ativa: boolean
+          auth: string
           created_at: string
-          faixa_km_max: number
-          faixa_km_min: number
-          id: string
-          tipo_veiculo: Database["public"]["Enums"]["tipo_veiculo"]
+          endpoint: string
+          id: number
+          p256dh: string
           updated_at: string
-          valor: number
-          valor_minimo: number
-          valor_por_km: number
+          user_id: string | null
         }
         Insert: {
-          ativa?: boolean
+          auth: string
           created_at?: string
-          faixa_km_max: number
-          faixa_km_min?: number
-          id?: string
-          tipo_veiculo: Database["public"]["Enums"]["tipo_veiculo"]
+          endpoint: string
+          id?: number
+          p256dh: string
           updated_at?: string
-          valor: number
-          valor_minimo?: number
-          valor_por_km?: number
+          user_id?: string | null
         }
         Update: {
-          ativa?: boolean
+          auth?: string
           created_at?: string
-          faixa_km_max?: number
-          faixa_km_min?: number
-          id?: string
-          tipo_veiculo?: Database["public"]["Enums"]["tipo_veiculo"]
+          endpoint?: string
+          id?: number
+          p256dh?: string
           updated_at?: string
-          valor?: number
-          valor_minimo?: number
-          valor_por_km?: number
+          user_id?: string | null
         }
         Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: number | null
+          client_email: string | null
+          client_user_id: string | null
+          comment: string | null
+          created_at: string
+          id: number
+          professional_id: number
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: number | null
+          client_email?: string | null
+          client_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: number
+          professional_id: number
+          rating: number
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: number | null
+          client_email?: string | null
+          client_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: number
+          professional_id?: number
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -269,14 +726,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      buscar_entregador: {
-        Args: { termo: string }
-        Returns: {
-          full_name: string
-          id: string
-          phone: string
-        }[]
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -284,35 +733,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_loja_owner: {
-        Args: { _loja_id: string; _user_id: string }
-        Returns: boolean
-      }
-      listar_entregadores_loja: {
-        Args: { _loja_id: string }
-        Returns: {
-          ativo: boolean
-          created_at: string
-          entregador_id: string
-          full_name: string
-          phone: string
-          vinculo_id: string
-        }[]
-      }
     }
     Enums: {
-      app_role: "super_admin" | "loja_admin" | "entregador" | "cliente"
-      forma_pagamento: "pix" | "dinheiro" | "cartao_credito" | "cartao_debito"
-      pedido_status:
-        | "novo"
-        | "aceito"
-        | "em_preparo"
-        | "pronto"
-        | "em_rota"
-        | "coletado"
-        | "entregue"
-        | "cancelado"
-      tipo_veiculo: "moto" | "carro" | "caminhonete"
+      app_role: "admin" | "professional" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -440,19 +863,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "loja_admin", "entregador", "cliente"],
-      forma_pagamento: ["pix", "dinheiro", "cartao_credito", "cartao_debito"],
-      pedido_status: [
-        "novo",
-        "aceito",
-        "em_preparo",
-        "pronto",
-        "em_rota",
-        "coletado",
-        "entregue",
-        "cancelado",
-      ],
-      tipo_veiculo: ["moto", "carro", "caminhonete"],
+      app_role: ["admin", "professional", "client"],
     },
   },
 } as const
