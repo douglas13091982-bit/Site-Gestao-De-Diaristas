@@ -307,6 +307,7 @@ function Dashboard() {
                     <Th>Cidade</Th>
                     <Th>Status</Th>
                     <Th className="text-right">Valor</Th>
+                    <Th className="text-right">Ações</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,6 +326,15 @@ function Dashboard() {
                         <StatusBadge status={b.status} />
                       </Td>
                       <Td className="text-right">{fmtBRL(Number(b.total_price ?? 0))}</Td>
+                      <Td className="text-right">
+                        <Link
+                          to="/bookings/$bookingId"
+                          params={{ bookingId: String(b.id) }}
+                          className="text-primary hover:underline text-xs font-medium"
+                        >
+                          Ver detalhes
+                        </Link>
+                      </Td>
                     </tr>
                   ))}
                 </tbody>
