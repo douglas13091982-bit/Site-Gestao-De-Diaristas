@@ -1,10 +1,23 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
+const searchSchema = z.object({
+  from: fallback(z.string(), "").default(""),
+  to: fallback(z.string(), "").default(""),
+  status: fallback(z.string(), "").default(""),
+  professional: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Meu painel — Gersepa" },
@@ -26,8 +39,37 @@ function fmtDate(d: string | null | undefined) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
 }
 
+// Cast select strings to plain string to keep supabase-js from parsing
+// them at the type level (keeps typecheck fast on conditional builders).
+const sel = (s: string): string => s;
+
+interface BookingRow {
+  id: number;
+  service_type: string | null;
+  booking_date: string | null;
+  start_time: string | null;
+  duration_hours: number | null;
+  city: string | null;
+  status: string | null;
+  total_price: number | null;
+  payment_status: string | null;
+  professional_id: number | null;
+  client_user_id: string | null;
+}
+
+const STATUS_OPTIONS = [
+  { value: "", label: "Todos" },
+  { value: "pending", label: "Pendente" },
+  { value: "confirmed", label: "Confirmado" },
+  { value: "completed", label: "Concluído" },
+  { value: "cancelled", label: "Cancelado" },
+];
+
 function Dashboard() {
   const { user, roles, signOut } = useAuth();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { from, to, status, professional } = search;
   const isProfessional = roles.includes("professional");
   const isAdmin = roles.includes("admin");
 
@@ -62,28 +104,89 @@ function Dashboard() {
   const professionalId = professionalQ.data?.id;
 
   const bookingsQ = useQuery({
-    queryKey: ["bookings", user?.id, isProfessional ? professionalId : "client"],
+    queryKey: [
+      "bookings",
+      user?.id,
+      isProfessional ? professionalId : "client",
+      { from, to, status },
+    ],
     enabled: !!user && (!isProfessional || !!professionalId),
     queryFn: async () => {
       let q = supabase
         .from("bookings")
-        .select("id, service_type, booking_date, start_time, duration_hours, city, status, total_price, payment_status, professional_id, client_user_id")
+        .select(
+          sel(
+            "id, service_type, booking_date, start_time, duration_hours, city, status, total_price, payment_status, professional_id, client_user_id",
+          ),
+        )
         .order("booking_date", { ascending: false })
-        .limit(20);
+        .limit(100);
       q = isProfessional && professionalId
         ? q.eq("professional_id", professionalId)
         : q.eq("client_user_id", user!.id);
-      const { data, error } = await q;
+      if (status) q = q.eq("status", status);
+      if (from) q = q.gte("booking_date", from);
+      if (to) q = q.lte("booking_date", to);
+      const { data, error } = await q.returns<BookingRow[]>();
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const bookings = bookingsQ.data ?? [];
+  const rawBookings = bookingsQ.data ?? [];
+
+  const professionalIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rawBookings
+            .map((b) => b.professional_id)
+            .filter((id): id is number => id != null),
+        ),
+      ),
+    [rawBookings],
+  );
+
+  const profNamesQ = useQuery({
+    queryKey: ["professional-names", professionalIds],
+    enabled: professionalIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("professionals")
+        .select("id, name")
+        .in("id", professionalIds);
+      if (error) throw error;
+      const map: Record<number, string> = {};
+      for (const row of data ?? []) map[row.id] = row.name ?? "";
+      return map;
+    },
+  });
+
+  const profNames = profNamesQ.data ?? {};
+  const profQuery = professional.trim().toLowerCase();
+
+  const bookings = useMemo(() => {
+    if (!profQuery) return rawBookings;
+    return rawBookings.filter((b) => {
+      const name = b.professional_id ? profNames[b.professional_id] ?? "" : "";
+      return name.toLowerCase().includes(profQuery);
+    });
+  }, [rawBookings, profNames, profQuery]);
+
   const upcoming = bookings.filter((b) => b.status !== "cancelled" && b.booking_date && new Date(b.booking_date) >= new Date(new Date().toDateString())).length;
   const totalSpent = bookings
     .filter((b) => b.payment_status === "paid")
     .reduce((sum, b) => sum + Number(b.total_price ?? 0), 0);
+
+  const activeFilterCount =
+    (from ? 1 : 0) + (to ? 1 : 0) + (status ? 1 : 0) + (professional ? 1 : 0);
+
+  function update(patch: Partial<typeof search>) {
+    navigate({ search: (prev: typeof search) => ({ ...prev, ...patch }) });
+  }
+  function reset() {
+    navigate({ search: { from: "", to: "", status: "", professional: "" } });
+  }
 
   const displayName =
     profileQ.data?.name ??
@@ -130,6 +233,55 @@ function Dashboard() {
             <h2 className="text-xl font-semibold">
               {isProfessional ? "Agendamentos recebidos" : "Meus agendamentos"}
             </h2>
+            {activeFilterCount > 0 ? (
+              <Button size="sm" variant="ghost" onClick={reset}>
+                Limpar filtros ({activeFilterCount})
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-md border border-border p-4">
+            <div className="space-y-1">
+              <Label htmlFor="f-from">Data inicial</Label>
+              <Input
+                id="f-from"
+                type="date"
+                value={from}
+                onChange={(e) => update({ from: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="f-to">Data final</Label>
+              <Input
+                id="f-to"
+                type="date"
+                value={to}
+                onChange={(e) => update({ to: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="f-status">Status</Label>
+              <select
+                id="f-status"
+                value={status}
+                onChange={(e) => update({ status: e.target.value })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {STATUS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="f-prof">Profissional</Label>
+              <Input
+                id="f-prof"
+                placeholder="Buscar por nome..."
+                value={professional}
+                onChange={(e) => update({ professional: e.target.value })}
+                disabled={isProfessional && !isAdmin}
+              />
+            </div>
           </div>
 
           {bookingsQ.isLoading ? (
@@ -140,7 +292,9 @@ function Dashboard() {
             </p>
           ) : bookings.length === 0 ? (
             <div className="rounded-md border border-border p-8 text-center text-sm text-muted-foreground">
-              Nenhum agendamento encontrado.
+              {activeFilterCount > 0
+                ? "Nenhum agendamento corresponde aos filtros aplicados."
+                : "Nenhum agendamento encontrado."}
             </div>
           ) : (
             <div className="rounded-md border border-border overflow-hidden">
@@ -149,6 +303,7 @@ function Dashboard() {
                   <tr>
                     <Th>Serviço</Th>
                     <Th>Data</Th>
+                    <Th>Profissional</Th>
                     <Th>Cidade</Th>
                     <Th>Status</Th>
                     <Th className="text-right">Valor</Th>
@@ -161,6 +316,9 @@ function Dashboard() {
                       <Td>
                         {fmtDate(b.booking_date)}
                         {b.start_time ? ` · ${b.start_time}` : ""}
+                      </Td>
+                      <Td>
+                        {b.professional_id ? profNames[b.professional_id] ?? "…" : "—"}
                       </Td>
                       <Td>{b.city ?? "—"}</Td>
                       <Td>
