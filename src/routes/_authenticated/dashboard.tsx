@@ -318,6 +318,23 @@ function Dashboard() {
                 disabled={isProfessional && !isAdmin}
               />
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="f-sort">Ordenar por</Label>
+              <select
+                id="f-sort"
+                value={`${sort}:${dir}`}
+                onChange={(e) => {
+                  const [nextSort, nextDir] = e.target.value.split(":");
+                  update({ sort: nextSort, dir: nextDir });
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="booking_date:desc">Data (mais recente)</option>
+                <option value="booking_date:asc">Data (mais antiga)</option>
+                <option value="status:asc">Status (A → Z)</option>
+                <option value="status:desc">Status (Z → A)</option>
+              </select>
+            </div>
           </div>
 
           {bookingsQ.isLoading ? (
@@ -338,10 +355,24 @@ function Dashboard() {
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <Th>Serviço</Th>
-                    <Th>Data</Th>
+                    <SortableTh
+                      field="booking_date"
+                      currentSort={sort}
+                      currentDir={dir}
+                      onSort={(f, d) => update({ sort: f, dir: d })}
+                    >
+                      Data
+                    </SortableTh>
                     <Th>Profissional</Th>
                     <Th>Cidade</Th>
-                    <Th>Status</Th>
+                    <SortableTh
+                      field="status"
+                      currentSort={sort}
+                      currentDir={dir}
+                      onSort={(f, d) => update({ sort: f, dir: d })}
+                    >
+                      Status
+                    </SortableTh>
                     <Th className="text-right">Valor</Th>
                     <Th className="text-right">Ações</Th>
                   </tr>
