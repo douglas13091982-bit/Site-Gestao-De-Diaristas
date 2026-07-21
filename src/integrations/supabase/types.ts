@@ -14,143 +14,40 @@ export type Database = {
   }
   public: {
     Tables: {
-      app_settings: {
+      availability: {
         Row: {
           created_at: string
-          id: number
-          setting_group: string
-          setting_key: string
-          setting_label: string | null
-          setting_type: string
-          setting_value: string | null
-          updated_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          worker_id: string
         }
         Insert: {
           created_at?: string
-          id?: number
-          setting_group?: string
-          setting_key: string
-          setting_label?: string | null
-          setting_type?: string
-          setting_value?: string | null
-          updated_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          worker_id: string
         }
         Update: {
           created_at?: string
-          id?: number
-          setting_group?: string
-          setting_key?: string
-          setting_label?: string | null
-          setting_type?: string
-          setting_value?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      available_cities: {
-        Row: {
-          created_at: string
-          display_order: number
-          id: number
-          is_enabled: boolean
-          name: string
-          slug: string
-          state: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          id?: number
-          is_enabled?: boolean
-          name: string
-          slug: string
-          state: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          id?: number
-          is_enabled?: boolean
-          name?: string
-          slug?: string
-          state?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      blocked_emails: {
-        Row: {
-          blocked_by: string | null
-          created_at: string
-          email: string
-          id: number
-          reason: string | null
-          updated_at: string
-        }
-        Insert: {
-          blocked_by?: string | null
-          created_at?: string
-          email: string
-          id?: number
-          reason?: string | null
-          updated_at?: string
-        }
-        Update: {
-          blocked_by?: string | null
-          created_at?: string
-          email?: string
-          id?: number
-          reason?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      booking_offers: {
-        Row: {
-          booking_id: number
-          created_at: string
-          id: number
-          notified_at: string | null
-          professional_id: number
-          responded_at: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          booking_id: number
-          created_at?: string
-          id?: number
-          notified_at?: string | null
-          professional_id: number
-          responded_at?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          booking_id?: number
-          created_at?: string
-          id?: number
-          notified_at?: string | null
-          professional_id?: number
-          responded_at?: string | null
-          status?: string
-          updated_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          worker_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "booking_offers_booking_id_fkey"
-            columns: ["booking_id"]
+            foreignKeyName: "availability_worker_id_fkey"
+            columns: ["worker_id"]
             isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "booking_offers_professional_id_fkey"
-            columns: ["professional_id"]
-            isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -158,530 +55,230 @@ export type Database = {
       bookings: {
         Row: {
           address: string | null
-          address_complement: string | null
-          bathrooms: number | null
-          booking_date: string | null
-          booking_type: string
-          city: string | null
-          client_email: string | null
-          client_user_id: string | null
+          cancellation_reason: string | null
+          cancelled_by: string | null
+          checkin_at: string | null
+          checkin_lat: number | null
+          checkin_lng: number | null
+          checkout_at: string | null
+          client_id: string
           created_at: string
-          duration_hours: number | null
-          id: number
-          mp_payment_id: string | null
+          duration_min: number
+          id: string
+          lat: number | null
+          lng: number | null
           notes: string | null
-          payment_amount: number | null
-          payment_method: string
-          payment_pix_code: string | null
-          payment_status: string
-          professional_id: number | null
-          rooms: number | null
-          service_type: string | null
-          start_time: string | null
-          status: string
-          total_price: number | null
+          platform_fee: number
+          scheduled_at: string
+          service_id: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          total_price: number
           updated_at: string
+          worker_id: string
+          worker_payout: number
         }
         Insert: {
           address?: string | null
-          address_complement?: string | null
-          bathrooms?: number | null
-          booking_date?: string | null
-          booking_type?: string
-          city?: string | null
-          client_email?: string | null
-          client_user_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
+          checkin_at?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkout_at?: string | null
+          client_id: string
           created_at?: string
-          duration_hours?: number | null
-          id?: number
-          mp_payment_id?: string | null
+          duration_min?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
           notes?: string | null
-          payment_amount?: number | null
-          payment_method?: string
-          payment_pix_code?: string | null
-          payment_status?: string
-          professional_id?: number | null
-          rooms?: number | null
-          service_type?: string | null
-          start_time?: string | null
-          status?: string
-          total_price?: number | null
+          platform_fee?: number
+          scheduled_at: string
+          service_id?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price?: number
           updated_at?: string
+          worker_id: string
+          worker_payout?: number
         }
         Update: {
           address?: string | null
-          address_complement?: string | null
-          bathrooms?: number | null
-          booking_date?: string | null
-          booking_type?: string
-          city?: string | null
-          client_email?: string | null
-          client_user_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
+          checkin_at?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkout_at?: string | null
+          client_id?: string
           created_at?: string
-          duration_hours?: number | null
-          id?: number
-          mp_payment_id?: string | null
+          duration_min?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
           notes?: string | null
-          payment_amount?: number | null
-          payment_method?: string
-          payment_pix_code?: string | null
-          payment_status?: string
-          professional_id?: number | null
-          rooms?: number | null
-          service_type?: string | null
-          start_time?: string | null
-          status?: string
-          total_price?: number | null
+          platform_fee?: number
+          scheduled_at?: string
+          service_id?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price?: number
           updated_at?: string
+          worker_id?: string
+          worker_payout?: number
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_professional_id_fkey"
-            columns: ["professional_id"]
+            foreignKeyName: "bookings_cancelled_by_fkey"
+            columns: ["cancelled_by"]
             isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      category_specialties: {
+      notifications: {
         Row: {
-          category_id: number
+          body: string | null
           created_at: string
-          display_order: number
-          id: number
-          is_enabled: boolean
-          name: string
-          updated_at: string
+          data: Json | null
+          id: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
         }
         Insert: {
-          category_id: number
+          body?: string | null
           created_at?: string
-          display_order?: number
-          id?: number
-          is_enabled?: boolean
-          name: string
-          updated_at?: string
+          data?: Json | null
+          id?: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
         }
         Update: {
-          category_id?: number
+          body?: string | null
           created_at?: string
-          display_order?: number
-          id?: number
-          is_enabled?: boolean
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "category_specialties_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "profession_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      credit_transactions: {
-        Row: {
-          amount: number
-          booking_id: number | null
-          created_at: string
-          description: string | null
-          id: number
-          pix_code: string | null
-          professional_id: number
-          status: string
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          booking_id?: number | null
-          created_at?: string
-          description?: string | null
-          id?: number
-          pix_code?: string | null
-          professional_id: number
-          status?: string
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          booking_id?: number | null
-          created_at?: string
-          description?: string | null
-          id?: number
-          pix_code?: string | null
-          professional_id?: number
-          status?: string
+          data?: Json | null
+          id?: string
+          read_at?: string | null
+          title?: string
           type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credit_transactions_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "credit_transactions_professional_id_fkey"
-            columns: ["professional_id"]
-            isOneToOne: false
-            referencedRelation: "professionals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pricing_packages: {
-        Row: {
-          created_at: string
-          display_order: number
-          duration_hours: number
-          id: number
-          is_enabled: boolean
-          price: number
-          start_time: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          duration_hours: number
-          id?: number
-          is_enabled?: boolean
-          price: number
-          start_time?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          duration_hours?: number
-          id?: number
-          is_enabled?: boolean
-          price?: number
-          start_time?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profession_categories: {
-        Row: {
-          created_at: string
-          description: string | null
-          display_order: number
-          icon: string | null
-          id: number
-          is_enabled: boolean
-          max_hourly_rate: number
-          min_hourly_rate: number
-          name: string
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          icon?: string | null
-          id?: number
-          is_enabled?: boolean
-          max_hourly_rate?: number
-          min_hourly_rate?: number
-          name: string
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          icon?: string | null
-          id?: number
-          is_enabled?: boolean
-          max_hourly_rate?: number
-          min_hourly_rate?: number
-          name?: string
-          slug?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      professional_availability: {
-        Row: {
-          created_at: string
-          day_of_week: number
-          end_time: string
-          id: number
-          is_available: boolean
-          professional_id: number
-          start_time: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          day_of_week: number
-          end_time: string
-          id?: number
-          is_available?: boolean
-          professional_id: number
-          start_time: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          day_of_week?: number
-          end_time?: string
-          id?: number
-          is_available?: boolean
-          professional_id?: number
-          start_time?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "professional_availability_professional_id_fkey"
-            columns: ["professional_id"]
-            isOneToOne: false
-            referencedRelation: "professionals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      professional_blocked_dates: {
-        Row: {
-          blocked_date: string
-          created_at: string
-          id: number
-          professional_id: number
-          reason: string | null
-          updated_at: string
-        }
-        Insert: {
-          blocked_date: string
-          created_at?: string
-          id?: number
-          professional_id: number
-          reason?: string | null
-          updated_at?: string
-        }
-        Update: {
-          blocked_date?: string
-          created_at?: string
-          id?: number
-          professional_id?: number
-          reason?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "professional_blocked_dates_professional_id_fkey"
-            columns: ["professional_id"]
-            isOneToOne: false
-            referencedRelation: "professionals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      professionals: {
-        Row: {
-          auth_user_id: string | null
-          bio: string | null
-          city: string | null
-          cpf: string | null
-          created_at: string
-          credits_balance: number
-          email: string | null
-          experience: string | null
-          hourly_rate: number | null
-          id: number
-          is_available: boolean
-          is_verified: boolean
-          name: string
-          neighborhoods: string | null
-          phone: string | null
-          photo_url: string | null
-          pix_key: string | null
-          profession_category: string
-          rating: number | null
-          regions: string | null
-          specialties: string | null
-          total_bookings: number
-          total_reviews: number
-          updated_at: string
-        }
-        Insert: {
-          auth_user_id?: string | null
-          bio?: string | null
-          city?: string | null
-          cpf?: string | null
-          created_at?: string
-          credits_balance?: number
-          email?: string | null
-          experience?: string | null
-          hourly_rate?: number | null
-          id?: number
-          is_available?: boolean
-          is_verified?: boolean
-          name: string
-          neighborhoods?: string | null
-          phone?: string | null
-          photo_url?: string | null
-          pix_key?: string | null
-          profession_category?: string
-          rating?: number | null
-          regions?: string | null
-          specialties?: string | null
-          total_bookings?: number
-          total_reviews?: number
-          updated_at?: string
-        }
-        Update: {
-          auth_user_id?: string | null
-          bio?: string | null
-          city?: string | null
-          cpf?: string | null
-          created_at?: string
-          credits_balance?: number
-          email?: string | null
-          experience?: string | null
-          hourly_rate?: number | null
-          id?: number
-          is_available?: boolean
-          is_verified?: boolean
-          name?: string
-          neighborhoods?: string | null
-          phone?: string | null
-          photo_url?: string | null
-          pix_key?: string | null
-          profession_category?: string
-          rating?: number | null
-          regions?: string | null
-          specialties?: string | null
-          total_bookings?: number
-          total_reviews?: number
-          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
           address: string | null
-          address_complement: string | null
-          address_neighborhood: string | null
-          address_number: string | null
+          avatar_url: string | null
+          bio: string | null
           city: string | null
-          cpf: string | null
           created_at: string
           email: string | null
+          full_name: string | null
           id: string
-          name: string | null
+          is_verified: boolean | null
+          lat: number | null
+          lng: number | null
+          onboarding_completed: boolean | null
           phone: string | null
-          profile_photo: string | null
-          property_type: string | null
+          rating_avg: number | null
+          rating_count: number | null
+          service_radius_km: number | null
+          state: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
-          address_complement?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           city?: string | null
-          cpf?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id: string
-          name?: string | null
+          is_verified?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          onboarding_completed?: boolean | null
           phone?: string | null
-          profile_photo?: string | null
-          property_type?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          service_radius_km?: number | null
+          state?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
-          address_complement?: string | null
-          address_neighborhood?: string | null
-          address_number?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           city?: string | null
-          cpf?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id?: string
-          name?: string | null
+          is_verified?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          onboarding_completed?: boolean | null
           phone?: string | null
-          profile_photo?: string | null
-          property_type?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          service_radius_km?: number | null
+          state?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      push_subscriptions: {
-        Row: {
-          auth: string
-          created_at: string
-          endpoint: string
-          id: number
-          p256dh: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          auth: string
-          created_at?: string
-          endpoint: string
-          id?: number
-          p256dh: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          auth?: string
-          created_at?: string
-          endpoint?: string
-          id?: number
-          p256dh?: string
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: []
       }
       reviews: {
         Row: {
-          booking_id: number | null
-          client_email: string | null
-          client_user_id: string | null
+          booking_id: string
           comment: string | null
           created_at: string
-          id: number
-          professional_id: number
+          id: string
           rating: number
-          updated_at: string
+          reviewee_id: string
+          reviewer_id: string
         }
         Insert: {
-          booking_id?: number | null
-          client_email?: string | null
-          client_user_id?: string | null
+          booking_id: string
           comment?: string | null
           created_at?: string
-          id?: number
-          professional_id: number
+          id?: string
           rating: number
-          updated_at?: string
+          reviewee_id: string
+          reviewer_id: string
         }
         Update: {
-          booking_id?: number | null
-          client_email?: string | null
-          client_user_id?: string | null
+          booking_id?: string
           comment?: string | null
           created_at?: string
-          id?: number
-          professional_id?: number
+          id?: string
           rating?: number
-          updated_at?: string
+          reviewee_id?: string
+          reviewer_id?: string
         }
         Relationships: [
           {
@@ -692,10 +289,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reviews_professional_id_fkey"
-            columns: ["professional_id"]
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
             isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          base_price: number
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          provider: string
+          provider_ref: string | null
+          raw_payload: Json | null
+          refunded_at: string | null
+          released_at: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          raw_payload?: Json | null
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          raw_payload?: Json | null
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -735,7 +436,20 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "professional" | "client"
+      app_role: "admin" | "worker" | "client"
+      booking_status:
+        | "requested"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "reviewed"
+        | "cancelled"
+      transaction_status:
+        | "pending"
+        | "paid"
+        | "released"
+        | "refunded"
+        | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -863,7 +577,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "professional", "client"],
+      app_role: ["admin", "worker", "client"],
+      booking_status: [
+        "requested",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "reviewed",
+        "cancelled",
+      ],
+      transaction_status: ["pending", "paid", "released", "refunded", "failed"],
     },
   },
 } as const

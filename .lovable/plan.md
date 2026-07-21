@@ -1,74 +1,87 @@
+## BabyClean — Reconstrução do zero
 
-## Escopo real do que foi enviado
+Você escolheu "começar do zero". Vou apagar o projeto Gersepa atual e reconstruir como BabyClean, marketplace de diaristas com pagamentos via Mercado Pago.
 
-O zip `V_23._NOVO_MODELO_agendamendo_rapido_01.zip` é um app **Mocha** completo de agendamento de faxineiras/prestadores, com:
+**Aviso de escopo:** o spec cobre ~30 features (geo, escrow, disputas, seguro, auditoria, PWA, WhatsApp API, SendGrid, admin completo). Isso é trabalho de dezenas de turnos. Vou entregar em fases; cada fase deixa o preview funcional. Esta primeira fase entrega o esqueleto sólido.
 
-- **18 páginas React** (~18.500 linhas) usando `react-router 7`
-- **1 Cloudflare Worker Hono** (`src/worker/index.ts`, ~5.200 linhas) com dezenas de endpoints REST
-- **37 migrations SQLite/D1** (~27 KB de SQL)
-- **Auth `@getmocha/users-service`** (serviço proprietário Mocha, não replicável no Lovable)
-- **Tailwind v3 + shadcn/radix**, ícones Lucide
+---
 
-Portar isso 1-para-1 é um trabalho **muito grande** (múltiplas dezenas de créditos + várias horas de iteração). Não dá pra fazer num único turno sem quebrar o preview no meio. Vou executar em fases entregáveis, cada uma deixando o preview funcional.
+### Fase 1 (agora) — Fundação + Rebrand + Onboarding + Agenda + Busca
 
-## Diferenças críticas que forçam reescrita (não é copiar/colar)
+#### 1.1 Limpeza
+- Remover: `src/routes/index.tsx`, `_authenticated/dashboard.tsx`, `_authenticated/bookings.$bookingId.tsx`, `cities.tsx`, `professionals.tsx`, `quick-booking.tsx`, `auth.tsx`.
+- Manter: `__root.tsx`, `_authenticated/route.tsx`, `use-auth.tsx`, integrações Supabase, error boundary.
 
-| Origem (Mocha) | Destino (Lovable) |
-|---|---|
-| `react-router 7` (`<Routes>`) | `src/routes/*.tsx` com `createFileRoute` |
-| Hono no Worker (`app.get('/api/...')`) | `createServerFn` (app-interno) + `src/routes/api/*` (webhooks) |
-| D1 SQLite | Supabase Postgres (dialeto diferente: `AUTOINCREMENT`, `DATETIME`, `INTEGER PRIMARY KEY`, sem `gen_random_uuid()`, etc.) |
-| `@getmocha/users-service` | Supabase Auth (email/senha + Google) |
-| `env.DB.prepare(...)` | `supabase.from(...)` / RPC / RLS |
-| Sem RLS | RLS obrigatório em toda tabela `public` |
-| `wrangler.json` / Worker | Descartado |
+#### 1.2 Schema Supabase (migration única, com sua aprovação)
+Reset do schema `public` e recriação:
 
-## Plano em 5 fases
+```text
+profiles       (id→auth.users, role, full_name, avatar_url, phone, bio,
+                city, state, address, lat, lng, service_radius_km,
+                rating_avg, rating_count, is_verified)
+services       (id, worker_id→profiles, title, description, base_price,
+                duration_min, is_active)
+availability   (id, worker_id, day_of_week 0-6, start_time, end_time,
+                is_active)
+bookings       (id, client_id, worker_id, service_id, scheduled_at,
+                duration_min, address, lat, lng, status, total_price,
+                platform_fee, worker_payout, notes,
+                checkin_at, checkout_at, checkin_lat, checkin_lng)
+transactions   (id, booking_id, provider='mercadopago', provider_ref,
+                amount, status, paid_at, released_at, refunded_at)
+reviews        (id, booking_id, reviewer_id, reviewee_id, rating 1-5,
+                comment, created_at)
+notifications  (id, user_id, type, title, body, data jsonb, read_at)
+user_roles     (id, user_id, role enum: admin|worker|client)
+```
 
-### Fase 1 — Fundação e schema (esta fase)
-1. Extrair o zip pra `/tmp/v23` e analisar todas as 37 migrations + `shared/types.ts`.
-2. Consolidar num **único SQL Supabase**: tabelas → GRANTs → RLS → policies → triggers `updated_at`. Converter tipos SQLite → Postgres (`INTEGER PK AUTOINCREMENT` → `uuid` + `gen_random_uuid()`, `DATETIME DEFAULT CURRENT_TIMESTAMP` → `timestamptz`, `TEXT` → `text`, etc.).
-3. Substituir user IDs de texto pelo `auth.users(id)` (uuid). Criar `profiles` + `user_roles` (enum `app_role`: `admin | professional | client`) + função `has_role`.
-4. Aplicar via `supabase--migration` (uma execução, com sua aprovação).
-5. Recompilar tipos e limpar `src/features/*` do app anterior que não serve mais.
+- Enum `booking_status`: requested → confirmed → in_progress → completed → reviewed | cancelled.
+- Função `has_role(uuid, app_role)` SECURITY DEFINER (já existe, reaproveito).
+- RLS em tudo: cliente vê o próprio; profissional vê próprio + bookings onde é worker; admin via `has_role`.
+- Trigger `handle_new_user` cria profile + role padrão `client`.
+- GRANTs conforme regra (authenticated + service_role; anon apenas em `services`/`profiles` públicos de workers verificados).
+- Trigger `updated_at`.
+- Índices em `bookings(worker_id, scheduled_at)`, `profiles(city, role)`, `availability(worker_id, day_of_week)`.
 
-### Fase 2 — Auth e shell
-1. `src/routes/__root.tsx` com header/nav baseado em sessão.
-2. `src/routes/index.tsx` (Home pública) + `src/routes/auth.tsx` (login/cadastro email+senha + Google) + `src/routes/auth-callback.tsx`.
-3. Camada `_authenticated/` (já gerenciada pelo template).
-4. Camada `_authenticated/_admin/` e `_authenticated/_professional/` para RBAC.
+#### 1.3 Rebrand BabyClean
+- `src/styles.css`: paleta azul suave (#3b82f6) + verde menta (#10b981) + branco; tipografia Inter via Google Fonts no `__root.tsx`.
+- `__root.tsx`: título "BabyClean — Diaristas verificadas", meta, favicon.
+- Novo `Header` compartilhado (nav + login/painel/sair).
 
-### Fase 3 — Rotas públicas + backend leitura
-- `/`, `/about`, `/contact`, `/cities`, `/cities/$city`, `/professionals`, `/professionals/$id`, `/quick-booking` (a "novidade" do V23).
-- `createServerFn` públicos com client publishable pra leitura de cidades/profissionais.
-- `head()` com SEO próprio por rota.
+#### 1.4 Rotas públicas
+- `/` — landing (hero azul/menta, como funciona, cidades, CTA cadastro cliente/profissional).
+- `/auth` — login/cadastro **com escolha de role** (Cliente ou Profissional) no signup. Google + email.
+- `/professionals` — busca com filtros na URL: cidade, preço máx, nota mín, data (Zod `validateSearch`, TanStack Query, paginação).
+- `/professionals/$id` — perfil público: bio, serviços, agenda, reviews, botão "Agendar" (redireciona para `/auth` se guest).
 
-### Fase 4 — Rotas autenticadas + backend escrita
-- Cliente: `/my-bookings`, `/booking`, `/profile`, `/add-credits`.
-- Profissional: `/professional/dashboard`, `/become-cleaner`, `/professional/profile`.
-- Admin: `/admin/dashboard`.
-- `createServerFn` autenticados (`requireSupabaseAuth`) pra bookings/mensagens/perfil.
-- Traduzir cada endpoint Hono do worker em uma server function equivalente.
+#### 1.5 Rotas autenticadas
+- `_authenticated/onboarding.tsx` — completa perfil pós-signup (nome, telefone, cidade, endereço; se worker: bio, raio, verificação pendente).
+- `_authenticated/dashboard.tsx` — split por role (cliente vê próximos serviços; worker vê solicitações + agenda; admin vê KPIs simples).
+- `_authenticated/schedule.tsx` (worker) — CRUD de `availability` (grid dia da semana × horário) e `services` (título, preço, duração).
+- `_authenticated/bookings.tsx` — lista de agendamentos do usuário (filtros + status).
 
-### Fase 5 — Pagamentos, push, polish
-- Endpoints de crédito/pagamento (se houver provedor definido; Mercado Pago já tem integração no projeto anterior — decidir se reaproveita ou parte do zero).
-- Web push (`web-push`) como `src/routes/api/public/send-push.ts`.
-- Testes manuais do preview em cada fluxo, SEO/head, ajustes de estilo.
+#### 1.6 Server functions (createServerFn + requireSupabaseAuth)
+- `searchProfessionals` (público)
+- `getProfessional` (público)
+- `saveAvailability`, `saveService` (worker)
+- `createBooking` (client) — valida conflito com availability + bookings existentes
+- `updateBookingStatus` (worker/admin)
 
-## Detalhes técnicos
+---
 
-- **Nada** do `src/worker/`, `wrangler.json`, `tsconfig.worker.json`, `@getmocha/*`, `hono`, `react-router` vai pro projeto final.
-- **`migrations/*.sql`** viram **um** arquivo consolidado convertido para Postgres, não são aplicadas uma a uma.
-- `src/shared/types.ts` (Zod schemas) é reaproveitável quase inteiro em `src/lib/validation/`.
-- Componentes `radix-ui` + Tailwind viram shadcn (já presente no template).
-- Lovable AI Gateway substitui qualquer IA que o app original chamasse (se aplicável).
-- `wrangler.json` do Lovable atual permanece; deploy é Cloudflare Workers via TanStack Start.
+### Fases futuras (não entram nesta rodada)
 
-## O que preciso confirmar antes de começar
+- **Fase 2** — Mercado Pago Checkout + webhook `/api/public/webhooks/mercadopago` + escrow (release 24h após checkout).
+- **Fase 3** — Google Maps (autocomplete endereço + Distance Matrix para raio de atendimento + check-in georreferenciado).
+- **Fase 4** — Sistema de avaliação 360°, notificações in-app (bell) e push (web-push já configurado).
+- **Fase 5** — Painel admin completo (moderação, disputas com chat, exportação CSV/PDF, logs de auditoria).
+- **Fase 6** — WhatsApp Business API, SendGrid, PWA offline, otimizações CDN.
 
-1. **Confirmação de escopo/custo**: isso vai gastar créditos significativos e levar múltiplos turnos. OK prosseguir?
-2. **Papéis de usuário**: mantenho `admin`, `professional`, `client` como no original?
-3. **Pagamentos**: reaproveito a integração Mercado Pago do projeto anterior (que ainda está parcialmente no repo), uso Stripe, ou pulo pagamentos nesta primeira versão?
-4. **Push notifications** entram na v1 ou ficam pra depois?
+---
 
-Assim que você aprovar o plano e responder essas 4, começo pela **Fase 1** (schema + migration única).
+### Antes de começar preciso confirmar
+
+1. **Mercado Pago agora?** Não. Fica na Fase 2. Nesta fase o botão "Agendar" cria o booking com status `requested` sem cobrar.
+2. **Preciso da sua credencial Mercado Pago (`MERCADOPAGO_ACCESS_TOKEN`) só quando chegarmos na Fase 2** — não peço agora.
+
+Se aprovar o plano, executo Fase 1 completa (migration + código) no próximo turno.
