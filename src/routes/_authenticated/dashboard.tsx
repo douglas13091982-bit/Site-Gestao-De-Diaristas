@@ -235,7 +235,7 @@ function Dashboard() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label={isProfessional ? "Agendamentos recebidos" : "Meus agendamentos"} value={bookings.length} loading={bookingsQ.isLoading} />
+          <Stat label={isProfessional ? "Agendamentos recebidos" : "Meus agendamentos"} value={totalCount} loading={bookingsQ.isLoading} />
           <Stat label="Próximos" value={upcoming} loading={bookingsQ.isLoading} />
           {isProfessional ? (
             <>
