@@ -41,45 +41,50 @@
 :root {
   --radius: 0.5rem;
 
-  /* ROTA 66 brand — alinhado à tela de entrada (navy profundo + vermelho vibrante) */
-  --rota-red: oklch(0.55 0.26 25);          /* vermelho intenso, menos rosa */
-  --rota-red-dark: oklch(0.45 0.24 25);
-  --rota-navy: #0f304d;                        /* navy principal #0f304d */
-  --rota-navy-light: #164060;                   /* navy mais claro p/ cards */
-  --rota-navy-deep: #0c2538;                    /* navy mais escuro p/ contraste */
-  --rota-dark: #081929;
-  --rota-gold: oklch(0.78 0.16 75);
+  /* Gersepa — sage & cream palette (limpeza, frescor, confiança) */
+  --brand-sage: oklch(0.55 0.09 155);
+  --brand-sage-deep: oklch(0.42 0.10 155);
+  --brand-cream: #faf7f2;
+  --brand-ink: #1a2321;
+  --brand-gold: oklch(0.78 0.13 80);
+  --rota-red: oklch(0.60 0.20 25);
+  --rota-gold: var(--brand-gold);
+  --rota-navy: #1a2321;
 
-  --background: var(--rota-navy);
-  --foreground: oklch(0.97 0 0);
-  --card: var(--rota-navy-light);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: var(--rota-navy-light);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: var(--rota-red);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.28 0.06 265);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.26 0.05 265);
-  --muted-foreground: oklch(0.70 0.03 260);
-  --accent: var(--rota-red);
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.55 0.26 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.32 0.06 265);
-  --input: oklch(0.30 0.05 265);
-  --ring: var(--rota-red);
-  --gold: var(--rota-gold);
-  --navy: var(--rota-navy);
+  --background: var(--brand-cream);
+  --foreground: var(--brand-ink);
+  --card: #ffffff;
+  --card-foreground: var(--brand-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-ink);
+  --primary: var(--brand-sage);
+  --primary-foreground: #ffffff;
+  --secondary: #eef1ea;
+  --secondary-foreground: var(--brand-ink);
+  --muted: #f1ede5;
+  --muted-foreground: oklch(0.45 0.02 150);
+  --accent: var(--brand-gold);
+  --accent-foreground: #1a1305;
+  --destructive: oklch(0.60 0.20 25);
+  --destructive-foreground: #ffffff;
+  --border: #e6e1d6;
+  --input: #e6e1d6;
+  --ring: var(--brand-sage);
+  --gold: var(--brand-gold);
+  --navy: var(--brand-ink);
 
-  --font-display: 'Bebas Neue', 'Barlow', sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
 
-  --gradient-hero: linear-gradient(180deg, var(--rota-navy-deep) 0%, var(--rota-navy) 60%, oklch(0.55 0.26 25 / 0.35) 100%);
-  --gradient-red: linear-gradient(135deg, oklch(0.62 0.26 25) 0%, oklch(0.45 0.24 25) 100%);
-  --shadow-red: 0 10px 40px -10px oklch(0.55 0.26 25 / 0.55);
-  --shadow-card: 0 8px 30px -10px oklch(0.10 0.04 265 / 0.7);
+  --gradient-hero: linear-gradient(135deg, oklch(0.55 0.09 155 / 0.10), oklch(0.78 0.13 80 / 0.10));
+  --gradient-brand: linear-gradient(135deg, var(--brand-sage) 0%, var(--brand-sage-deep) 100%);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px -12px rgb(0 0 0 / 0.15);
+  --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.06), 0 24px 60px -24px rgb(0 0 0 / 0.20);
+  --shadow-red: var(--shadow-elevated);
 }
+
+body { font-family: var(--font-body); }
+h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 
 /* ===========================================================
    CATÁLOGO — Premium Edition
