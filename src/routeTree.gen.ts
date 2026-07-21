@@ -9,73 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ApiPublicPwaIconDotpngRouteImport } from './routes/api/public/pwa-icon[.]png'
-import { Route as ApiPublicManifestDotwebmanifestRouteImport } from './routes/api/public/manifest[.]webmanifest'
 
-const ApiPublicPwaIconDotpngRoute = ApiPublicPwaIconDotpngRouteImport.update({
-  id: '/api/public/pwa-icon.png',
-  path: '/api/public/pwa-icon.png',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicManifestDotwebmanifestRoute =
-  ApiPublicManifestDotwebmanifestRouteImport.update({
-    id: '/api/public/manifest.webmanifest',
-    path: '/api/public/manifest.webmanifest',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-
-export interface FileRoutesByFullPath {
-  '/api/public/manifest.webmanifest': typeof ApiPublicManifestDotwebmanifestRoute
-  '/api/public/pwa-icon.png': typeof ApiPublicPwaIconDotpngRoute
-}
-export interface FileRoutesByTo {
-  '/api/public/manifest.webmanifest': typeof ApiPublicManifestDotwebmanifestRoute
-  '/api/public/pwa-icon.png': typeof ApiPublicPwaIconDotpngRoute
-}
+export interface FileRoutesByFullPath {}
+export interface FileRoutesByTo {}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/api/public/manifest.webmanifest': typeof ApiPublicManifestDotwebmanifestRoute
-  '/api/public/pwa-icon.png': typeof ApiPublicPwaIconDotpngRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/api/public/manifest.webmanifest' | '/api/public/pwa-icon.png'
+  fullPaths: never
   fileRoutesByTo: FileRoutesByTo
-  to: '/api/public/manifest.webmanifest' | '/api/public/pwa-icon.png'
-  id:
-    | '__root__'
-    | '/api/public/manifest.webmanifest'
-    | '/api/public/pwa-icon.png'
+  to: never
+  id: '__root__'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {
-  ApiPublicManifestDotwebmanifestRoute: typeof ApiPublicManifestDotwebmanifestRoute
-  ApiPublicPwaIconDotpngRoute: typeof ApiPublicPwaIconDotpngRoute
-}
+export interface RootRouteChildren {}
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/api/public/pwa-icon.png': {
-      id: '/api/public/pwa-icon.png'
-      path: '/api/public/pwa-icon.png'
-      fullPath: '/api/public/pwa-icon.png'
-      preLoaderRoute: typeof ApiPublicPwaIconDotpngRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/manifest.webmanifest': {
-      id: '/api/public/manifest.webmanifest'
-      path: '/api/public/manifest.webmanifest'
-      fullPath: '/api/public/manifest.webmanifest'
-      preLoaderRoute: typeof ApiPublicManifestDotwebmanifestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
+  interface FileRoutesByPath {}
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  ApiPublicManifestDotwebmanifestRoute: ApiPublicManifestDotwebmanifestRoute,
-  ApiPublicPwaIconDotpngRoute: ApiPublicPwaIconDotpngRoute,
-}
+const rootRouteChildren: RootRouteChildren = {}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
