@@ -1,144 +1,119 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Star, MapPin } from "lucide-react";
 
-const searchSchema = z.object({
-  city: fallback(z.string(), "").default(""),
-  q: fallback(z.string(), "").default(""),
+const search = z.object({
+  city: z.string().optional(),
+  minRating: z.coerce.number().min(0).max(5).optional(),
 });
 
 export const Route = createFileRoute("/professionals")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Profissionais — Gersepa Solutions" },
-      { name: "description", content: "Encontre diaristas e profissionais verificados em Santa Catarina." },
-      { property: "og:title", content: "Profissionais — Gersepa Solutions" },
-      { property: "og:description", content: "Diaristas verificados em Santa Catarina." },
+      { title: "Diaristas verificadas — BabyClean" },
+      { name: "description", content: "Busque diaristas por cidade, nota e disponibilidade." },
+      { property: "og:title", content: "Diaristas — BabyClean" },
+      { property: "og:description", content: "Encontre a diarista ideal na sua região." },
     ],
   }),
   component: ProfessionalsPage,
 });
 
 function ProfessionalsPage() {
-  const { city, q } = Route.useSearch();
-  const navigate = Route.useNavigate();
+  const s = Route.useSearch();
+  const nav = Route.useNavigate();
 
-  const listQ = useQuery({
-    queryKey: ["professionals-public", city],
+  const q = useQuery({
+    queryKey: ["pros", s.city ?? "", s.minRating ?? 0],
     queryFn: async () => {
-      let req = supabase
-        .from("professionals")
-        .select("id, name, city, bio, photo_url, hourly_rate, rating, total_reviews, is_verified, profession_category, specialties")
-        .eq("is_available", true)
-        .order("rating", { ascending: false })
+      let qb = supabase
+        .from("profiles")
+        .select("id, full_name, city, state, bio, rating_avg, rating_count, avatar_url")
+        .eq("is_verified", true)
+        .order("rating_avg", { ascending: false })
         .limit(60);
-      if (city) req = req.eq("city", city);
-      const { data, error } = await req;
+      if (s.city) qb = qb.ilike("city", `%${s.city}%`);
+      if (s.minRating) qb = qb.gte("rating_avg", s.minRating);
+      const { data, error } = await qb;
       if (error) throw error;
       return data ?? [];
     },
-  });
-
-  const citiesQ = useQuery({
-    queryKey: ["cities-select"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("available_cities")
-        .select("name")
-        .eq("is_enabled", true)
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const filtered = (listQ.data ?? []).filter((p) => {
-    if (!q) return true;
-    const needle = q.toLowerCase();
-    return (
-      (p.name ?? "").toLowerCase().includes(needle) ||
-      (p.specialties ?? "").toLowerCase().includes(needle) ||
-      (p.profession_category ?? "").toLowerCase().includes(needle)
-    );
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link to="/" className="text-xl font-bold">Gersepa</Link>
-          <Link to="/quick-booking"><Button size="sm">Agendar</Button></Link>
-        </div>
-      </header>
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-        <h1 className="text-3xl font-bold">Profissionais disponíveis</h1>
-
-        <div className="grid gap-3 sm:grid-cols-2 rounded-md border border-border p-4">
-          <div className="space-y-1">
-            <Label htmlFor="f-city">Cidade</Label>
-            <select
-              id="f-city"
-              value={city}
-              onChange={(e) => navigate({ search: (prev: { city: string; q: string }) => ({ ...prev, city: e.target.value }) })}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Todas</option>
-              {(citiesQ.data ?? []).map((c) => (
-                <option key={c.name} value={c.name}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="f-q">Buscar</Label>
-            <Input
-              id="f-q"
-              placeholder="Nome, especialidade..."
-              value={q}
-              onChange={(e) => navigate({ search: (prev: { city: string; q: string }) => ({ ...prev, q: e.target.value }) })}
-            />
-          </div>
+    <div className="min-h-screen bg-secondary/40">
+      <Header />
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Diaristas verificadas</h1>
+          <p className="text-muted-foreground">Filtre por cidade e avaliação.</p>
         </div>
 
-        {listQ.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando profissionais...</p>
-        ) : listQ.error ? (
-          <p className="text-sm text-destructive">Erro: {(listQ.error as Error).message}</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum profissional encontrado.</p>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => (
-              <li key={p.id} className="rounded-md border border-border p-4 space-y-2">
-                <div className="flex items-center gap-3">
-                  {p.photo_url ? (
-                    <img src={p.photo_url} alt={p.name ?? ""} className="w-12 h-12 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-muted" />
-                  )}
-                  <div>
-                    <p className="font-medium">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.city ?? "—"}</p>
+        <form
+          className="grid sm:grid-cols-[1fr_180px_auto] gap-3 mb-8 bg-card border border-border rounded-xl p-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            nav({
+              search: {
+                city: (fd.get("city") as string) || undefined,
+                minRating: fd.get("minRating") ? Number(fd.get("minRating")) : undefined,
+              },
+            });
+          }}
+        >
+          <div className="space-y-1">
+            <Label htmlFor="city">Cidade</Label>
+            <Input id="city" name="city" defaultValue={s.city ?? ""} placeholder="Ex: Joinville" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="minRating">Nota mínima</Label>
+            <Input id="minRating" name="minRating" type="number" min={0} max={5} step={0.5} defaultValue={s.minRating ?? ""} />
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" className="w-full">Buscar</Button>
+          </div>
+        </form>
+
+        {q.isLoading && <div className="text-muted-foreground">Carregando…</div>}
+        {!q.isLoading && !q.data?.length && (
+          <div className="text-center py-16 text-muted-foreground">
+            Nenhuma diarista encontrada. Tente ajustar os filtros.
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {q.data?.map((p) => (
+            <Link key={p.id} to="/professionals/$id" params={{ id: p.id }} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
+              <div className="flex items-center gap-3">
+                <div className="h-14 w-14 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
+                  {(p.full_name ?? "?")[0]}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                    <MapPin className="h-3 w-3" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}
                   </div>
                 </div>
-                {p.bio ? <p className="text-sm text-muted-foreground line-clamp-2">{p.bio}</p> : null}
-                <div className="flex items-center justify-between text-xs">
-                  <span>⭐ {p.rating != null ? Number(p.rating).toFixed(1) : "—"} ({p.total_reviews ?? 0})</span>
-                  <span className="font-medium">R$ {Number(p.hourly_rate ?? 0).toFixed(0)}/h</span>
+                <div className="text-right">
+                  <div className="flex items-center gap-1 text-sm font-semibold">
+                    <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {Number(p.rating_avg ?? 0).toFixed(1)}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{p.rating_count ?? 0} avaliações</div>
                 </div>
-                {p.is_verified ? (
-                  <span className="inline-block text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary">Verificado</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
+              </div>
+              {p.bio && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{p.bio}</p>}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
