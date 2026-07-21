@@ -85,7 +85,7 @@ function ProfessionalsPage() {
             <select
               id="f-city"
               value={city}
-              onChange={(e) => navigate({ search: (p) => ({ ...p, city: e.target.value }) })}
+              onChange={(e) => navigate({ search: (prev: { city: string; q: string }) => ({ ...prev, city: e.target.value }) })}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">Todas</option>
@@ -100,7 +100,7 @@ function ProfessionalsPage() {
               id="f-q"
               placeholder="Nome, especialidade..."
               value={q}
-              onChange={(e) => navigate({ search: (p) => ({ ...p, q: e.target.value }) })}
+              onChange={(e) => navigate({ search: (prev: { city: string; q: string }) => ({ ...prev, q: e.target.value }) })}
             />
           </div>
         </div>
