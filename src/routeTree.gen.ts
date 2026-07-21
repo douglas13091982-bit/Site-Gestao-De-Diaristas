@@ -9,12 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuickBookingRouteImport } from './routes/quick-booking'
+import { Route as ProfessionalsRouteImport } from './routes/professionals'
+import { Route as CitiesRouteImport } from './routes/cities'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
+const QuickBookingRoute = QuickBookingRouteImport.update({
+  id: '/quick-booking',
+  path: '/quick-booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessionalsRoute = ProfessionalsRouteImport.update({
+  id: '/professionals',
+  path: '/professionals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CitiesRoute = CitiesRouteImport.update({
+  id: '/cities',
+  path: '/cities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -44,12 +62,18 @@ const AuthenticatedBookingsBookingIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cities': typeof CitiesRoute
+  '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cities': typeof CitiesRoute
+  '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
@@ -58,19 +82,39 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cities': typeof CitiesRoute
+  '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/bookings/$bookingId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/cities'
+    | '/professionals'
+    | '/quick-booking'
+    | '/dashboard'
+    | '/bookings/$bookingId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/bookings/$bookingId'
+  to:
+    | '/'
+    | '/auth'
+    | '/cities'
+    | '/professionals'
+    | '/quick-booking'
+    | '/dashboard'
+    | '/bookings/$bookingId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/cities'
+    | '/professionals'
+    | '/quick-booking'
     | '/_authenticated/dashboard'
     | '/_authenticated/bookings/$bookingId'
   fileRoutesById: FileRoutesById
@@ -79,10 +123,34 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CitiesRoute: typeof CitiesRoute
+  ProfessionalsRoute: typeof ProfessionalsRoute
+  QuickBookingRoute: typeof QuickBookingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quick-booking': {
+      id: '/quick-booking'
+      path: '/quick-booking'
+      fullPath: '/quick-booking'
+      preLoaderRoute: typeof QuickBookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professionals': {
+      id: '/professionals'
+      path: '/professionals'
+      fullPath: '/professionals'
+      preLoaderRoute: typeof ProfessionalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cities': {
+      id: '/cities'
+      path: '/cities'
+      fullPath: '/cities'
+      preLoaderRoute: typeof CitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -138,6 +206,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CitiesRoute: CitiesRoute,
+  ProfessionalsRoute: ProfessionalsRoute,
+  QuickBookingRoute: QuickBookingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
