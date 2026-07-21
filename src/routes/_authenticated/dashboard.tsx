@@ -195,6 +195,50 @@ function Dashboard() {
   const activeFilterCount =
     (from ? 1 : 0) + (to ? 1 : 0) + (status ? 1 : 0) + (professional ? 1 : 0);
 
+  function exportCsv() {
+    const headers = [
+      "ID",
+      "Serviço",
+      "Data",
+      "Hora",
+      "Duração (h)",
+      "Profissional",
+      "Cidade",
+      "Status",
+      "Pagamento",
+      "Valor (BRL)",
+    ];
+    const escape = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = bookings.map((b) => [
+      b.id,
+      b.service_type ?? "",
+      b.booking_date ?? "",
+      b.start_time ?? "",
+      b.duration_hours ?? "",
+      b.professional_id ? profNames[b.professional_id] ?? "" : "",
+      b.city ?? "",
+      b.status ?? "",
+      b.payment_status ?? "",
+      Number(b.total_price ?? 0).toFixed(2).replace(".", ","),
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map(escape).join(";"))
+      .join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.href = url;
+    a.download = `agendamentos-p${page}-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // Any filter change resets page to 1 unless the patch already sets page.
   function update(patch: Partial<typeof search>) {
     navigate({
@@ -269,11 +313,21 @@ function Dashboard() {
             <h2 className="text-xl font-semibold">
               {isProfessional ? "Agendamentos recebidos" : "Meus agendamentos"}
             </h2>
-            {activeFilterCount > 0 ? (
-              <Button size="sm" variant="ghost" onClick={reset}>
-                Limpar filtros ({activeFilterCount})
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={exportCsv}
+                disabled={bookings.length === 0 || bookingsQ.isFetching}
+              >
+                Exportar CSV
               </Button>
-            ) : null}
+              {activeFilterCount > 0 ? (
+                <Button size="sm" variant="ghost" onClick={reset}>
+                  Limpar filtros ({activeFilterCount})
+                </Button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-md border border-border p-4">
