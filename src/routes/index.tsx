@@ -24,8 +24,8 @@ function HomePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("available_cities")
-        .select("id, name, state, active")
-        .eq("active", true)
+        .select("id, name, state, is_enabled")
+        .eq("is_enabled", true)
         .order("name")
         .limit(8);
       if (error) throw error;
@@ -38,7 +38,7 @@ function HomePage() {
       const { data, error } = await supabase
         .from("professionals")
         .select("id, name, city, rating, specialties, hourly_rate")
-        .eq("is_active", true)
+        .eq("is_available", true)
         .order("rating", { ascending: false, nullsFirst: false })
         .limit(4);
       if (error) throw error;
