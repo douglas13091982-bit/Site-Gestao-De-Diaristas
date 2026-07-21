@@ -92,7 +92,7 @@ function OnboardingPage() {
             </div>
             {isWorker && (
               <>
-                <div className="space-y-1"><Label>Bio</Label><Textarea rows={4} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Conte sobre sua experiência…" /></div>
+              <div className="space-y-1"><Label>Bio</Label><Textarea rows={4} value={form.bio} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, bio: e.target.value })} placeholder="Conte sobre sua experiência…" /></div>
                 <div className="space-y-1"><Label>Raio de atendimento (km)</Label><Input type="number" min={1} max={100} value={form.service_radius_km} onChange={(e) => setForm({ ...form, service_radius_km: Number(e.target.value) })} /></div>
               </>
             )}
