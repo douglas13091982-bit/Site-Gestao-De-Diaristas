@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuickBookingRouteImport } from './routes/quick-booking'
 import { Route as ProfessionalsRouteImport } from './routes/professionals'
 import { Route as CitiesRouteImport } from './routes/cities'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsBookingIdRouteImport } from './routes/_authenticated/bookings.$bookingId'
 
+const QuickBookingRoute = QuickBookingRouteImport.update({
+  id: '/quick-booking',
+  path: '/quick-booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfessionalsRoute = ProfessionalsRouteImport.update({
   id: '/professionals',
   path: '/professionals',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cities': typeof CitiesRoute
   '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cities': typeof CitiesRoute
   '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cities': typeof CitiesRoute
   '/professionals': typeof ProfessionalsRoute
+  '/quick-booking': typeof QuickBookingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/bookings/$bookingId': typeof AuthenticatedBookingsBookingIdRoute
 }
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cities'
     | '/professionals'
+    | '/quick-booking'
     | '/dashboard'
     | '/bookings/$bookingId'
   fileRoutesByTo: FileRoutesByTo
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cities'
     | '/professionals'
+    | '/quick-booking'
     | '/dashboard'
     | '/bookings/$bookingId'
   id:
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cities'
     | '/professionals'
+    | '/quick-booking'
     | '/_authenticated/dashboard'
     | '/_authenticated/bookings/$bookingId'
   fileRoutesById: FileRoutesById
@@ -113,10 +125,18 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CitiesRoute: typeof CitiesRoute
   ProfessionalsRoute: typeof ProfessionalsRoute
+  QuickBookingRoute: typeof QuickBookingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quick-booking': {
+      id: '/quick-booking'
+      path: '/quick-booking'
+      fullPath: '/quick-booking'
+      preLoaderRoute: typeof QuickBookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/professionals': {
       id: '/professionals'
       path: '/professionals'
@@ -188,6 +208,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CitiesRoute: CitiesRoute,
   ProfessionalsRoute: ProfessionalsRoute,
+  QuickBookingRoute: QuickBookingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
