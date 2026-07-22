@@ -8,10 +8,10 @@ import { Calendar, Star, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [
-    { title: "Meu painel — BabyClean" },
-    { name: "description", content: "Painel da sua conta no BabyClean." },
-    { property: "og:title", content: "Painel — BabyClean" },
-    { property: "og:description", content: "Área do usuário BabyClean." },
+    { title: "Meu painel — Gersepa Solutions" },
+    { name: "description", content: "Painel da sua conta no Gersepa Solutions." },
+    { property: "og:title", content: "Painel — Gersepa Solutions" },
+    { property: "og:description", content: "Área do usuário Gersepa Solutions." },
   ] }),
   component: DashboardPage,
 });

@@ -17,7 +17,7 @@ export function Header() {
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="text-foreground">Baby<span className="text-primary">Clean</span></span>
+          <span className="text-foreground">Gersepa<span className="text-primary"> Solutions</span></span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>

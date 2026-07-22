@@ -14,9 +14,9 @@ const DAYS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
 export const Route = createFileRoute("/_authenticated/schedule")({
   head: () => ({ meta: [
-    { title: "Minha agenda — BabyClean" },
+    { title: "Minha agenda — Gersepa Solutions" },
     { name: "description", content: "Configure seus horários e serviços." },
-    { property: "og:title", content: "Agenda — BabyClean" },
+    { property: "og:title", content: "Agenda — Gersepa Solutions" },
     { property: "og:description", content: "Gestão de agenda da diarista." },
   ] }),
   component: SchedulePage,

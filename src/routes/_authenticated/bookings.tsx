@@ -13,9 +13,9 @@ const statusLabel: Record<string, string> = {
 
 export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({ meta: [
-    { title: "Meus agendamentos — BabyClean" },
+    { title: "Meus agendamentos — Gersepa Solutions" },
     { name: "description", content: "Histórico e status dos seus agendamentos." },
-    { property: "og:title", content: "Agendamentos — BabyClean" },
+    { property: "og:title", content: "Agendamentos — Gersepa Solutions" },
     { property: "og:description", content: "Lista de agendamentos." },
   ] }),
   component: BookingsPage,
