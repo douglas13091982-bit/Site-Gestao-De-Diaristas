@@ -702,3 +702,14 @@ function formatDate(iso: string) {
   const d = new Date(`${iso}T00:00:00`);
   return `${DAYS_SHORT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`;
 }
+
+function formatCardNumber(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 19);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
+}
+
+function formatExpiry(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length < 3) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+}
