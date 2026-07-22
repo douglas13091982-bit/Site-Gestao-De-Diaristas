@@ -235,7 +235,7 @@ type Pro = {
   full_name: string | null;
   profile_photo: string | null;
   city: string | null;
-  state: string | null;
+
   rating: number | null;
   total_reviews: number | null;
   bio: string | null;

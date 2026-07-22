@@ -71,7 +71,7 @@ function ProfessionalPage() {
                   <h1 className="text-2xl font-bold">{p.full_name ?? "Diarista"}</h1>
                   {p.is_verified && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"><ShieldCheck className="h-3 w-3" /> Verificada</span>}
                 </div>
-                <div className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />{p.city ?? "—"}</div>
                 <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.total_reviews ?? 0} avaliações)</span></div>
                 {p.bio && <p className="text-muted-foreground">{p.bio}</p>}
               </div>

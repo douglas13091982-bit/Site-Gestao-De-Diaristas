@@ -99,7 +99,7 @@ function ProfessionalsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                    <MapPin className="h-3 w-3" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}
+                    <MapPin className="h-3 w-3" />{p.city ?? "—"}
                   </div>
                 </div>
                 <div className="text-right">
