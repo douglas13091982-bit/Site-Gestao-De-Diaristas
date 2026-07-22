@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, MapPin, Tag,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
@@ -30,6 +30,8 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/professionals", label: "Profissionais", icon: Briefcase },
     { to: "/admin/bookings", label: "Agendamentos", icon: Calendar },
     { to: "/admin/bookings/new", label: "Novo Agendamento", icon: Plus },
+    { to: "/admin/cities", label: "Cidades", icon: MapPin },
+    { to: "/admin/categories", label: "Categorias", icon: Tag },
   ]},
   { label: "Financeiro", items: [
     { to: "/admin/finance", label: "Receita & Comissão", icon: DollarSign },
