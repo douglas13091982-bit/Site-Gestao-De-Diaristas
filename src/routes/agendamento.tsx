@@ -72,7 +72,7 @@ function AgendamentoPage() {
     queryKey: ["ag-me", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles")
-        .select("full_name, phone, address, address_complement, neighborhood, city, state, zip_code")
+        .select("full_name, phone, address, address_number, address_complement, address_neighborhood, city")
         .eq("id", user!.id).maybeSingle();
       return data;
     },
@@ -82,8 +82,9 @@ function AgendamentoPage() {
     const p = meProfile.data;
     if (!p) return;
     if (!address) {
-      const parts = [p.address, p.neighborhood, p.city, p.state].filter(Boolean);
-      if (parts.length) setAddress(parts.join(", "));
+      const street = [p.address, p.address_number].filter(Boolean).join(", ");
+      const parts = [street, p.address_neighborhood, p.city].filter(Boolean);
+      if (parts.length) setAddress(parts.join(" - "));
     }
     if (!complement && p.address_complement) setComplement(p.address_complement);
     if (!guestName && p.full_name) setGuestName(p.full_name);
