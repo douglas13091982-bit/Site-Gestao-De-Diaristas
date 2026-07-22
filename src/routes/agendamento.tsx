@@ -512,7 +512,9 @@ function AgendamentoPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold">Pagamento</h1>
-              <p className="text-muted-foreground text-sm">Revise e confirme para gerar o PIX.</p>
+              <p className="text-muted-foreground text-sm">
+                Revise, escolha a forma de pagamento e confirme.
+              </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-6 space-y-3">
               <Row label="Profissional" value={p?.full_name ?? "—"} />
@@ -525,11 +527,127 @@ function AgendamentoPage() {
                 <span className="text-primary">R$ {Number(selectedPkg.price).toFixed(2)}</span>
               </div>
             </div>
+
+            {/* Seletor de método */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button
+                  type="button"
+                  disabled={!pixEnabled}
+                  onClick={() => setPaymentMethod("pix")}
+                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    paymentMethod === "pix"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <QrCode className="h-4 w-4" /> PIX
+                </button>
+                <button
+                  type="button"
+                  disabled={!cardEnabled}
+                  onClick={() => setPaymentMethod("card")}
+                  title={!cardEnabled && platform === "pagseguro" ? "Cartão via PagSeguro em breve" : undefined}
+                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    paymentMethod === "card"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <CreditCardIcon className="h-4 w-4" /> Cartão
+                </button>
+              </div>
+
+              {paymentMethod === "pix" && (
+                <div className="text-sm text-muted-foreground">
+                  Após confirmar, geramos um QR Code PIX válido por 30 minutos. O agendamento é liberado assim que o pagamento é aprovado por <strong>{platform === "pagseguro" ? "PagSeguro" : "Mercado Pago"}</strong>.
+                </div>
+              )}
+
+              {paymentMethod === "card" && (
+                <div className="space-y-3">
+                  <div>
+                    <Label>Número do cartão</Label>
+                    <Input
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      inputMode="numeric"
+                      maxLength={23}
+                      placeholder="0000 0000 0000 0000"
+                    />
+                  </div>
+                  <div>
+                    <Label>Nome impresso no cartão</Label>
+                    <Input
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                      maxLength={40}
+                      placeholder="NOME COMO NO CARTÃO"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Validade (MM/AA)</Label>
+                      <Input
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="12/28"
+                      />
+                    </div>
+                    <div>
+                      <Label>CVV</Label>
+                      <Input
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="123"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>CPF do titular</Label>
+                      <Input
+                        value={cardCpf}
+                        onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                        inputMode="numeric"
+                        placeholder="Somente números"
+                      />
+                    </div>
+                    <div>
+                      <Label>Parcelas</Label>
+                      <select
+                        value={installments}
+                        onChange={(e) => setInstallments(Number(e.target.value))}
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {[1, 2, 3, 4, 5, 6].map((n) => (
+                          <option key={n} value={n}>
+                            {n}x de R$ {(Number(selectedPkg.price) / n).toFixed(2)}{n === 1 ? " (à vista)" : " sem juros"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Seus dados são enviados diretamente ao Mercado Pago com criptografia — nós nunca armazenamos o número do cartão.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep(3)}>Voltar</Button>
               <Button size="lg" disabled={submitting} onClick={submitBooking}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                {submitting ? "Enviando…" : "Confirmar e gerar PIX"}
+                {submitting
+                  ? "Enviando…"
+                  : paymentMethod === "pix"
+                  ? "Confirmar e gerar PIX"
+                  : "Confirmar pagamento"}
               </Button>
             </div>
           </div>
