@@ -21,6 +21,7 @@ import { Route as ProfessionalsIndexRouteImport } from './routes/professionals.i
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
 import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
+import { Route as AgendamentoSucessoIdRouteImport } from './routes/agendamento-sucesso.$id'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -108,6 +109,11 @@ const CategoriasSlugRoute = CategoriasSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => CategoriasRoute,
+} as any)
+const AgendamentoSucessoIdRoute = AgendamentoSucessoIdRouteImport.update({
+  id: '/agendamento-sucesso/$id',
+  path: '/agendamento-sucesso/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
   id: '/pro',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
+  '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
+  '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
+  '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -406,6 +415,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/pro'
+    | '/agendamento-sucesso/$id'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/pro'
+    | '/agendamento-sucesso/$id'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
     | '/_authenticated/pro'
+    | '/agendamento-sucesso/$id'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -526,6 +538,7 @@ export interface RootRouteChildren {
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
   SejaDiaristaRoute: typeof SejaDiaristaRoute
+  AgendamentoSucessoIdRoute: typeof AgendamentoSucessoIdRoute
   ProfessionalsIdRoute: typeof ProfessionalsIdRoute
   ProfessionalsIndexRoute: typeof ProfessionalsIndexRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
@@ -617,6 +630,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/categorias/$slug'
       preLoaderRoute: typeof CategoriasSlugRouteImport
       parentRoute: typeof CategoriasRoute
+    }
+    '/agendamento-sucesso/$id': {
+      id: '/agendamento-sucesso/$id'
+      path: '/agendamento-sucesso/$id'
+      fullPath: '/agendamento-sucesso/$id'
+      preLoaderRoute: typeof AgendamentoSucessoIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/pro': {
       id: '/_authenticated/pro'
@@ -940,6 +960,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
   SejaDiaristaRoute: SejaDiaristaRoute,
+  AgendamentoSucessoIdRoute: AgendamentoSucessoIdRoute,
   ProfessionalsIdRoute: ProfessionalsIdRoute,
   ProfessionalsIndexRoute: ProfessionalsIndexRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
