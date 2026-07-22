@@ -32,7 +32,6 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/bookings/new", label: "Novo Agendamento", icon: Plus },
   ]},
   { label: "Financeiro", items: [
-    { to: "/admin/credits", label: "Créditos", icon: Coins },
     { to: "/admin/packages", label: "Pacotes", icon: Package },
     { to: "/admin/finance", label: "Receita & Comissão", icon: DollarSign },
     { to: "/admin/reports", label: "Relatórios", icon: BarChart3 },
