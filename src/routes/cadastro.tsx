@@ -512,9 +512,84 @@ function CadastroPage() {
                     <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Fale um pouco sobre sua experiência e diferenciais." />
                   </div>
 
-                  <p className="text-xs text-muted-foreground">
-                    Após criar a conta você poderá configurar sua agenda semanal e enviar foto no painel.
-                  </p>
+                  {/* Foto de Perfil */}
+                  <div className="space-y-2">
+                    <Label>Foto de Perfil <span className="text-destructive">*</span></Label>
+                    {photoPreview ? (
+                      <div className="flex items-center gap-3">
+                        <img src={photoPreview} alt="Prévia" className="w-24 h-24 rounded-full object-cover border" />
+                        <button
+                          type="button"
+                          onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                          className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" /> Remover
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label className="cursor-pointer border-2 border-dashed border-input rounded-lg p-4 flex flex-col items-center justify-center text-sm text-muted-foreground hover:bg-secondary transition">
+                          <ImagePlus className="w-6 h-6 mb-1" />
+                          Escolher da galeria
+                          <input type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+                        </label>
+                        <label className="cursor-pointer border-2 border-dashed border-primary/40 bg-primary/5 rounded-lg p-4 flex flex-col items-center justify-center text-sm text-primary hover:bg-primary/10 transition">
+                          <Camera className="w-6 h-6 mb-1" />
+                          Tirar foto agora
+                          <input type="file" accept="image/*" capture="user" className="hidden" onChange={onPhotoChange} />
+                        </label>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">JPEG, PNG, WebP ou GIF (máx. 5MB)</p>
+                  </div>
+
+                  {/* Disponibilidade Semanal */}
+                  <div className="space-y-2">
+                    <Label>Disponibilidade Semanal</Label>
+                    <p className="text-xs text-muted-foreground">Selecione os dias e horários que você trabalha</p>
+                    <div className="space-y-2">
+                      {DAYS.map((d) => {
+                        const row = availability.get(d.idx)!;
+                        return (
+                          <div
+                            key={d.idx}
+                            className={`flex flex-wrap items-center gap-2 rounded-lg border p-3 transition ${
+                              row.on ? "border-primary/40 bg-primary/5" : "border-input bg-background"
+                            }`}
+                          >
+                            <label className="inline-flex items-center gap-2 min-w-[140px] cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={row.on}
+                                onChange={(e) => updateAvail(d.idx, { on: e.target.checked })}
+                                className="h-4 w-4 rounded border-input accent-primary"
+                              />
+                              <span className="text-sm font-medium">{d.label}</span>
+                            </label>
+                            <div className="flex items-center gap-2 ml-auto">
+                              <select
+                                disabled={!row.on}
+                                value={row.start}
+                                onChange={(e) => updateAvail(d.idx, { start: e.target.value })}
+                                className="h-9 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                              >
+                                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                              </select>
+                              <span className="text-sm text-muted-foreground">até</span>
+                              <select
+                                disabled={!row.on}
+                                value={row.end}
+                                onChange={(e) => updateAvail(d.idx, { end: e.target.value })}
+                                className="h-9 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                              >
+                                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </>
               )}
 
