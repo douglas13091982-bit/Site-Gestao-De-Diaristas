@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 
 type Settings = {
   payment_platform: string;
+  commission_percentage: string;
   pix_key: string;
   pix_key_type: string;
   pix_beneficiary_name: string;
@@ -27,6 +28,7 @@ type Settings = {
 
 const DEFAULTS: Settings = {
   payment_platform: "mercadopago",
+  commission_percentage: "20",
   pix_key: "",
   pix_key_type: "email",
   pix_beneficiary_name: "",
@@ -42,6 +44,7 @@ const DEFAULTS: Settings = {
 
 const META: Record<keyof Settings, { group: string; type: string; public: boolean; label: string }> = {
   payment_platform: { group: "payment", type: "text", public: false, label: "Plataforma de Pagamento" },
+  commission_percentage: { group: "payment", type: "number", public: true, label: "Comissão da plataforma (%)" },
   pix_key: { group: "payment", type: "text", public: false, label: "Chave PIX" },
   pix_key_type: { group: "payment", type: "text", public: false, label: "Tipo da Chave PIX" },
   pix_beneficiary_name: { group: "payment", type: "text", public: false, label: "Nome do Beneficiário" },
@@ -144,6 +147,31 @@ function SettingsPage() {
         <div className="flex items-center gap-2 mb-5 text-slate-800">
           <CreditCard className="h-5 w-5 text-emerald-600" />
           <h3 className="font-semibold">Configurações de Pagamento</h3>
+        </div>
+
+        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-slate-800">Comissão da plataforma</div>
+              <p className="text-xs text-slate-600 mt-1">
+                Percentual descontado do valor pago pelo cliente. A diarista visualiza o valor já com o desconto aplicado (ex.: R$ 100 com 20% = R$ 80 líquidos).
+              </p>
+            </div>
+            <div className="w-40">
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.5"
+                  value={form.commission_percentage}
+                  onChange={(e) => set("commission_percentage", e.target.value)}
+                  className="w-full h-11 pl-4 pr-9 rounded-lg border border-slate-200 text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mb-2 text-sm font-medium text-slate-700">Plataforma de Pagamento Ativa</div>
