@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,6 +150,22 @@ function AgendamentoPage() {
     for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
     return slots.length ? slots : [selectedAvailability.start_time.slice(0, 5)];
   }, [s.dur, selectedAvailability, selectedPkg?.duration_hours]);
+
+  useEffect(() => {
+    if (date && selectedDay?.blocked) {
+      setDate("");
+      setTime("");
+      return;
+    }
+    if (!date && !blocked.isLoading && !availability.isLoading) {
+      const firstAvailableDay = days.find((d) => !d.blocked);
+      if (firstAvailableDay) setDate(firstAvailableDay.iso);
+    }
+  }, [availability.isLoading, blocked.isLoading, date, days, selectedDay?.blocked]);
+
+  useEffect(() => {
+    if (time && !times.includes(time)) setTime("");
+  }, [time, times]);
 
   const canNextFromStep2 = !!(selectedPkg && date && time && !selectedDay?.blocked && times.includes(time));
   const canNextFromStep3 = !!(address.trim().length >= 3 && (user || email.trim()));
