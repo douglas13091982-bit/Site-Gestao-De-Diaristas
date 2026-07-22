@@ -88,6 +88,18 @@ function AgendamentoPage() {
       .select("blocked_date").eq("professional_id", s.pro)).data ?? [],
   });
 
+  const availability = useQuery({
+    enabled: !!s.pro,
+    queryKey: ["ag-availability", s.pro],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("professional_availability")
+        .select("day_of_week, start_time, end_time, is_available")
+        .eq("professional_id", s.pro);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   // Pre-select package matching dur
   const selectedPkg = useMemo(() => {
     const list = packages.data ?? [];
@@ -97,25 +109,49 @@ function AgendamentoPage() {
 
   const days = useMemo(() => {
     const today = new Date();
-    const arr: { iso: string; label: string; weekday: string; blocked: boolean }[] = [];
+    const arr: { iso: string; label: string; weekday: string; blocked: boolean; reason?: string; range?: string }[] = [];
     const set = new Set((blocked.data ?? []).map(b => b.blocked_date));
+    const availabilityByDay = new Map((availability.data ?? []).map((a) => [a.day_of_week, a]));
+    const hasAvailability = (availability.data ?? []).length > 0;
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       const iso = d.toISOString().slice(0, 10);
+      const dayAvailability = availabilityByDay.get(d.getDay());
+      const blockedByDate = set.has(iso);
+      const blockedBySchedule = hasAvailability && (!dayAvailability || !dayAvailability.is_available);
       arr.push({
         iso,
         label: `${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`,
         weekday: DAYS_SHORT[d.getDay()],
-        blocked: set.has(iso),
+        blocked: blockedByDate || blockedBySchedule,
+        reason: blockedByDate ? "Bloqueada" : blockedBySchedule ? "Indisponível" : undefined,
+        range: dayAvailability?.is_available ? `${dayAvailability.start_time.slice(0, 5)}–${dayAvailability.end_time.slice(0, 5)}` : undefined,
       });
     }
     return arr;
-  }, [blocked.data]);
+  }, [availability.data, blocked.data]);
 
-  const times = Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+  const selectedDay = days.find((d) => d.iso === date);
+  const selectedAvailability = useMemo(() => {
+    if (!date) return null;
+    const weekday = new Date(`${date}T00:00:00`).getDay();
+    return (availability.data ?? []).find((a) => a.day_of_week === weekday) ?? null;
+  }, [availability.data, date]);
 
-  const canNextFromStep2 = !!(selectedPkg && date && time);
+  const times = useMemo(() => {
+    const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
+    if (!selectedAvailability?.is_available) {
+      return Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+    }
+    const start = timeToMinutes(selectedAvailability.start_time);
+    const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
+    const slots: string[] = [];
+    for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
+    return slots.length ? slots : [selectedAvailability.start_time.slice(0, 5)];
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours]);
+
+  const canNextFromStep2 = !!(selectedPkg && date && time && !selectedDay?.blocked && times.includes(time));
   const canNextFromStep3 = !!(address.trim().length >= 3 && (user || email.trim()));
 
   async function submitBooking() {
