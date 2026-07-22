@@ -643,11 +643,7 @@ function AgendamentoPage() {
               <Button variant="outline" onClick={() => setStep(3)}>Voltar</Button>
               <Button size="lg" disabled={submitting} onClick={submitBooking}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                {submitting
-                  ? "Enviando…"
-                  : paymentMethod === "pix"
-                  ? "Confirmar e gerar PIX"
-                  : "Confirmar pagamento"}
+                {submitting ? "Enviando…" : "Confirmar pagamento"}
               </Button>
             </div>
           </div>
