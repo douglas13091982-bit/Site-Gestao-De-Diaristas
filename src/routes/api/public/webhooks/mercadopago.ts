@@ -60,8 +60,8 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           signature_valid: signatureValid,
           status: !secret ? "no_secret_configured" : signatureValid ? "verified" : "invalid_signature",
           http_status: httpStatus,
-          payload: payload as object | null,
-          headers,
+          payload: (payload ?? null) as never,
+          headers: headers as never,
           error: !secret ? "Webhook secret not configured" : signatureValid ? null : "Invalid signature",
         });
 
