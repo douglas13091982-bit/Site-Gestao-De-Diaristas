@@ -3,6 +3,7 @@ import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanst
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { MobileAppShell, MobileBottomSpacer } from "@/components/MobileAppShell";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -44,6 +45,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Outlet />
+        <MobileBottomSpacer />
+        <MobileAppShell />
         <Toaster position="top-right" richColors />
       </AuthProvider>
     </QueryClientProvider>

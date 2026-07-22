@@ -8,12 +8,12 @@ export function Header() {
   const isWorker = roles.includes("professional");
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur border-b border-border">
-      <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="h-5 w-5" />
+      <div className="max-w-7xl mx-auto h-14 md:h-16 px-4 md:px-6 flex items-center justify-between gap-3">
+        <Link to="/" className="flex items-center gap-2 font-bold shrink-0">
+          <span className="inline-flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
           </span>
-          <span className="text-foreground">Gersepa<span className="text-primary"> Solutions</span></span>
+          <span className="text-foreground text-base md:text-lg">Gersepa<span className="text-primary"> Solutions</span></span>
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>
@@ -23,7 +23,7 @@ export function Header() {
           <Link to="/agendamento-rapido" className="hover:text-primary transition">Agendar</Link>
           <Link to="/seja-diarista" className="text-primary font-semibold hover:underline">Seja Diarista</Link>
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           {user ? (
             <>
               {isWorker ? (
@@ -38,12 +38,20 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-primary hidden sm:block">Entrar</Link>
+              <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-primary">Entrar</Link>
               <Link to="/auth" search={{ mode: "signup" } as never}>
                 <Button size="sm">Cadastrar</Button>
               </Link>
             </>
           )}
+        </div>
+        {/* Mobile: apenas link rápido para área do profissional; navegação principal fica na tab bar inferior */}
+        <div className="md:hidden">
+          {isWorker ? (
+            <Link to="/pro/leads"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Área da diarista</Button></Link>
+          ) : !user ? (
+            <Link to="/seja-diarista"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Seja diarista</Button></Link>
+          ) : null}
         </div>
       </div>
     </header>
