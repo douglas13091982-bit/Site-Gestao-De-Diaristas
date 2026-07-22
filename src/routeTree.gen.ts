@@ -39,6 +39,7 @@ import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin.cities'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
+import { Route as AuthenticatedAdminBlockedRouteImport } from './routes/_authenticated/admin.blocked'
 import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
@@ -201,6 +202,12 @@ const AuthenticatedAdminBookingsRoute =
     path: '/bookings',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBlockedRoute =
+  AuthenticatedAdminBlockedRouteImport.update({
+    id: '/blocked',
+    path: '/blocked',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAppearanceRoute =
   AuthenticatedAdminAppearanceRouteImport.update({
     id: '/appearance',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -306,6 +315,7 @@ export interface FileRoutesById {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/_authenticated/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/admin/admins'
     | '/admin/appearance'
+    | '/admin/blocked'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/admin/admins'
     | '/admin/appearance'
+    | '/admin/blocked'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
@@ -410,6 +422,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/appearance'
+    | '/_authenticated/admin/blocked'
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/cities'
@@ -650,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/blocked': {
+      id: '/_authenticated/admin/blocked'
+      path: '/blocked'
+      fullPath: '/admin/blocked'
+      preLoaderRoute: typeof AuthenticatedAdminBlockedRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/appearance': {
       id: '/_authenticated/admin/appearance'
       path: '/appearance'
@@ -691,6 +711,7 @@ const AuthenticatedAdminBookingsRouteWithChildren =
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
   AuthenticatedAdminAppearanceRoute: typeof AuthenticatedAdminAppearanceRoute
+  AuthenticatedAdminBlockedRoute: typeof AuthenticatedAdminBlockedRoute
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
@@ -707,6 +728,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
   AuthenticatedAdminAppearanceRoute: AuthenticatedAdminAppearanceRoute,
+  AuthenticatedAdminBlockedRoute: AuthenticatedAdminBlockedRoute,
   AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
