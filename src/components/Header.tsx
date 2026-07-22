@@ -45,13 +45,11 @@ export function Header() {
             </>
           )}
         </div>
-        {/* Mobile: apenas link rápido para área do profissional; navegação principal fica na tab bar inferior */}
+        {/* Mobile: navegação principal fica na tab bar inferior. Só mostramos CTA quando usuário está deslogado. */}
         <div className="md:hidden">
-          {isWorker ? (
-            <Link to="/pro/leads"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Área da diarista</Button></Link>
-          ) : !user ? (
+          {!user && (
             <Link to="/seja-diarista"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Seja diarista</Button></Link>
-          ) : null}
+          )}
         </div>
       </div>
     </header>
