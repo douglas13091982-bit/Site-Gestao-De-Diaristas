@@ -32,6 +32,7 @@ import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminProfessionalsRouteImport } from './routes/_authenticated/admin.professionals'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin.cities'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
@@ -156,6 +157,12 @@ const AuthenticatedAdminReportsRoute =
     path: '/reports',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminProfessionalsRoute =
+  AuthenticatedAdminProfessionalsRouteImport.update({
+    id: '/professionals',
+    path: '/professionals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminFinanceRoute =
   AuthenticatedAdminFinanceRouteImport.update({
     id: '/finance',
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -250,6 +258,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -283,6 +292,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/_authenticated/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/cities'
     | '/admin/finance'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/cities'
     | '/admin/finance'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
@@ -378,6 +390,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/cities'
     | '/_authenticated/admin/finance'
+    | '/_authenticated/admin/professionals'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
@@ -562,6 +575,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/professionals': {
+      id: '/_authenticated/admin/professionals'
+      path: '/professionals'
+      fullPath: '/admin/professionals'
+      preLoaderRoute: typeof AuthenticatedAdminProfessionalsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/finance': {
       id: '/_authenticated/admin/finance'
       path: '/finance'
@@ -635,6 +655,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
+  AuthenticatedAdminProfessionalsRoute: typeof AuthenticatedAdminProfessionalsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -648,6 +669,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
+  AuthenticatedAdminProfessionalsRoute: AuthenticatedAdminProfessionalsRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
