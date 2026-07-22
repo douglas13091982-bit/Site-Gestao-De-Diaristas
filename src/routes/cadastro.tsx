@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -146,28 +145,29 @@ function CadastroPage() {
       if (error) throw error;
       const userId = signUp.user?.id;
       if (userId) {
-        const patch: Record<string, unknown> = {
-          full_name: fullName,
-          phone,
-          city: city || null,
-        };
+        const base = { full_name: fullName, phone, city: city || null };
         if (tipo === "client") {
-          patch.property_type = propertyType;
-          patch.address = address;
-          patch.address_number = addressNumber;
-          patch.address_neighborhood = neighborhood;
-          patch.address_complement = complement || null;
+          await supabase.from("profiles").update({
+            ...base,
+            property_type: propertyType,
+            address,
+            address_number: addressNumber,
+            address_neighborhood: neighborhood,
+            address_complement: complement || null,
+          }).eq("id", userId);
         } else {
-          patch.cpf = cpf;
-          patch.pix_key = pixKey;
-          patch.pix_key_type = pixKeyType;
-          patch.profession_category = category;
-          patch.specialties = specialties;
-          patch.regions = regions.join(",");
-          patch.experience = experience;
-          patch.bio = bio || null;
+          await supabase.from("profiles").update({
+            ...base,
+            cpf,
+            pix_key: pixKey,
+            pix_key_type: pixKeyType,
+            profession_category: category,
+            specialties,
+            regions: regions.join(","),
+            experience,
+            bio: bio || null,
+          }).eq("id", userId);
         }
-        await supabase.from("profiles").update(patch).eq("id", userId);
       }
       toast.success("Conta criada com sucesso!");
       nav({ to: tipo === "professional" ? "/onboarding" : "/dashboard" });
@@ -427,7 +427,12 @@ function CadastroPage() {
               )}
 
               <label className="flex items-start gap-2 text-sm cursor-pointer">
-                <Checkbox checked={accept} onCheckedChange={(v) => setAccept(!!v)} />
+                <input
+                  type="checkbox"
+                  checked={accept}
+                  onChange={(e) => setAccept(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-input accent-primary"
+                />
                 <span>
                   Li e aceito os <a className="text-primary underline" href="/termos" target="_blank" rel="noreferrer">Termos de Uso</a> e a{" "}
                   <a className="text-primary underline" href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.
