@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/pro/agenda")({
   component: AgendaPage,
@@ -75,7 +76,21 @@ function AgendaPage() {
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       await supabase.from("bookings").update({ status }).eq("id", id);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["pro-bookings", user?.id] }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["pro-bookings", user?.id] });
+      qc.invalidateQueries({ queryKey: ["my-offers", user?.id] });
+      if (vars.status === "cancelled") {
+        toast.warning("Serviço cancelado. Você ficará suspensa por alguns dias sem receber novas propostas.");
+      }
+    },
+  });
+
+  const suspensionDays = useQuery({
+    queryKey: ["suspension-days"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("setting_value").eq("setting_key", "suspension_days_on_cancel").maybeSingle();
+      return Number(data?.setting_value ?? 2);
+    },
   });
 
   const rows = bookings.data ?? [];
@@ -104,6 +119,19 @@ function AgendaPage() {
                   <div className="flex gap-2 shrink-0">
                     {b.status !== "in_progress" && <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>}
                     <Button size="sm" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "completed" })}>Concluir</Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="flex-1 sm:flex-none min-h-10 text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        const d = suspensionDays.data ?? 2;
+                        if (confirm(`Cancelar este serviço? Você ficará suspensa por ${d} dia(s) sem receber novas propostas.`)) {
+                          updateStatus.mutate({ id: b.id, status: "cancelled" });
+                        }
+                      }}
+                    >
+                      Cancelar
+                    </Button>
                   </div>
                 </li>
               ))}
