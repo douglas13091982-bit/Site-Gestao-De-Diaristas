@@ -12,10 +12,13 @@ function ProsPage() {
   const q = useQuery({
     queryKey: ["admin-pros"],
     queryFn: async () => {
-      const roles = await supabase.from("user_roles").select("user_id").eq("role","professional");
-      const ids = (roles.data ?? []).map(r => r.user_id);
-      if (!ids.length) return [];
-      return (await supabase.from("profiles").select("id,full_name,email,city,rating,total_reviews,is_verified,credits_balance").in("id", ids).order("rating",{ascending:false})).data ?? [];
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id,full_name,email,city,rating,total_reviews,is_verified,credits_balance")
+        .eq("is_professional", true)
+        .order("rating", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
   });
   return (
