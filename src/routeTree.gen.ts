@@ -26,12 +26,16 @@ import { Route as AgendamentoSucessoIdRouteImport } from './routes/agendamento-s
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedClienteIndexRouteImport } from './routes/_authenticated/cliente.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
+import { Route as AuthenticatedClientePerfilRouteImport } from './routes/_authenticated/cliente.perfil'
+import { Route as AuthenticatedClienteAgendamentosRouteImport } from './routes/_authenticated/cliente.agendamentos'
 import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
@@ -134,6 +138,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClienteRoute = AuthenticatedClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -144,6 +153,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClienteIndexRoute =
+  AuthenticatedClienteIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClienteRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -164,6 +179,18 @@ const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedClientePerfilRoute =
+  AuthenticatedClientePerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
+    getParentRoute: () => AuthenticatedClienteRoute,
+  } as any)
+const AuthenticatedClienteAgendamentosRoute =
+  AuthenticatedClienteAgendamentosRouteImport.update({
+    id: '/agendamentos',
+    path: '/agendamentos',
+    getParentRoute: () => AuthenticatedClienteRoute,
+  } as any)
 const AuthenticatedAdminWebhooksRoute =
   AuthenticatedAdminWebhooksRouteImport.update({
     id: '/webhooks',
@@ -277,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/seja-diarista': typeof SejaDiaristaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/cliente': typeof AuthenticatedClienteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -299,10 +327,13 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/cliente/': typeof AuthenticatedClienteIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -339,10 +370,13 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/cliente': typeof AuthenticatedClienteIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -360,6 +394,7 @@ export interface FileRoutesById {
   '/seja-diarista': typeof SejaDiaristaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
+  '/_authenticated/cliente': typeof AuthenticatedClienteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
@@ -382,10 +417,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/_authenticated/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/_authenticated/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/cliente/': typeof AuthenticatedClienteIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -403,6 +441,7 @@ export interface FileRouteTypes {
     | '/seja-diarista'
     | '/admin'
     | '/bookings'
+    | '/cliente'
     | '/dashboard'
     | '/onboarding'
     | '/pro'
@@ -425,10 +464,13 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/webhooks'
+    | '/cliente/agendamentos'
+    | '/cliente/perfil'
     | '/pro/agenda'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
+    | '/cliente/'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -465,10 +507,13 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/webhooks'
+    | '/cliente/agendamentos'
+    | '/cliente/perfil'
     | '/pro/agenda'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
+    | '/cliente'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -485,6 +530,7 @@ export interface FileRouteTypes {
     | '/seja-diarista'
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
+    | '/_authenticated/cliente'
     | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
     | '/_authenticated/pro'
@@ -507,10 +553,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/webhooks'
+    | '/_authenticated/cliente/agendamentos'
+    | '/_authenticated/cliente/perfil'
     | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
+    | '/_authenticated/cliente/'
     | '/_authenticated/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -654,6 +703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cliente': {
+      id: '/_authenticated/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof AuthenticatedClienteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings': {
       id: '/_authenticated/bookings'
       path: '/bookings'
@@ -667,6 +723,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cliente/': {
+      id: '/_authenticated/cliente/'
+      path: '/'
+      fullPath: '/cliente/'
+      preLoaderRoute: typeof AuthenticatedClienteIndexRouteImport
+      parentRoute: typeof AuthenticatedClienteRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -695,6 +758,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/pro/agenda'
       preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
       parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/cliente/perfil': {
+      id: '/_authenticated/cliente/perfil'
+      path: '/perfil'
+      fullPath: '/cliente/perfil'
+      preLoaderRoute: typeof AuthenticatedClientePerfilRouteImport
+      parentRoute: typeof AuthenticatedClienteRoute
+    }
+    '/_authenticated/cliente/agendamentos': {
+      id: '/_authenticated/cliente/agendamentos'
+      path: '/agendamentos'
+      fullPath: '/cliente/agendamentos'
+      preLoaderRoute: typeof AuthenticatedClienteAgendamentosRouteImport
+      parentRoute: typeof AuthenticatedClienteRoute
     }
     '/_authenticated/admin/webhooks': {
       id: '/_authenticated/admin/webhooks'
@@ -871,6 +948,21 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedClienteRouteChildren {
+  AuthenticatedClienteAgendamentosRoute: typeof AuthenticatedClienteAgendamentosRoute
+  AuthenticatedClientePerfilRoute: typeof AuthenticatedClientePerfilRoute
+  AuthenticatedClienteIndexRoute: typeof AuthenticatedClienteIndexRoute
+}
+
+const AuthenticatedClienteRouteChildren: AuthenticatedClienteRouteChildren = {
+  AuthenticatedClienteAgendamentosRoute: AuthenticatedClienteAgendamentosRoute,
+  AuthenticatedClientePerfilRoute: AuthenticatedClientePerfilRoute,
+  AuthenticatedClienteIndexRoute: AuthenticatedClienteIndexRoute,
+}
+
+const AuthenticatedClienteRouteWithChildren =
+  AuthenticatedClienteRoute._addFileChildren(AuthenticatedClienteRouteChildren)
+
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
@@ -889,6 +981,7 @@ const AuthenticatedProRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
+  AuthenticatedClienteRoute: typeof AuthenticatedClienteRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
@@ -897,6 +990,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
+  AuthenticatedClienteRoute: AuthenticatedClienteRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
