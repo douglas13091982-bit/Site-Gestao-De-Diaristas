@@ -29,6 +29,7 @@ import { Route as AuthenticatedProProfileRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
 import { Route as AuthenticatedProCreditsRouteImport } from './routes/_authenticated/pro.credits'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
+import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
@@ -43,6 +44,8 @@ import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminBlockedRouteImport } from './routes/_authenticated/admin.blocked'
 import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
+import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/public/webhooks/pagseguro'
+import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
 const ProfessionalsRoute = ProfessionalsRouteImport.update({
@@ -144,6 +147,12 @@ const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedAdminWebhooksRoute =
+  AuthenticatedAdminWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -227,6 +236,18 @@ const AuthenticatedAdminAdminsRoute =
     path: '/admins',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicWebhooksPagseguroRoute =
+  ApiPublicWebhooksPagseguroRouteImport.update({
+    id: '/api/public/webhooks/pagseguro',
+    path: '/api/public/webhooks/pagseguro',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWebhooksMercadopagoRoute =
+  ApiPublicWebhooksMercadopagoRouteImport.update({
+    id: '/api/public/webhooks/mercadopago',
+    path: '/api/public/webhooks/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminBookingsNewRoute =
   AuthenticatedAdminBookingsNewRouteImport.update({
     id: '/new',
@@ -263,12 +284,15 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -298,12 +322,15 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -336,12 +363,15 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/credits': typeof AuthenticatedProCreditsRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
+  '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -374,12 +404,15 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/webhooks'
     | '/pro/agenda'
     | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
     | '/admin/bookings/new'
+    | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -409,12 +442,15 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/webhooks'
     | '/pro/agenda'
     | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
     | '/admin/bookings/new'
+    | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   id:
     | '__root__'
     | '/'
@@ -446,12 +482,15 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
+    | '/_authenticated/admin/webhooks'
     | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/credits'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/new'
+    | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -462,6 +501,8 @@ export interface RootRouteChildren {
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
   ProfessionalsRoute: typeof ProfessionalsRouteWithChildren
+  ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
+  ApiPublicWebhooksPagseguroRoute: typeof ApiPublicWebhooksPagseguroRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -606,6 +647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/admin/webhooks': {
+      id: '/_authenticated/admin/webhooks'
+      path: '/webhooks'
+      fullPath: '/admin/webhooks'
+      preLoaderRoute: typeof AuthenticatedAdminWebhooksRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -704,6 +752,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/webhooks/pagseguro': {
+      id: '/api/public/webhooks/pagseguro'
+      path: '/api/public/webhooks/pagseguro'
+      fullPath: '/api/public/webhooks/pagseguro'
+      preLoaderRoute: typeof ApiPublicWebhooksPagseguroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/mercadopago': {
+      id: '/api/public/webhooks/mercadopago'
+      path: '/api/public/webhooks/mercadopago'
+      fullPath: '/api/public/webhooks/mercadopago'
+      preLoaderRoute: typeof ApiPublicWebhooksMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/bookings/new': {
       id: '/_authenticated/admin/bookings/new'
       path: '/new'
@@ -743,6 +805,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWebhooksRoute: typeof AuthenticatedAdminWebhooksRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -761,6 +824,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWebhooksRoute: AuthenticatedAdminWebhooksRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -846,6 +910,8 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
   ProfessionalsRoute: ProfessionalsRouteWithChildren,
+  ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
+  ApiPublicWebhooksPagseguroRoute: ApiPublicWebhooksPagseguroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
