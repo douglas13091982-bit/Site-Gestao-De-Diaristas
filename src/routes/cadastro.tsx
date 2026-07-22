@@ -454,6 +454,32 @@ function CadastroPage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
+                    <Label htmlFor="cep">CEP</Label>
+                    <div className="relative">
+                      <Input
+                        id="cep"
+                        value={cep}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, "").slice(0, 8);
+                          const masked = v.length > 5 ? `${v.slice(0,5)}-${v.slice(5)}` : v;
+                          setCep(masked);
+                          if (v.length === 8) lookupCep(v);
+                        }}
+                        onBlur={() => lookupCep(cep)}
+                        placeholder="00000-000"
+                        inputMode="numeric"
+                        maxLength={9}
+                        required
+                      />
+                      {cepLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">buscando…</span>}
+                    </div>
+                    {cepError ? (
+                      <p className="text-xs text-destructive">{cepError}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Preenchemos rua, bairro e cidade automaticamente.</p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
                     <Label htmlFor="addr">Endereço (Rua/Avenida)</Label>
                     <Input id="addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Ex: Rua das Flores" required />
                   </div>
