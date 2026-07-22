@@ -29,6 +29,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedClienteIndexRouteImport } from './routes/_authenticated/cliente.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
@@ -150,6 +151,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClienteIndexRoute =
+  AuthenticatedClienteIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClienteRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -283,7 +290,7 @@ export interface FileRoutesByFullPath {
   '/seja-diarista': typeof SejaDiaristaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
-  '/cliente': typeof AuthenticatedClienteRoute
+  '/cliente': typeof AuthenticatedClienteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -310,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/cliente/': typeof AuthenticatedClienteIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -324,7 +332,6 @@ export interface FileRoutesByTo {
   '/cidades': typeof CidadesRouteWithChildren
   '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
-  '/cliente': typeof AuthenticatedClienteRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/cliente': typeof AuthenticatedClienteIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -368,7 +376,7 @@ export interface FileRoutesById {
   '/seja-diarista': typeof SejaDiaristaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
-  '/_authenticated/cliente': typeof AuthenticatedClienteRoute
+  '/_authenticated/cliente': typeof AuthenticatedClienteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
@@ -395,6 +403,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/cliente/': typeof AuthenticatedClienteIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
+    | '/cliente/'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -453,7 +463,6 @@ export interface FileRouteTypes {
     | '/cidades'
     | '/seja-diarista'
     | '/bookings'
-    | '/cliente'
     | '/dashboard'
     | '/onboarding'
     | '/pro'
@@ -480,6 +489,7 @@ export interface FileRouteTypes {
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
+    | '/cliente'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
+    | '/_authenticated/cliente/'
     | '/_authenticated/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
@@ -686,6 +697,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cliente/': {
+      id: '/_authenticated/cliente/'
+      path: '/'
+      fullPath: '/cliente/'
+      preLoaderRoute: typeof AuthenticatedClienteIndexRouteImport
+      parentRoute: typeof AuthenticatedClienteRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -890,6 +908,17 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedClienteRouteChildren {
+  AuthenticatedClienteIndexRoute: typeof AuthenticatedClienteIndexRoute
+}
+
+const AuthenticatedClienteRouteChildren: AuthenticatedClienteRouteChildren = {
+  AuthenticatedClienteIndexRoute: AuthenticatedClienteIndexRoute,
+}
+
+const AuthenticatedClienteRouteWithChildren =
+  AuthenticatedClienteRoute._addFileChildren(AuthenticatedClienteRouteChildren)
+
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
@@ -908,7 +937,7 @@ const AuthenticatedProRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
-  AuthenticatedClienteRoute: typeof AuthenticatedClienteRoute
+  AuthenticatedClienteRoute: typeof AuthenticatedClienteRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
@@ -917,7 +946,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
-  AuthenticatedClienteRoute: AuthenticatedClienteRoute,
+  AuthenticatedClienteRoute: AuthenticatedClienteRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
