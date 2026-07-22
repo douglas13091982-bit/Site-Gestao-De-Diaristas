@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Upload, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/pro/profile")({
   component: ProfilePage,
@@ -27,6 +29,9 @@ function ProfilePage() {
 
   const [f, setF] = useState<Record<string, string>>({});
   const [isAvailable, setIsAvailable] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   useEffect(() => {
     if (profile.data) {
       setF({
@@ -64,6 +69,33 @@ function ProfilePage() {
 
   const upd = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
 
+  const uploadPhoto = async (file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Foto muito grande. Máximo 5 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("professional-photos").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage.from("professional-photos").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (sErr) throw sErr;
+      const url = signed.signedUrl;
+      const { error: updErr } = await supabase.from("profiles").update({ profile_photo: url }).eq("id", user.id);
+      if (updErr) throw updErr;
+      setF((p) => ({ ...p, profile_photo: url }));
+      qc.invalidateQueries();
+      toast.success("Foto atualizada!");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (profile.isLoading) return <p className="text-muted-foreground">Carregando…</p>;
 
   return (
@@ -80,9 +112,38 @@ function ProfilePage() {
       </div>
 
       <div className="rounded-xl border bg-card p-5 grid gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative h-20 w-20 rounded-full overflow-hidden bg-muted border shrink-0">
+            {f.profile_photo ? (
+              <img src={f.profile_photo} alt="Foto" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-2xl font-semibold text-muted-foreground">
+                {(f.full_name || "?").charAt(0).toUpperCase()}
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold mb-2">Foto de perfil</div>
+            <div className="flex flex-wrap gap-2">
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
+              <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-1.5" /> Enviar foto
+              </Button>
+              <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => cameraInputRef.current?.click()}>
+                <Camera className="h-4 w-4 mr-1.5" /> Tirar foto
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">JPG ou PNG, até 5 MB.</p>
+          </div>
+        </div>
         <Row label="Nome"><Input value={f.full_name ?? ""} onChange={upd("full_name")} /></Row>
         <Row label="Telefone"><Input value={f.phone ?? ""} onChange={upd("phone")} /></Row>
-        <Row label="Foto (URL)"><Input value={f.profile_photo ?? ""} onChange={upd("profile_photo")} /></Row>
         <Row label="Bio"><Textarea rows={3} value={f.bio ?? ""} onChange={upd("bio")} /></Row>
         <Row label="Experiência"><Textarea rows={2} value={f.experience ?? ""} onChange={upd("experience")} /></Row>
         <Row label="Cidade">
