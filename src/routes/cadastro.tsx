@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { Briefcase, User as UserIcon } from "lucide-react";
+import { Briefcase, User as UserIcon, MapPin, Home, Building2, Store, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,6 +47,70 @@ function CadastroPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [city, setCity] = useState("");
+  const [accept, setAccept] = useState(false);
+
+  // Client-only
+  const [propertyType, setPropertyType] = useState<string>("");
+  const [address, setAddress] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [complement, setComplement] = useState("");
+
+  // Professional-only
+  const [cpf, setCpf] = useState("");
+  const [pixKey, setPixKey] = useState("");
+  const [pixKeyType, setPixKeyType] = useState("cpf");
+  const [category, setCategory] = useState("");
+  const [experience, setExperience] = useState("");
+  const [bio, setBio] = useState("");
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const [regions, setRegions] = useState<string[]>([]);
+
+  const cities = useQuery({
+    queryKey: ["cadastro-cities"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("available_cities")
+        .select("name,state")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const categories = useQuery({
+    queryKey: ["cadastro-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profession_categories")
+        .select("id,name")
+        .eq("is_enabled", true)
+        .order("display_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const selectedCat = categories.data?.find((c) => c.name === category);
+  const catSpecialties = useQuery({
+    queryKey: ["cadastro-specialties", selectedCat?.id],
+    enabled: !!selectedCat?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("category_specialties")
+        .select("name")
+        .eq("category_id", selectedCat!.id)
+        .eq("is_enabled", true)
+        .order("display_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  function toggle(arr: string[], v: string, set: (x: string[]) => void) {
+    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  }
 
   function selectTipo(t: Exclude<Tipo, null>) {
     setTipo(t);
@@ -54,9 +120,21 @@ function CadastroPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!tipo) return;
+    if (!accept) {
+      toast.error("Você precisa aceitar os Termos de Uso.");
+      return;
+    }
+    if (tipo === "client" && !propertyType) {
+      toast.error("Selecione o tipo de imóvel.");
+      return;
+    }
+    if (tipo === "professional" && (!category || regions.length === 0)) {
+      toast.error("Selecione a categoria e ao menos uma região atendida.");
+      return;
+    }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUp, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -65,6 +143,32 @@ function CadastroPage() {
         },
       });
       if (error) throw error;
+      const userId = signUp.user?.id;
+      if (userId) {
+        const base = { full_name: fullName, phone, city: city || null };
+        if (tipo === "client") {
+          await supabase.from("profiles").update({
+            ...base,
+            property_type: propertyType,
+            address,
+            address_number: addressNumber,
+            address_neighborhood: neighborhood,
+            address_complement: complement || null,
+          }).eq("id", userId);
+        } else {
+          await supabase.from("profiles").update({
+            ...base,
+            cpf,
+            pix_key: pixKey,
+            pix_key_type: pixKeyType,
+            profession_category: category,
+            specialties,
+            regions: regions.join(","),
+            experience,
+            bio: bio || null,
+          }).eq("id", userId);
+        }
+      }
       toast.success("Conta criada com sucesso!");
       nav({ to: tipo === "professional" ? "/onboarding" : "/dashboard" });
     } catch (err) {
@@ -126,6 +230,53 @@ function CadastroPage() {
                 <Label htmlFor="name">Nome completo</Label>
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
+
+              {tipo === "professional" && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cpf">CPF</Label>
+                      <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" required />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="category">Categoria Profissional</Label>
+                      <select
+                        id="category"
+                        value={category}
+                        onChange={(e) => { setCategory(e.target.value); setSpecialties([]); }}
+                        required
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      >
+                        <option value="">Selecione…</option>
+                        {categories.data?.map((c) => (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pixtype">Tipo da chave PIX</Label>
+                      <select
+                        id="pixtype"
+                        value={pixKeyType}
+                        onChange={(e) => setPixKeyType(e.target.value)}
+                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      >
+                        <option value="cpf">CPF</option>
+                        <option value="phone">Telefone</option>
+                        <option value="email">E-mail</option>
+                        <option value="random">Chave aleatória</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pix">Chave PIX para recebimentos</Label>
+                      <Input id="pix" value={pixKey} onChange={(e) => setPixKey(e.target.value)} required />
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="email">E-mail</Label>
@@ -136,16 +287,157 @@ function CadastroPage() {
                   <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(47) 99999-9999" />
                 </div>
               </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="password">Senha</Label>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
               </div>
 
-              {tipo === "professional" && (
-                <p className="text-xs text-muted-foreground">
-                  Após criar a conta você completará seu perfil profissional (PIX, categoria, regiões, agenda).
-                </p>
+              <div className="space-y-1.5">
+                <Label htmlFor="city">Cidade</Label>
+                <select
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  <option value="">Selecione sua cidade</option>
+                  {cities.data?.map((c) => (
+                    <option key={`${c.name}-${c.state}`} value={c.name}>
+                      {c.name} — {c.state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {tipo === "client" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Tipo de imóvel</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { v: "casa", l: "Casa", i: <Home className="w-4 h-4" /> },
+                        { v: "apartamento", l: "Apartamento", i: <Building2 className="w-4 h-4" /> },
+                        { v: "sala_comercial", l: "Sala Comercial", i: <Store className="w-4 h-4" /> },
+                        { v: "condominio", l: "Condomínio", i: <Building className="w-4 h-4" /> },
+                      ].map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setPropertyType(o.v)}
+                          className={`flex items-center gap-2 h-10 px-3 rounded-md border text-sm transition ${
+                            propertyType === o.v
+                              ? "border-primary bg-primary/10 text-primary font-medium"
+                              : "border-input hover:bg-secondary"
+                          }`}
+                        >
+                          {o.i}
+                          {o.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="addr">Endereço (Rua/Avenida)</Label>
+                    <Input id="addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Ex: Rua das Flores" required />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="num">Número</Label>
+                      <Input id="num" value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} placeholder="123" required />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="bairro">Bairro</Label>
+                      <Input id="bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} placeholder="Centro" required />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="comp">Complemento (opcional)</Label>
+                    <Input id="comp" value={complement} onChange={(e) => setComplement(e.target.value)} placeholder="Apartamento, bloco, etc." />
+                  </div>
+                </>
               )}
+
+              {tipo === "professional" && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="exp">Experiência</Label>
+                    <Input id="exp" value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="Ex: 5 anos" />
+                  </div>
+
+                  {selectedCat && (
+                    <div className="space-y-2">
+                      <Label>Especialidades</Label>
+                      {catSpecialties.data && catSpecialties.data.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {catSpecialties.data.map((s) => {
+                            const on = specialties.includes(s.name);
+                            return (
+                              <button
+                                key={s.name}
+                                type="button"
+                                onClick={() => toggle(specialties, s.name, setSpecialties)}
+                                className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                                  on ? "border-primary bg-primary text-primary-foreground" : "border-input hover:bg-secondary"
+                                }`}
+                              >
+                                {s.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">Nenhuma especialidade cadastrada para esta categoria.</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Regiões atendidas</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Centro", "Zona Norte", "Zona Sul", "Zona Leste", "Zona Oeste"].map((r) => {
+                        const on = regions.includes(r);
+                        return (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => toggle(regions, r, setRegions)}
+                            className={`px-3 py-1.5 rounded-full text-xs border transition inline-flex items-center gap-1 ${
+                              on ? "border-primary bg-primary text-primary-foreground" : "border-input hover:bg-secondary"
+                            }`}
+                          >
+                            <MapPin className="w-3 h-3" />
+                            {r}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bio">Sobre você (opcional)</Label>
+                    <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Fale um pouco sobre sua experiência e diferenciais." />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Após criar a conta você poderá configurar sua agenda semanal e enviar foto no painel.
+                  </p>
+                </>
+              )}
+
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={accept}
+                  onChange={(e) => setAccept(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-input accent-primary"
+                />
+                <span>
+                  Li e aceito os <a className="text-primary underline" href="/termos" target="_blank" rel="noreferrer">Termos de Uso</a> e a{" "}
+                  <a className="text-primary underline" href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.
+                </span>
+              </label>
 
               <Button type="submit" className="w-full" disabled={busy}>
                 {busy ? "Criando…" : "Criar Conta"}
