@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminProfessionalsRouteImport } from './routes/_authenticated/admin.professionals'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
+import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authenticated/admin.credits'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin.cities'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
@@ -169,6 +170,12 @@ const AuthenticatedAdminFinanceRoute =
     path: '/finance',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCreditsRoute =
+  AuthenticatedAdminCreditsRouteImport.update({
+    id: '/credits',
+    path: '/credits',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCitiesRoute =
   AuthenticatedAdminCitiesRouteImport.update({
     id: '/cities',
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -257,6 +265,7 @@ export interface FileRoutesByTo {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -291,6 +300,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/_authenticated/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
+    | '/admin/credits'
     | '/admin/finance'
     | '/admin/professionals'
     | '/admin/reports'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
+    | '/admin/credits'
     | '/admin/finance'
     | '/admin/professionals'
     | '/admin/reports'
@@ -389,6 +401,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/cities'
+    | '/_authenticated/admin/credits'
     | '/_authenticated/admin/finance'
     | '/_authenticated/admin/professionals'
     | '/_authenticated/admin/reports'
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/credits': {
+      id: '/_authenticated/admin/credits'
+      path: '/credits'
+      fullPath: '/admin/credits'
+      preLoaderRoute: typeof AuthenticatedAdminCreditsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/cities': {
       id: '/_authenticated/admin/cities'
       path: '/cities'
@@ -654,6 +674,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
+  AuthenticatedAdminCreditsRoute: typeof AuthenticatedAdminCreditsRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminProfessionalsRoute: typeof AuthenticatedAdminProfessionalsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
@@ -668,6 +689,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
+  AuthenticatedAdminCreditsRoute: AuthenticatedAdminCreditsRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminProfessionalsRoute: AuthenticatedAdminProfessionalsRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
