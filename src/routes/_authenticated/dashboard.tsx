@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { user, roles } = useAuth();
-  const isWorker = roles.includes("worker");
+  const isWorker = roles.includes("professional");
   const role = useQuery({
     queryKey: ["my-role", user?.id],
     enabled: !!user,

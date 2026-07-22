@@ -111,7 +111,7 @@ function OnboardingPage() {
     });
     if (perr) { setError(perr.message); setSaving(false); return; }
 
-    await supabase.from("user_roles").upsert({ user_id: user.id, role: "worker" as never }, { onConflict: "user_id,role" as never });
+    await supabase.from("user_roles").upsert({ user_id: user.id, role: "professional" as never }, { onConflict: "user_id,role" as never });
 
     // reset availability
     await supabase.from("professional_availability").delete().eq("professional_id", user.id);

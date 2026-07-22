@@ -268,7 +268,7 @@ function FeaturedSection({ city, pros }: { city: string; pros: Pro[] }) {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             Nenhuma diarista cadastrada ainda.{" "}
-            <Link to="/auth" search={{ mode: "signup", role: "worker" } as never} className="text-primary font-semibold">
+            <Link to="/auth" search={{ mode: "signup", role: "professional" } as never} className="text-primary font-semibold">
               Seja a primeira
             </Link>.
           </div>
@@ -432,7 +432,7 @@ function BeWorkerSection() {
               </div>
             ))}
           </div>
-          <Link to="/auth" search={{ mode: "signup", role: "worker" } as never}>
+          <Link to="/auth" search={{ mode: "signup", role: "professional" } as never}>
             <Button size="lg" className="gap-2 h-12 px-6" style={{ background: "var(--accent)" }}>
               Quero ser Diarista <ArrowRight className="h-4 w-4" />
             </Button>
@@ -476,7 +476,7 @@ function FooterSection() {
         <div>
           <div className="font-semibold mb-3">Diarista</div>
           <ul className="space-y-2 text-muted-foreground">
-            <li><Link to="/auth" search={{ mode: "signup", role: "worker" } as never} className="hover:text-primary">Cadastrar-se</Link></li>
+            <li><Link to="/auth" search={{ mode: "signup", role: "professional" } as never} className="hover:text-primary">Cadastrar-se</Link></li>
             <li><Link to="/auth" className="hover:text-primary">Painel</Link></li>
           </ul>
         </div>

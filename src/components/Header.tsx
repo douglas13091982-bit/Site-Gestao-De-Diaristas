@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 
 export function Header() {
   const { user, signOut, roles } = useAuth();
-  const isWorker = roles.includes("worker");
+  const isWorker = roles.includes("professional");
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between gap-4">
