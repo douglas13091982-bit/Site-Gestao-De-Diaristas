@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfessionalsRouteImport } from './routes/professionals'
 import { Route as CidadesRouteImport } from './routes/cidades'
+import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const ProfessionalsRoute = ProfessionalsRouteImport.update({
 const CidadesRoute = CidadesRouteImport.update({
   id: '/cidades',
   path: '/cidades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriasRoute = CategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -135,6 +141,7 @@ const AuthenticatedAdminBookingsNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/categorias': typeof CategoriasRoute
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/categorias': typeof CategoriasRoute
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/categorias': typeof CategoriasRoute
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/categorias'
     | '/cidades'
     | '/professionals'
     | '/admin'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/categorias'
     | '/cidades'
     | '/professionals'
     | '/dashboard'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/categorias'
     | '/cidades'
     | '/professionals'
     | '/_authenticated/admin'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CategoriasRoute: typeof CategoriasRoute
   CidadesRoute: typeof CidadesRouteWithChildren
   ProfessionalsRoute: typeof ProfessionalsRouteWithChildren
 }
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       path: '/cidades'
       fullPath: '/cidades'
       preLoaderRoute: typeof CidadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categorias': {
+      id: '/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof CategoriasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -483,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CategoriasRoute: CategoriasRoute,
   CidadesRoute: CidadesRouteWithChildren,
   ProfessionalsRoute: ProfessionalsRouteWithChildren,
 }
