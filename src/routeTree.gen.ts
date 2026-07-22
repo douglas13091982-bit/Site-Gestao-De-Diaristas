@@ -26,6 +26,7 @@ import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
+import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
@@ -122,6 +123,11 @@ const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/pro/agenda'
     | '/pro/leads'
     | '/admin/'
     | '/admin/bookings/new'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/pro/agenda'
     | '/pro/leads'
     | '/admin'
     | '/admin/bookings/new'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
+    | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/leads'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/new'
@@ -497,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProLeadsRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/agenda': {
+      id: '/_authenticated/pro/agenda'
+      path: '/agenda'
+      fullPath: '/pro/agenda'
+      preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -623,10 +642,12 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedProRouteChildren {
+  AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
+  AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
   AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
 }
 
