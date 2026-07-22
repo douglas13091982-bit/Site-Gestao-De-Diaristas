@@ -102,13 +102,6 @@ function AuthPage() {
             </div>
           )}
 
-          <Button variant="outline" className="w-full" onClick={google}>Continuar com Google</Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center"><span className="bg-card px-3 text-xs uppercase text-muted-foreground">ou</span></div>
-          </div>
-
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
               <div className="space-y-1">
