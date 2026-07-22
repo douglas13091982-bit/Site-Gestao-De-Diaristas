@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
+import { Route as AuthenticatedProCreditsRouteImport } from './routes/_authenticated/pro.credits'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
@@ -129,6 +130,11 @@ const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProCreditsRoute = AuthenticatedProCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
 const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/_authenticated/pro/credits': typeof AuthenticatedProCreditsRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/pro/agenda'
+    | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/pro/agenda'
+    | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/pro/agenda'
+    | '/_authenticated/pro/credits'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
@@ -528,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProLeadsRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/credits': {
+      id: '/_authenticated/pro/credits'
+      path: '/credits'
+      fullPath: '/pro/credits'
+      preLoaderRoute: typeof AuthenticatedProCreditsRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/pro/agenda': {
       id: '/_authenticated/pro/agenda'
       path: '/agenda'
@@ -662,12 +681,14 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
+  AuthenticatedProCreditsRoute: typeof AuthenticatedProCreditsRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
   AuthenticatedProProfileRoute: typeof AuthenticatedProProfileRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
+  AuthenticatedProCreditsRoute: AuthenticatedProCreditsRoute,
   AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
   AuthenticatedProProfileRoute: AuthenticatedProProfileRoute,
 }
