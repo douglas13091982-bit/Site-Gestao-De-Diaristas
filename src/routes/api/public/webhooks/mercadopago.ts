@@ -11,13 +11,14 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Read webhook secret from app_settings
-        const { data: secretRow } = await supabaseAdmin
+        // Read webhook secret + access token from app_settings
+        const { data: settingsRows } = await supabaseAdmin
           .from("app_settings")
-          .select("setting_value")
-          .eq("setting_key", "mp_webhook_secret")
-          .maybeSingle();
-        const secret = secretRow?.setting_value ?? "";
+          .select("setting_key, setting_value")
+          .in("setting_key", ["mp_webhook_secret", "mp_access_token"]);
+        const cfg = Object.fromEntries((settingsRows ?? []).map((r) => [r.setting_key, r.setting_value ?? ""]));
+        const secret = cfg.mp_webhook_secret ?? "";
+        const accessToken = cfg.mp_access_token ?? "";
 
         // Mercado Pago sends x-signature: "ts=...,v1=<hmac>" and x-request-id
         // Manifest: id:<data.id>;request-id:<x-request-id>;ts:<ts>;
@@ -66,6 +67,50 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
         });
 
         if (httpStatus !== 200) return new Response("Invalid signature", { status: 401 });
+
+        // Handle payment events: fetch payment from MP and mark booking as paid
+        try {
+          const isPayment = (eventType ?? "").toString().includes("payment");
+          if (isPayment && externalId && accessToken) {
+            const res = await fetch(`https://api.mercadopago.com/v1/payments/${externalId}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            if (res.ok) {
+              const pay = (await res.json()) as {
+                status?: string;
+                external_reference?: string;
+                date_approved?: string;
+              };
+              const ref = pay.external_reference ?? "";
+              const match = /^booking:(\d+)$/.exec(ref);
+              if (match && pay.status === "approved") {
+                const bookingId = Number(match[1]);
+                await supabaseAdmin
+                  .from("bookings")
+                  .update({
+                    payment_status: "paid",
+                    paid_at: pay.date_approved ?? new Date().toISOString(),
+                    status: "pending",
+                  })
+                  .eq("id", bookingId)
+                  .neq("payment_status", "paid");
+              }
+            }
+          }
+        } catch (e) {
+          await supabaseAdmin.from("webhook_events").insert({
+            provider: "mercadopago",
+            event_type: "processing_error",
+            external_id: externalId,
+            signature_valid: signatureValid,
+            status: "processing_error",
+            http_status: 200,
+            payload: (payload ?? null) as never,
+            headers: headers as never,
+            error: e instanceof Error ? e.message : "unknown",
+          });
+        }
+
         return new Response(JSON.stringify({ received: true }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
