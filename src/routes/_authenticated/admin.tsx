@@ -55,8 +55,8 @@ function AdminLayout() {
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col">
+    <div className="h-screen flex bg-slate-50 overflow-hidden">
+      <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col h-screen sticky top-0">
         <div className="px-5 py-6 border-b border-slate-800">
           <div className="text-lg font-bold">Gersepa</div>
           <div className="text-xs text-slate-400">Painel Admin</div>
@@ -71,7 +71,7 @@ function AdminLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 min-w-0"><Outlet /></main>
+      <main className="flex-1 min-w-0 overflow-y-auto h-screen"><Outlet /></main>
     </div>
   );
 }
