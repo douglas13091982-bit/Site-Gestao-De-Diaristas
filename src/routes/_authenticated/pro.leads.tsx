@@ -27,6 +27,8 @@ type OfferRow = {
     notes: string | null;
     total_price: number | null;
     client_email: string | null;
+    client_name: string | null;
+    client_phone: string | null;
     status: string;
   } | null;
 };
@@ -48,7 +50,7 @@ function LeadsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("booking_offers")
-        .select("id,status,created_at,booking:bookings(id,service_type,property_type,booking_date,start_time,duration_hours,address,city,notes,total_price,client_email,status)")
+        .select("id,status,created_at,booking:bookings(id,service_type,property_type,booking_date,start_time,duration_hours,address,city,notes,total_price,client_email,client_name,client_phone,status)")
         .eq("professional_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -142,9 +144,28 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
               <div className="text-[10px] text-muted-foreground whitespace-nowrap">líquido (comissão {pct}%)</div>
             </div>
           ) : null}
-          {offer.status === "accepted" && b?.client_email && <div className="text-[11px] text-muted-foreground mt-1 break-all">{b.client_email}</div>}
         </div>
       </div>
+      {offer.status === "accepted" && b && (
+        <div className="mt-4 pt-4 border-t rounded-lg bg-emerald-50/50 -mx-1 px-3 py-3">
+          <div className="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Contato do cliente</div>
+          {b.client_name && <div className="text-sm font-medium">{b.client_name}</div>}
+          {b.client_phone && (
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className="text-sm">{b.client_phone}</span>
+              <a
+                href={`https://wa.me/55${b.client_phone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs px-2 py-1 rounded-full bg-emerald-600 text-white font-medium"
+              >
+                WhatsApp
+              </a>
+            </div>
+          )}
+          {b.client_email && <div className="text-xs text-muted-foreground mt-1 break-all">{b.client_email}</div>}
+        </div>
+      )}
       {offer.status === "pending" && onAccept && onReject && (
         <div className="flex gap-2 mt-4 pt-4 border-t">
           <Button onClick={onAccept} disabled={busy} className="flex-1 min-h-11">Aceitar lead</Button>
