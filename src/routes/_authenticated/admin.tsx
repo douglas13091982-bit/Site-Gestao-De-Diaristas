@@ -57,15 +57,15 @@ function AdminLayout() {
   return (
     <div className="min-h-screen flex bg-slate-50">
       <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col sticky top-0 h-screen">
-        <div className="px-5 py-6 border-b border-slate-800">
-          <div className="text-lg font-bold">Gersepa</div>
-          <div className="text-xs text-slate-400">Painel Admin</div>
+        <div className="px-5 py-3 border-b border-slate-800">
+          <div className="text-base font-bold">Gersepa</div>
+          <div className="text-[11px] text-slate-400">Painel Admin</div>
         </div>
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-4 text-sm">
+        <nav className="flex-1 overflow-hidden px-2 py-2 space-y-2 text-[13px]">
           {GROUPS.map((g) => <NavGroupBlock key={g.label} group={g} pathname={pathname} />)}
         </nav>
-        <div className="border-t border-slate-800 p-4 text-xs">
-          <div className="text-slate-400 mb-2 truncate">{user?.email}</div>
+        <div className="border-t border-slate-800 px-4 py-3 text-xs">
+          <div className="text-slate-400 mb-1.5 truncate">{user?.email}</div>
           <button onClick={signOut} className="flex items-center gap-2 text-slate-300 hover:text-white">
             <LogOut className="h-4 w-4" /> Sair do Admin
           </button>
@@ -80,18 +80,18 @@ function NavGroupBlock({ group, pathname }: { group: NavGroup; pathname: string 
   const [open, setOpen] = useState(true);
   return (
     <div>
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200">
         <span>{group.label}</span>
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
       </button>
       {open && (
-        <ul className="mt-1 space-y-0.5">
+        <ul className="mt-0.5 space-y-0">
           {group.items.map((it) => {
             const active = it.exact ? pathname === it.to : pathname === it.to || pathname.startsWith(it.to + "/");
             return (
               <li key={it.to}>
-                <Link to={it.to} className={`flex items-center gap-2 px-3 py-2 rounded-md ${active ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}>
-                  <it.icon className="h-4 w-4" /> {it.label}
+                <Link to={it.to} className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${active ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}>
+                  <it.icon className="h-3.5 w-3.5" /> {it.label}
                 </Link>
               </li>
             );
