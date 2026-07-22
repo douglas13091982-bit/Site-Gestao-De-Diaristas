@@ -15,7 +15,7 @@ function ProLayout() {
   const profile = useQuery({
     queryKey: ["me-profile", user?.id],
     enabled: !!user,
-    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,credits_balance,rating,total_bookings").eq("id", user!.id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,rating,total_bookings").eq("id", user!.id).maybeSingle()).data,
   });
 
   if (profile.isLoading) return <div className="min-h-screen bg-background"><Header /><main className="p-10 text-muted-foreground">Carregando…</main></div>;
@@ -36,7 +36,6 @@ function ProLayout() {
   const tabs = [
     { to: "/pro/leads", label: "Leads" },
     { to: "/pro/agenda", label: "Agenda" },
-    { to: "/pro/credits", label: "Créditos" },
     { to: "/pro/profile", label: "Meu perfil" },
   ];
 
@@ -50,10 +49,9 @@ function ProLayout() {
             <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Painel profissional Gersepa</p>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:gap-3 sm:justify-end text-sm">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:gap-3 sm:justify-end text-sm">
           <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
           <Stat label="Serviços" value={String(profile.data?.total_bookings ?? 0)} />
-          <Stat label="Créditos" value={`R$ ${Number(profile.data?.credits_balance ?? 0).toFixed(2)}`} />
         </div>
         <nav className="mt-4 sm:mt-6 hidden md:flex gap-1 border-b">
           {tabs.map((t) => {
@@ -68,7 +66,7 @@ function ProLayout() {
         <div className="mt-4 sm:mt-6"><Outlet /></div>
       </main>
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
         {tabs.map((t) => {
           const active = loc.pathname.startsWith(t.to);
           return (
