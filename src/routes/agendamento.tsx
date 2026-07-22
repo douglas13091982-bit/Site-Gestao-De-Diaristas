@@ -7,12 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { useServerFn } from "@tanstack/react-start";
-import { createPixPayment } from "@/lib/mercadopago.functions";
+import { createPayment } from "@/lib/mercadopago.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon } from "lucide-react";
+import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon, QrCode, CreditCard as CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -53,7 +53,7 @@ function AgendamentoPage() {
   const s = Route.useSearch();
   const { user } = useAuth();
   const nav = useNavigate();
-  const createPayment = useServerFn(createPixPayment);
+  const runCreatePayment = useServerFn(createPayment);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(2);
   const [pkgId, setPkgId] = useState<number | null>(null);
@@ -67,12 +67,59 @@ function AgendamentoPage() {
   const [guestPhone, setGuestPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Método selecionado no passo 4
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState(""); // MM/AA
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardCpf, setCardCpf] = useState("");
+  const [installments, setInstallments] = useState(1);
+
+  // Configurações públicas do gateway
+  const paySettings = useQuery({
+    queryKey: ["public-pay-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings")
+        .select("setting_key, setting_value")
+        .in("setting_key", ["payment_platform", "pix_enabled", "card_enabled", "mp_public_key"]);
+      const m: Record<string, string> = {};
+      for (const r of data ?? []) m[r.setting_key] = r.setting_value ?? "";
+      return {
+        platform: (m.payment_platform || "mercadopago").toLowerCase(),
+        pixEnabled: m.pix_enabled !== "0",
+        cardEnabled: m.card_enabled !== "0",
+        mpPublicKey: m.mp_public_key || "",
+      };
+    },
+  });
+
+  const platform = paySettings.data?.platform ?? "mercadopago";
+  const pixEnabled = paySettings.data?.pixEnabled ?? true;
+  const cardEnabled = (paySettings.data?.cardEnabled ?? true) && platform === "mercadopago";
+
+  useEffect(() => {
+    if (paymentMethod === "pix" && !pixEnabled && cardEnabled) setPaymentMethod("card");
+    if (paymentMethod === "card" && !cardEnabled && pixEnabled) setPaymentMethod("pix");
+  }, [pixEnabled, cardEnabled]);
+
+  // Carrega SDK do Mercado Pago quando o usuário abre a aba Cartão
+  useEffect(() => {
+    if (step !== 4 || paymentMethod !== "card" || platform !== "mercadopago") return;
+    if (typeof window === "undefined") return;
+    if ((window as any).MercadoPago) return;
+    const s = document.createElement("script");
+    s.src = "https://sdk.mercadopago.com/js/v2";
+    s.async = true;
+    document.head.appendChild(s);
+  }, [step, paymentMethod, platform]);
+
   const meProfile = useQuery({
     enabled: !!user?.id,
     queryKey: ["ag-me", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles")
-        .select("full_name, phone, address, address_number, address_complement, address_neighborhood, city")
+        .select("full_name, phone, cpf, address, address_number, address_complement, address_neighborhood, city")
         .eq("id", user!.id).maybeSingle();
       return data;
     },
@@ -90,6 +137,7 @@ function AgendamentoPage() {
     if (!guestName && p.full_name) setGuestName(p.full_name);
     if (!guestPhone && p.phone) setGuestPhone(p.phone);
     if (!email && user?.email) setEmail(user.email);
+    if (!cardCpf && (p as any).cpf) setCardCpf(String((p as any).cpf));
   }, [meProfile.data, user?.email]);
 
   const pro = useQuery({
