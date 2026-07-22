@@ -592,6 +592,7 @@ export type Database = {
           rating: number
           regions: string | null
           specialties: string[]
+          suspended_until: string | null
           total_bookings: number
           total_reviews: number
           updated_at: string
@@ -625,6 +626,7 @@ export type Database = {
           rating?: number
           regions?: string | null
           specialties?: string[]
+          suspended_until?: string | null
           total_bookings?: number
           total_reviews?: number
           updated_at?: string
@@ -658,6 +660,7 @@ export type Database = {
           rating?: number
           regions?: string | null
           specialties?: string[]
+          suspended_until?: string | null
           total_bookings?: number
           total_reviews?: number
           updated_at?: string
