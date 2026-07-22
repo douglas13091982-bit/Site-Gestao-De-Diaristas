@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
-  ChevronDown, ChevronRight, MapPin, Tag, Coins, Package, Bell, Ban, Webhook,
+  ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
