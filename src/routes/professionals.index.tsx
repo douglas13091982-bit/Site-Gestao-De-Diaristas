@@ -55,16 +55,16 @@ function ProfessionalsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-secondary/40">
+    <div className="min-h-screen bg-secondary/40 overflow-x-hidden">
       <Header />
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Diaristas verificadas</h1>
           <p className="text-muted-foreground">Filtre por cidade e avaliação.</p>
         </div>
 
         <form
-          className="grid sm:grid-cols-[1fr_1fr_140px_auto] gap-3 mb-8 bg-card border border-border rounded-xl p-4"
+          className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_140px_auto] gap-3 mb-8 bg-card border border-border rounded-xl p-4"
           onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
@@ -104,30 +104,31 @@ function ProfessionalsPage() {
           </div>
         )}
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {q.data?.map((p) => (
-            <div key={p.id} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
-              <div className="flex items-center gap-3">
+            <div key={p.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5 hover:shadow-md transition min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
                 {p.profile_photo ? (
                   <img
                     src={p.profile_photo}
                     alt={p.full_name ?? "Diarista"}
                     loading="lazy"
-                    className="h-14 w-14 rounded-full object-cover border border-border"
+                    className="h-14 w-14 shrink-0 rounded-full object-cover border border-border"
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                   />
                 ) : (
-                  <div className="h-14 w-14 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
+                  <div className="h-14 w-14 shrink-0 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
                     {(p.full_name ?? "?")[0]}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                    <MapPin className="h-3 w-3" />{p.city ?? "—"}
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{p.city ?? "—"}</span>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <div className="flex items-center gap-1 text-sm font-semibold">
                     <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {Number(p.rating ?? 0).toFixed(1)}
                   </div>
