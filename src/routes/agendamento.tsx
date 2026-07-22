@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,18 @@ function AgendamentoPage() {
       .select("blocked_date").eq("professional_id", s.pro)).data ?? [],
   });
 
+  const availability = useQuery({
+    enabled: !!s.pro,
+    queryKey: ["ag-availability", s.pro],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("professional_availability")
+        .select("day_of_week, start_time, end_time, is_available")
+        .eq("professional_id", s.pro);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   // Pre-select package matching dur
   const selectedPkg = useMemo(() => {
     const list = packages.data ?? [];
@@ -97,25 +109,65 @@ function AgendamentoPage() {
 
   const days = useMemo(() => {
     const today = new Date();
-    const arr: { iso: string; label: string; weekday: string; blocked: boolean }[] = [];
+    const arr: { iso: string; label: string; weekday: string; blocked: boolean; reason?: string; range?: string }[] = [];
     const set = new Set((blocked.data ?? []).map(b => b.blocked_date));
+    const availabilityByDay = new Map((availability.data ?? []).map((a) => [a.day_of_week, a]));
+    const hasAvailability = (availability.data ?? []).length > 0;
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       const iso = d.toISOString().slice(0, 10);
+      const dayAvailability = availabilityByDay.get(d.getDay());
+      const blockedByDate = set.has(iso);
+      const blockedBySchedule = hasAvailability && (!dayAvailability || !dayAvailability.is_available);
       arr.push({
         iso,
         label: `${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`,
         weekday: DAYS_SHORT[d.getDay()],
-        blocked: set.has(iso),
+        blocked: blockedByDate || blockedBySchedule,
+        reason: blockedByDate ? "Bloqueada" : blockedBySchedule ? "Indisponível" : undefined,
+        range: dayAvailability?.is_available ? `${dayAvailability.start_time.slice(0, 5)}–${dayAvailability.end_time.slice(0, 5)}` : undefined,
       });
     }
     return arr;
-  }, [blocked.data]);
+  }, [availability.data, blocked.data]);
 
-  const times = Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+  const selectedDay = days.find((d) => d.iso === date);
+  const selectedAvailability = useMemo(() => {
+    if (!date) return null;
+    const weekday = new Date(`${date}T00:00:00`).getDay();
+    return (availability.data ?? []).find((a) => a.day_of_week === weekday) ?? null;
+  }, [availability.data, date]);
 
-  const canNextFromStep2 = !!(selectedPkg && date && time);
+  const times = useMemo(() => {
+    const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
+    if (!selectedAvailability?.is_available) {
+      return Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+    }
+    const start = timeToMinutes(selectedAvailability.start_time);
+    const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
+    const slots: string[] = [];
+    for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
+    return slots.length ? slots : [selectedAvailability.start_time.slice(0, 5)];
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours]);
+
+  useEffect(() => {
+    if (date && selectedDay?.blocked) {
+      setDate("");
+      setTime("");
+      return;
+    }
+    if (!date && !blocked.isLoading && !availability.isLoading) {
+      const firstAvailableDay = days.find((d) => !d.blocked);
+      if (firstAvailableDay) setDate(firstAvailableDay.iso);
+    }
+  }, [availability.isLoading, blocked.isLoading, date, days, selectedDay?.blocked]);
+
+  useEffect(() => {
+    if (time && !times.includes(time)) setTime("");
+  }, [time, times]);
+
+  const canNextFromStep2 = !!(selectedPkg && date && time && !selectedDay?.blocked && times.includes(time));
   const canNextFromStep3 = !!(address.trim().length >= 3 && (user || email.trim()));
 
   async function submitBooking() {
@@ -246,11 +298,11 @@ function AgendamentoPage() {
                 {days.map(d => {
                   const active = date === d.iso;
                   return (
-                    <button key={d.iso} type="button" disabled={d.blocked} onClick={() => setDate(d.iso)}
+                    <button key={d.iso} type="button" disabled={d.blocked} onClick={() => { setDate(d.iso); setTime(""); }}
                       className={`rounded-xl border p-3 text-center transition ${d.blocked ? "opacity-50 cursor-not-allowed" : active ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/40"}`}>
                       <div className="text-xs text-muted-foreground">{d.weekday}</div>
                       <div className="font-semibold">{d.label}</div>
-                      {d.blocked && <div className="text-[10px] text-destructive">Indisponível</div>}
+                      {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : d.range ? <div className="text-[10px] text-muted-foreground">{d.range}</div> : null}
                     </button>
                   );
                 })}
@@ -369,6 +421,17 @@ function sumHours(start: string | null | undefined, dur: number): string {
   const end = new Date(2000, 0, 1, h, m);
   end.setHours(end.getHours() + Number(dur));
   return `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+}
+
+function timeToMinutes(value: string): number {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(value: number): string {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
