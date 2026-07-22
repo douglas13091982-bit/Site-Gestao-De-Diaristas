@@ -14,7 +14,7 @@ const search = z.object({
   minRating: z.coerce.number().min(0).max(5).optional(),
 });
 
-export const Route = createFileRoute("/professionals")({
+export const Route = createFileRoute("/professionals/")({
   validateSearch: search,
   head: () => ({
     meta: [
