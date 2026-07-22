@@ -15,7 +15,7 @@ function ProLayout() {
   const profile = useQuery({
     queryKey: ["me-profile", user?.id],
     enabled: !!user,
-    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,rating,total_bookings").eq("id", user!.id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,rating,total_bookings,profile_photo").eq("id", user!.id).maybeSingle()).data,
   });
 
   if (profile.isLoading) return <div className="min-h-screen bg-background"><Header /><main className="p-10 text-muted-foreground">Carregando…</main></div>;
@@ -43,8 +43,19 @@ function ProLayout() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 pb-24 md:pb-8">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
-          <div className="min-w-0">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link to="/pro/profile" className="shrink-0">
+            <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full overflow-hidden bg-muted border-2 border-primary/20">
+              {profile.data?.profile_photo ? (
+                <img src={profile.data.profile_photo} alt="Foto" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-lg sm:text-xl font-semibold text-muted-foreground">
+                  {(profile.data?.full_name || "?").charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </Link>
+          <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl sm:text-3xl font-bold">Olá, {profile.data?.full_name?.split(" ")[0] ?? "diarista"}</h1>
             <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Painel profissional Gersepa</p>
           </div>
