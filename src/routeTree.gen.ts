@@ -19,10 +19,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
 import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
+import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
+import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
+import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
@@ -84,6 +89,16 @@ const CategoriasSlugRoute = CategoriasSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => CategoriasRoute,
 } as any)
+const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -103,6 +118,21 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedProProfileRoute = AuthenticatedProProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedProRoute,
 } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
@@ -180,6 +210,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pro': typeof AuthenticatedProRouteWithChildren
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -193,6 +225,9 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -205,6 +240,8 @@ export interface FileRoutesByTo {
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pro': typeof AuthenticatedProRouteWithChildren
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -218,6 +255,9 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -233,6 +273,8 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -246,6 +288,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -261,6 +306,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookings'
     | '/dashboard'
+    | '/onboarding'
+    | '/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -274,6 +321,9 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/pro/agenda'
+    | '/pro/leads'
+    | '/pro/profile'
     | '/admin/'
     | '/admin/bookings/new'
   fileRoutesByTo: FileRoutesByTo
@@ -286,6 +336,8 @@ export interface FileRouteTypes {
     | '/professionals'
     | '/bookings'
     | '/dashboard'
+    | '/onboarding'
+    | '/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -299,6 +351,9 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/pro/agenda'
+    | '/pro/leads'
+    | '/pro/profile'
     | '/admin'
     | '/admin/bookings/new'
   id:
@@ -313,6 +368,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/dashboard'
+    | '/_authenticated/onboarding'
+    | '/_authenticated/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -326,6 +383,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
+    | '/_authenticated/pro/agenda'
+    | '/_authenticated/pro/leads'
+    | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/new'
   fileRoutesById: FileRoutesById
@@ -412,6 +472,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriasSlugRouteImport
       parentRoute: typeof CategoriasRoute
     }
+    '/_authenticated/pro': {
+      id: '/_authenticated/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -439,6 +513,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/pro/profile': {
+      id: '/_authenticated/pro/profile'
+      path: '/profile'
+      fullPath: '/pro/profile'
+      preLoaderRoute: typeof AuthenticatedProProfileRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/leads': {
+      id: '/_authenticated/pro/leads'
+      path: '/leads'
+      fullPath: '/pro/leads'
+      preLoaderRoute: typeof AuthenticatedProLeadsRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/agenda': {
+      id: '/_authenticated/pro/agenda'
+      path: '/agenda'
+      fullPath: '/pro/agenda'
+      preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
+      parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
@@ -565,16 +660,35 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedProRouteChildren {
+  AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
+  AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
+  AuthenticatedProProfileRoute: typeof AuthenticatedProProfileRoute
+}
+
+const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
+  AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
+  AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
+  AuthenticatedProProfileRoute: AuthenticatedProProfileRoute,
+}
+
+const AuthenticatedProRouteWithChildren =
+  AuthenticatedProRoute._addFileChildren(AuthenticatedProRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, roles } = useAuth();
+  const isWorker = roles.includes("worker");
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto h-16 px-6 flex items-center justify-between gap-4">
@@ -25,8 +26,14 @@ export function Header() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <Link to="/bookings"><Button variant="ghost" size="sm">Meus agendamentos</Button></Link>
-              <Link to="/dashboard"><Button variant="outline" size="sm">Painel</Button></Link>
+              {isWorker ? (
+                <Link to="/pro/leads"><Button variant="outline" size="sm">Área da diarista</Button></Link>
+              ) : (
+                <>
+                  <Link to="/bookings"><Button variant="ghost" size="sm">Meus agendamentos</Button></Link>
+                  <Link to="/dashboard"><Button variant="outline" size="sm">Painel</Button></Link>
+                </>
+              )}
               <Button variant="ghost" size="sm" onClick={() => signOut()}>Sair</Button>
             </>
           ) : (
