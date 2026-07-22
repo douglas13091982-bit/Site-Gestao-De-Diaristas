@@ -29,9 +29,9 @@ function HomePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, city, state, rating_avg, rating_count, bio")
+        .select("id, full_name, profile_photo, city, rating, total_reviews, bio")
         .eq("is_verified", true)
-        .order("rating_avg", { ascending: false })
+        .order("rating", { ascending: false })
         .limit(6);
       return data ?? [];
     },
@@ -233,11 +233,11 @@ function HeroSection({ city }: { city: string }) {
 type Pro = {
   id: string;
   full_name: string | null;
-  avatar_url: string | null;
+  profile_photo: string | null;
   city: string | null;
-  state: string | null;
-  rating_avg: number | null;
-  rating_count: number | null;
+
+  rating: number | null;
+  total_reviews: number | null;
   bio: string | null;
 };
 
@@ -288,8 +288,8 @@ function ProCard({ p }: { p: Pro }) {
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           <div className="h-16 w-16 rounded-xl bg-primary/10 text-primary grid place-items-center font-bold text-xl overflow-hidden">
-            {p.avatar_url ? (
-              <img src={p.avatar_url} alt={p.full_name ?? ""} className="h-full w-full object-cover" />
+            {p.profile_photo ? (
+              <img src={p.profile_photo} alt={p.full_name ?? ""} className="h-full w-full object-cover" />
             ) : (
               (p.full_name ?? "?")[0]
             )}
@@ -306,9 +306,9 @@ function ProCard({ p }: { p: Pro }) {
           <div className="flex items-center gap-2 text-sm mt-0.5">
             <span className="inline-flex items-center gap-1 font-semibold">
               <Star className="h-3.5 w-3.5" style={{ color: "var(--highlight)", fill: "var(--highlight)" }} />
-              {Number(p.rating_avg ?? 0).toFixed(1)}
+              {Number(p.rating ?? 0).toFixed(1)}
             </span>
-            <span className="text-muted-foreground text-xs">{p.rating_count ?? 0}+ limpezas</span>
+            <span className="text-muted-foreground text-xs">{p.total_reviews ?? 0}+ limpezas</span>
           </div>
           <div className="mt-1">
             <span className="inline-block rounded-md bg-secondary text-secondary-foreground text-[11px] font-medium px-2 py-0.5">

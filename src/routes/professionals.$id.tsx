@@ -29,23 +29,23 @@ function ProfessionalPage() {
     queryKey: ["pro", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, avatar_url, bio, city, state, rating_avg, rating_count, is_verified")
+        .select("id, full_name, profile_photo, bio, city, rating, total_reviews, is_verified")
         .eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
   const services = useQuery({
-    queryKey: ["pro-services", id],
-    queryFn: async () => (await supabase.from("services").select("*").eq("worker_id", id).eq("is_active", true)).data ?? [],
+    queryKey: ["pricing"],
+    queryFn: async () => (await supabase.from("pricing_packages").select("*").eq("is_enabled", true).order("display_order")).data ?? [],
   });
   const availability = useQuery({
     queryKey: ["pro-avail", id],
-    queryFn: async () => (await supabase.from("availability").select("*").eq("worker_id", id).eq("is_active", true).order("day_of_week")).data ?? [],
+    queryFn: async () => (await supabase.from("professional_availability").select("*").eq("professional_id", id).eq("is_available", true).order("day_of_week")).data ?? [],
   });
   const reviews = useQuery({
     queryKey: ["pro-reviews", id],
-    queryFn: async () => (await supabase.from("reviews").select("*").eq("reviewee_id", id).order("created_at", { ascending: false }).limit(20)).data ?? [],
+    queryFn: async () => (await supabase.from("reviews").select("*").eq("professional_id", id).order("created_at", { ascending: false }).limit(20)).data ?? [],
   });
 
   const p = profile.data;
@@ -71,8 +71,8 @@ function ProfessionalPage() {
                   <h1 className="text-2xl font-bold">{p.full_name ?? "Diarista"}</h1>
                   {p.is_verified && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"><ShieldCheck className="h-3 w-3" /> Verificada</span>}
                 </div>
-                <div className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}</div>
-                <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating_avg ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.rating_count ?? 0} avaliações)</span></div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />{p.city ?? "—"}</div>
+                <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.total_reviews ?? 0} avaliações)</span></div>
                 {p.bio && <p className="text-muted-foreground">{p.bio}</p>}
               </div>
               <Button size="lg" onClick={() => user ? nav({ to: "/bookings" }) : nav({ to: "/auth", search: { mode: "signup", redirect: `/professionals/${id}` } as never })}>
@@ -88,11 +88,10 @@ function ProfessionalPage() {
                     {services.data.map((s) => (
                       <li key={s.id} className="flex justify-between border-b border-border pb-3 last:border-0">
                         <div>
-                          <div className="font-semibold">{s.title}</div>
-                          {s.description && <div className="text-xs text-muted-foreground">{s.description}</div>}
-                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Clock className="h-3 w-3" /> {s.duration_min} min</div>
+                          <div className="font-semibold">Pacote {s.duration_hours}h</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Clock className="h-3 w-3" /> {s.duration_hours}h · início {s.start_time}</div>
                         </div>
-                        <div className="font-bold text-primary">R$ {Number(s.base_price).toFixed(2)}</div>
+                        <div className="font-bold text-primary">R$ {Number(s.price).toFixed(2)}</div>
                       </li>
                     ))}
                   </ul>

@@ -35,12 +35,12 @@ function ProfessionalsPage() {
     queryFn: async () => {
       let qb = supabase
         .from("profiles")
-        .select("id, full_name, city, state, bio, rating_avg, rating_count, avatar_url")
+        .select("id, full_name, city, bio, rating, total_reviews, profile_photo")
         .eq("is_verified", true)
-        .order("rating_avg", { ascending: false })
+        .order("rating", { ascending: false })
         .limit(60);
       if (s.city) qb = qb.ilike("city", `%${s.city}%`);
-      if (s.minRating) qb = qb.gte("rating_avg", s.minRating);
+      if (s.minRating) qb = qb.gte("rating", s.minRating);
       const { data, error } = await qb;
       if (error) throw error;
       return data ?? [];
@@ -99,14 +99,14 @@ function ProfessionalsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                    <MapPin className="h-3 w-3" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}
+                    <MapPin className="h-3 w-3" />{p.city ?? "—"}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 text-sm font-semibold">
-                    <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {Number(p.rating_avg ?? 0).toFixed(1)}
+                    <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {Number(p.rating ?? 0).toFixed(1)}
                   </div>
-                  <div className="text-[10px] text-muted-foreground">{p.rating_count ?? 0} avaliações</div>
+                  <div className="text-[10px] text-muted-foreground">{p.total_reviews ?? 0} avaliações</div>
                 </div>
               </div>
               {p.bio && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{p.bio}</p>}
