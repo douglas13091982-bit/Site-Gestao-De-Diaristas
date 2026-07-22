@@ -29,7 +29,7 @@ function ProfessionalPage() {
     queryKey: ["pro", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, profile_photo, bio, city, rating, total_reviews, is_verified")
+        .select("id, full_name, profile_photo, bio, city, city_slug, rating, total_reviews, is_verified")
         .eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
@@ -83,7 +83,10 @@ function ProfessionalPage() {
                 <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.total_reviews ?? 0} avaliações)</span></div>
                 {p.bio && <p className="text-muted-foreground">{p.bio}</p>}
               </div>
-              <Button size="lg" onClick={() => user ? nav({ to: "/bookings" }) : nav({ to: "/auth", search: { mode: "signup", redirect: `/professionals/${id}` } as never })}>
+              <Button size="lg" onClick={() => nav({
+                to: "/agendamento",
+                search: { pro: id, city: p.city_slug ?? "", dur: 4, type: "residential", rooms: 2, baths: 1 },
+              })}>
                 Agendar
               </Button>
             </div>

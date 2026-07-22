@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Calendar } from "lucide-react";
 
 const search = z.object({
   city: z.string().optional(),
@@ -106,7 +106,7 @@ function ProfessionalsPage() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {q.data?.map((p) => (
-            <Link key={p.id} to="/professionals/$id" params={{ id: p.id }} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
+            <div key={p.id} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
               <div className="flex items-center gap-3">
                 {p.profile_photo ? (
                   <img
@@ -135,7 +135,18 @@ function ProfessionalsPage() {
                 </div>
               </div>
               {p.bio && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{p.bio}</p>}
-            </Link>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Link to="/professionals/$id" params={{ id: p.id }}>
+                  <Button variant="outline" className="w-full">Ver Perfil</Button>
+                </Link>
+                <Link
+                  to="/agendamento"
+                  search={{ pro: p.id, city: "joinville", dur: 4, type: "residential", rooms: 2, baths: 1 }}
+                >
+                  <Button className="w-full gap-1"><Calendar className="h-3.5 w-3.5" /> Agendar</Button>
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       </div>

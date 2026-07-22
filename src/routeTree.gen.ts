@@ -14,6 +14,7 @@ import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgendamentoRapidoRouteImport } from './routes/agendamento-rapido'
+import { Route as AgendamentoRouteImport } from './routes/agendamento'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
@@ -71,6 +72,11 @@ const AuthRoute = AuthRouteImport.update({
 const AgendamentoRapidoRoute = AgendamentoRapidoRouteImport.update({
   id: '/agendamento-rapido',
   path: '/agendamento-rapido',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendamentoRoute = AgendamentoRouteImport.update({
+  id: '/agendamento',
+  path: '/agendamento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -257,6 +263,7 @@ const AuthenticatedAdminBookingsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
@@ -296,6 +303,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
     | '/categorias'
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
     | '/categorias'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
     | '/categorias'
@@ -496,6 +508,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AgendamentoRoute: typeof AgendamentoRoute
   AgendamentoRapidoRoute: typeof AgendamentoRapidoRoute
   AuthRoute: typeof AuthRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
@@ -540,6 +553,13 @@ declare module '@tanstack/react-router' {
       path: '/agendamento-rapido'
       fullPath: '/agendamento-rapido'
       preLoaderRoute: typeof AgendamentoRapidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agendamento': {
+      id: '/agendamento'
+      path: '/agendamento'
+      fullPath: '/agendamento'
+      preLoaderRoute: typeof AgendamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -905,6 +925,7 @@ const ProfessionalsRouteWithChildren = ProfessionalsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AgendamentoRoute: AgendamentoRoute,
   AgendamentoRapidoRoute: AgendamentoRapidoRoute,
   AuthRoute: AuthRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
