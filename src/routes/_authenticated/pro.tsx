@@ -43,19 +43,19 @@ function ProLayout() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Olá, {profile.data?.full_name?.split(" ")[0] ?? "diarista"}</h1>
-            <p className="text-muted-foreground text-sm mt-1">Painel profissional Gersepa</p>
-          </div>
-          <div className="flex gap-3 text-sm">
-            <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
-            <Stat label="Serviços" value={String(profile.data?.total_bookings ?? 0)} />
-            <Stat label="Créditos" value={`R$ ${Number(profile.data?.credits_balance ?? 0).toFixed(2)}`} />
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 pb-24 md:pb-8">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl sm:text-3xl font-bold">Olá, {profile.data?.full_name?.split(" ")[0] ?? "diarista"}</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Painel profissional Gersepa</p>
           </div>
         </div>
-        <nav className="mt-6 flex gap-1 border-b">
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:gap-3 sm:justify-end text-sm">
+          <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
+          <Stat label="Serviços" value={String(profile.data?.total_bookings ?? 0)} />
+          <Stat label="Créditos" value={`R$ ${Number(profile.data?.credits_balance ?? 0).toFixed(2)}`} />
+        </div>
+        <nav className="mt-4 sm:mt-6 hidden md:flex gap-1 border-b">
           {tabs.map((t) => {
             const active = loc.pathname.startsWith(t.to);
             return (
@@ -65,17 +65,28 @@ function ProLayout() {
             );
           })}
         </nav>
-        <div className="mt-6"><Outlet /></div>
+        <div className="mt-4 sm:mt-6"><Outlet /></div>
       </main>
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
+        {tabs.map((t) => {
+          const active = loc.pathname.startsWith(t.to);
+          return (
+            <Link key={t.to} to={t.to} className={`flex items-center justify-center py-3 text-xs font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border bg-card px-4 py-2">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="font-bold">{value}</div>
+    <div className="rounded-xl border bg-card px-3 py-2 text-center sm:text-left">
+      <div className="text-[11px] sm:text-xs text-muted-foreground">{label}</div>
+      <div className="font-bold text-sm sm:text-base truncate">{value}</div>
     </div>
   );
 }
