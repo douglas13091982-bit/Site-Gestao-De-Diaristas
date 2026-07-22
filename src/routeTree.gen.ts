@@ -25,6 +25,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -117,6 +118,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedProProfileRoute = AuthenticatedProProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedProRoute,
 } as any)
 const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
   id: '/leads',
@@ -221,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
+  '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/pro/agenda'
     | '/pro/leads'
+    | '/pro/profile'
     | '/admin/'
     | '/admin/bookings/new'
   fileRoutesByTo: FileRoutesByTo
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/pro/agenda'
     | '/pro/leads'
+    | '/pro/profile'
     | '/admin'
     | '/admin/bookings/new'
   id:
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/leads'
+    | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/new'
   fileRoutesById: FileRoutesById
@@ -501,6 +513,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/pro/profile': {
+      id: '/_authenticated/pro/profile'
+      path: '/profile'
+      fullPath: '/pro/profile'
+      preLoaderRoute: typeof AuthenticatedProProfileRouteImport
+      parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/leads': {
       id: '/_authenticated/pro/leads'
@@ -644,11 +663,13 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
+  AuthenticatedProProfileRoute: typeof AuthenticatedProProfileRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
   AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
+  AuthenticatedProProfileRoute: AuthenticatedProProfileRoute,
 }
 
 const AuthenticatedProRouteWithChildren =
