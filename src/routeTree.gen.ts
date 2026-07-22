@@ -17,6 +17,15 @@ import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminProfessionalsRouteImport } from './routes/_authenticated/admin.professionals'
+import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
+import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
+import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
+import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
+import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
 const ProfessionalsRoute = ProfessionalsRouteImport.update({
   id: '/professionals',
@@ -57,6 +66,59 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminProfessionalsRoute =
+  AuthenticatedAdminProfessionalsRouteImport.update({
+    id: '/professionals',
+    path: '/professionals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminFinanceRoute =
+  AuthenticatedAdminFinanceRouteImport.update({
+    id: '/finance',
+    path: '/finance',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBookingsRoute =
+  AuthenticatedAdminBookingsRouteImport.update({
+    id: '/bookings',
+    path: '/bookings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAppearanceRoute =
+  AuthenticatedAdminAppearanceRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAdminsRoute =
+  AuthenticatedAdminAdminsRouteImport.update({
+    id: '/admins',
+    path: '/admins',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBookingsNewRoute =
+  AuthenticatedAdminBookingsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminBookingsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,7 +127,16 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -73,7 +144,16 @@ export interface FileRoutesByTo {
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -84,7 +164,16 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
+  '/_authenticated/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,7 +184,16 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/professionals/$id'
+    | '/admin/admins'
+    | '/admin/appearance'
+    | '/admin/bookings'
+    | '/admin/finance'
+    | '/admin/professionals'
+    | '/admin/reports'
+    | '/admin/settings'
+    | '/admin/users'
     | '/admin/'
+    | '/admin/bookings/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -103,7 +201,16 @@ export interface FileRouteTypes {
     | '/professionals'
     | '/dashboard'
     | '/professionals/$id'
+    | '/admin/admins'
+    | '/admin/appearance'
+    | '/admin/bookings'
+    | '/admin/finance'
+    | '/admin/professionals'
+    | '/admin/reports'
+    | '/admin/settings'
+    | '/admin/users'
     | '/admin'
+    | '/admin/bookings/new'
   id:
     | '__root__'
     | '/'
@@ -113,7 +220,16 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/professionals/$id'
+    | '/_authenticated/admin/admins'
+    | '/_authenticated/admin/appearance'
+    | '/_authenticated/admin/bookings'
+    | '/_authenticated/admin/finance'
+    | '/_authenticated/admin/professionals'
+    | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/bookings/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,14 +297,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/professionals': {
+      id: '/_authenticated/admin/professionals'
+      path: '/professionals'
+      fullPath: '/admin/professionals'
+      preLoaderRoute: typeof AuthenticatedAdminProfessionalsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/finance': {
+      id: '/_authenticated/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/bookings': {
+      id: '/_authenticated/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/appearance': {
+      id: '/_authenticated/admin/appearance'
+      path: '/appearance'
+      fullPath: '/admin/appearance'
+      preLoaderRoute: typeof AuthenticatedAdminAppearanceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/admins': {
+      id: '/_authenticated/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/bookings/new': {
+      id: '/_authenticated/admin/bookings/new'
+      path: '/new'
+      fullPath: '/admin/bookings/new'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminBookingsRoute
+    }
   }
 }
 
+interface AuthenticatedAdminBookingsRouteChildren {
+  AuthenticatedAdminBookingsNewRoute: typeof AuthenticatedAdminBookingsNewRoute
+}
+
+const AuthenticatedAdminBookingsRouteChildren: AuthenticatedAdminBookingsRouteChildren =
+  {
+    AuthenticatedAdminBookingsNewRoute: AuthenticatedAdminBookingsNewRoute,
+  }
+
+const AuthenticatedAdminBookingsRouteWithChildren =
+  AuthenticatedAdminBookingsRoute._addFileChildren(
+    AuthenticatedAdminBookingsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
+  AuthenticatedAdminAppearanceRoute: typeof AuthenticatedAdminAppearanceRoute
+  AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
+  AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
+  AuthenticatedAdminProfessionalsRoute: typeof AuthenticatedAdminProfessionalsRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
+  AuthenticatedAdminAppearanceRoute: AuthenticatedAdminAppearanceRoute,
+  AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
+  AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
+  AuthenticatedAdminProfessionalsRoute: AuthenticatedAdminProfessionalsRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
