@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
 export const Route = createFileRoute("/_authenticated/pro/agenda")({
   component: AgendaPage,
@@ -15,6 +16,7 @@ const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 function AgendaPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const pct = useCommissionPct();
 
   const bookings = useQuery({
     queryKey: ["pro-bookings", user?.id],
@@ -94,7 +96,10 @@ function AgendaPage() {
                   <div className="min-w-0">
                     <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
                     <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">Status: {b.status} {b.total_price ? `· R$ ${Number(b.total_price).toFixed(2)}` : ""}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Status: {b.status}
+                      {b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
+                    </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     {b.status !== "in_progress" && <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>}

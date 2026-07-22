@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useLeadNotifications, useNotificationPermission } from "@/hooks/use-lead-notifications";
 import { toast } from "sonner";
+import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
 export const Route = createFileRoute("/_authenticated/pro/leads")({
   component: LeadsPage,
@@ -34,6 +35,7 @@ function LeadsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { status: notifStatus, request: requestNotif } = useNotificationPermission();
+  const pct = useCommissionPct();
 
   useLeadNotifications({
     userId: user?.id,
@@ -90,7 +92,7 @@ function LeadsPage() {
         ) : (
           <ul className="grid gap-3">
             {pending.map((o) => (
-              <LeadCard key={o.id} offer={o} onAccept={() => respond.mutate({ id: o.id, status: "accepted" })} onReject={() => respond.mutate({ id: o.id, status: "rejected" })} busy={respond.isPending} />
+              <LeadCard key={o.id} offer={o} pct={pct} onAccept={() => respond.mutate({ id: o.id, status: "accepted" })} onReject={() => respond.mutate({ id: o.id, status: "rejected" })} busy={respond.isPending} />
             ))}
           </ul>
         )}
@@ -99,7 +101,7 @@ function LeadsPage() {
         <section>
           <h2 className="text-lg font-semibold mb-3">Histórico</h2>
           <ul className="grid gap-3">
-            {history.map((o) => <LeadCard key={o.id} offer={o} />)}
+            {history.map((o) => <LeadCard key={o.id} offer={o} pct={pct} />)}
           </ul>
         </section>
       )}
@@ -107,8 +109,9 @@ function LeadsPage() {
   );
 }
 
-function LeadCard({ offer, onAccept, onReject, busy }: { offer: OfferRow; onAccept?: () => void; onReject?: () => void; busy?: boolean }) {
+function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; pct: number; onAccept?: () => void; onReject?: () => void; busy?: boolean }) {
   const b = offer.booking;
+  const payout = computePayout(b?.total_price, pct);
   const statusColor: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800",
     accepted: "bg-emerald-100 text-emerald-800",
@@ -132,7 +135,13 @@ function LeadCard({ offer, onAccept, onReject, busy }: { offer: OfferRow; onAcce
           {b?.notes && <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words">"{b.notes}"</p>}
         </div>
         <div className="text-right shrink-0">
-          {b?.total_price && <div className="font-bold text-base sm:text-lg text-primary whitespace-nowrap">R$ {Number(b.total_price).toFixed(2)}</div>}
+          {b?.total_price ? (
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Você recebe</div>
+              <div className="font-bold text-base sm:text-lg text-emerald-600 whitespace-nowrap">R$ {payout.toFixed(2)}</div>
+              <div className="text-[10px] text-muted-foreground whitespace-nowrap">líquido (comissão {pct}%)</div>
+            </div>
+          ) : null}
           {offer.status === "accepted" && b?.client_email && <div className="text-[11px] text-muted-foreground mt-1 break-all">{b.client_email}</div>}
         </div>
       </div>
