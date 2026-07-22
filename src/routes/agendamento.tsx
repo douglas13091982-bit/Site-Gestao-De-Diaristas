@@ -258,7 +258,44 @@ function AgendamentoPage() {
       const cityName = pro.data?.city ?? s.city;
       const clientEmail = user?.email ?? email;
       if (!clientEmail) throw new Error("Informe seu e-mail para receber o pagamento.");
-      const result = await createPayment({
+
+      // Se cartão: tokeniza no navegador via SDK do Mercado Pago (o número do cartão nunca vai ao nosso servidor)
+      let cardToken: string | null = null;
+      let cardPaymentMethodId: string | null = null;
+      if (paymentMethod === "card") {
+        if (platform !== "mercadopago") throw new Error("Cartão disponível apenas via Mercado Pago no momento.");
+        const publicKey = paySettings.data?.mpPublicKey;
+        if (!publicKey) throw new Error("Cartão indisponível: peça ao administrador para preencher a Public Key do Mercado Pago.");
+        const digits = cardNumber.replace(/\D/g, "");
+        const [mmRaw, yyRaw] = cardExpiry.split("/");
+        const mm = (mmRaw || "").padStart(2, "0");
+        const yy = (yyRaw || "").slice(-2);
+        const cpfDigits = cardCpf.replace(/\D/g, "");
+        if (digits.length < 13 || !mm || !yy || cardCvv.length < 3 || !cardHolder.trim() || cpfDigits.length !== 11) {
+          throw new Error("Preencha corretamente os dados do cartão e o CPF do titular.");
+        }
+        const MP = (window as any).MercadoPago;
+        if (!MP) throw new Error("SDK do cartão ainda carregando. Aguarde alguns segundos e tente novamente.");
+        const mp = new MP(publicKey);
+        try {
+          const bin = digits.slice(0, 8);
+          const methodsRes = await mp.getPaymentMethods({ bin });
+          cardPaymentMethodId = methodsRes?.results?.[0]?.id ?? null;
+        } catch { cardPaymentMethodId = null; }
+        const tokenRes = await mp.createCardToken({
+          cardNumber: digits,
+          cardholderName: cardHolder.trim(),
+          cardExpirationMonth: mm,
+          cardExpirationYear: yy,
+          securityCode: cardCvv,
+          identificationType: "CPF",
+          identificationNumber: cpfDigits,
+        });
+        cardToken = tokenRes?.id ?? null;
+        if (!cardToken) throw new Error("Não foi possível validar o cartão. Verifique os dados.");
+      }
+
+      const result = await runCreatePayment({
         data: {
           professional_id: s.pro,
           package_id: selectedPkg.id,
@@ -278,9 +315,21 @@ function AgendamentoPage() {
           client_name: user?.user_metadata?.full_name ?? guestName ?? null,
           client_email: clientEmail,
           client_phone: user ? (user.user_metadata?.phone ?? null) : (guestPhone || null),
+          payment_method: paymentMethod,
+          card_token: cardToken,
+          card_installments: installments,
+          card_payment_method_id: cardPaymentMethodId,
+          card_issuer_id: null,
+          payer_document: cardCpf ? cardCpf.replace(/\D/g, "") : null,
         },
       });
-      toast.success("Cobrança PIX gerada! Efetue o pagamento para confirmar.");
+      if (paymentMethod === "card" && result.status === "approved") {
+        toast.success("Pagamento aprovado! Agendamento confirmado.");
+      } else if (paymentMethod === "card") {
+        toast.info(`Pagamento em análise (${result.status}). Você será notificado.`);
+      } else {
+        toast.success("Cobrança PIX gerada! Efetue o pagamento para confirmar.");
+      }
       nav({
         to: "/agendamento-sucesso/$id",
         params: { id: String(result.bookingId) },
