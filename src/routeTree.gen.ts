@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
+import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -68,6 +69,11 @@ const CidadesSlugRoute = CidadesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => CidadesRoute,
+} as any)
+const CategoriasSlugRoute = CategoriasSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => CategoriasRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -141,11 +147,12 @@ const AuthenticatedAdminBookingsNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/categorias': typeof CategoriasRoute
+  '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
@@ -162,10 +169,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/categorias': typeof CategoriasRoute
+  '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
@@ -184,11 +192,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/categorias': typeof CategoriasRoute
+  '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/professionals'
     | '/admin'
     | '/dashboard'
+    | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
     | '/admin/admins'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/cidades'
     | '/professionals'
     | '/dashboard'
+    | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
     | '/admin/admins'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/professionals'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
     | '/_authenticated/admin/admins'
@@ -272,7 +284,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CategoriasRoute: typeof CategoriasRoute
+  CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
   ProfessionalsRoute: typeof ProfessionalsRouteWithChildren
 }
@@ -334,6 +346,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cidades/$slug'
       preLoaderRoute: typeof CidadesSlugRouteImport
       parentRoute: typeof CidadesRoute
+    }
+    '/categorias/$slug': {
+      id: '/categorias/$slug'
+      path: '/$slug'
+      fullPath: '/categorias/$slug'
+      preLoaderRoute: typeof CategoriasSlugRouteImport
+      parentRoute: typeof CategoriasRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -476,6 +495,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CategoriasRouteChildren {
+  CategoriasSlugRoute: typeof CategoriasSlugRoute
+}
+
+const CategoriasRouteChildren: CategoriasRouteChildren = {
+  CategoriasSlugRoute: CategoriasSlugRoute,
+}
+
+const CategoriasRouteWithChildren = CategoriasRoute._addFileChildren(
+  CategoriasRouteChildren,
+)
+
 interface CidadesRouteChildren {
   CidadesSlugRoute: typeof CidadesSlugRoute
 }
@@ -503,7 +534,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  CategoriasRoute: CategoriasRoute,
+  CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
   ProfessionalsRoute: ProfessionalsRouteWithChildren,
 }
