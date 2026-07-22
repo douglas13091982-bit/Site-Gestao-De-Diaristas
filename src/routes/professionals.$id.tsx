@@ -29,7 +29,7 @@ function ProfessionalPage() {
     queryKey: ["pro", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, avatar_url, bio, city, state, rating_avg, rating_count, is_verified")
+        .select("id, full_name, profile_photo, bio, city, rating, total_reviews, is_verified")
         .eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
@@ -72,7 +72,7 @@ function ProfessionalPage() {
                   {p.is_verified && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"><ShieldCheck className="h-3 w-3" /> Verificada</span>}
                 </div>
                 <div className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />{p.city ?? "—"}{p.state ? `, ${p.state}` : ""}</div>
-                <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating_avg ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.rating_count ?? 0} avaliações)</span></div>
+                <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-accent text-accent" /> <b>{Number(p.rating ?? 0).toFixed(1)}</b> <span className="text-muted-foreground">({p.total_reviews ?? 0} avaliações)</span></div>
                 {p.bio && <p className="text-muted-foreground">{p.bio}</p>}
               </div>
               <Button size="lg" onClick={() => user ? nav({ to: "/bookings" }) : nav({ to: "/auth", search: { mode: "signup", redirect: `/professionals/${id}` } as never })}>
