@@ -36,13 +36,13 @@
 :root {
   --radius: 0.75rem;
 
-  /* BabyClean palette — trust blue + mint green */
-  --bc-blue: #2563eb;
-  --bc-blue-deep: #1d4ed8;
+  /* Gersepa Solutions palette — trust blue + mint green */
+  --bc-blue: #059669;
+  --bc-blue-deep: #047857;
   --bc-mint: #10b981;
   --bc-mint-soft: #d1fae5;
-  --bc-sky: #eff6ff;
-  --bc-ink: #0f172a;
+  --bc-sky: #ecfdf5;
+  --bc-ink: #0b1f1a;
 
   --background: #ffffff;
   --foreground: var(--bc-ink);
@@ -67,7 +67,7 @@
   --font-display: 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
 
-  --gradient-hero: linear-gradient(135deg, #eff6ff 0%, #d1fae5 100%);
+  --gradient-hero: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.10);
   --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.06), 0 24px 60px -24px rgb(0 0 0 / 0.18);
 
@@ -75,7 +75,7 @@
   --highlight: #f97316;
   --surface-dark: #0b1220;
   --surface-dark-foreground: #e2e8f0;
-  --gradient-quote: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
+  --gradient-quote: linear-gradient(135deg, #10b981 0%, #22d3ee 100%);
   --dot-pattern: radial-gradient(circle, rgba(15,23,42,0.06) 1px, transparent 1px);
   --plus-pattern:
     linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px) 0 0/24px 24px,

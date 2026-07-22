@@ -11,10 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({ meta: [
-    { title: "Complete seu perfil — BabyClean" },
-    { name: "description", content: "Complete seu cadastro no BabyClean." },
-    { property: "og:title", content: "Onboarding — BabyClean" },
-    { property: "og:description", content: "Cadastro rápido no BabyClean." },
+    { title: "Complete seu perfil — Gersepa Solutions" },
+    { name: "description", content: "Complete seu cadastro no Gersepa Solutions." },
+    { property: "og:title", content: "Onboarding — Gersepa Solutions" },
+    { property: "og:description", content: "Cadastro rápido no Gersepa Solutions." },
   ] }),
   component: OnboardingPage,
 });

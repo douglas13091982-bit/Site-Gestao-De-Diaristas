@@ -17,9 +17,9 @@ export const Route = createFileRoute("/professionals")({
   validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Diaristas verificadas — BabyClean" },
+      { title: "Diaristas verificadas — Gersepa Solutions" },
       { name: "description", content: "Busque diaristas por cidade, nota e disponibilidade." },
-      { property: "og:title", content: "Diaristas — BabyClean" },
+      { property: "og:title", content: "Diaristas — Gersepa Solutions" },
       { property: "og:description", content: "Encontre a diarista ideal na sua região." },
     ],
   }),

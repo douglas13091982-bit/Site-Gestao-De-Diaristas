@@ -13,9 +13,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BabyClean — Diaristas verificadas na sua região" },
-      { name: "description", content: "Encontre diaristas profissionais, agende horários e pague com segurança pelo BabyClean." },
-      { property: "og:title", content: "BabyClean — Diaristas verificadas" },
+      { title: "Gersepa Solutions — Diaristas verificadas na sua região" },
+      { name: "description", content: "Encontre diaristas profissionais, agende horários e pague com segurança pelo Gersepa Solutions." },
+      { property: "og:title", content: "Gersepa Solutions — Diaristas verificadas" },
       { property: "og:description", content: "Marketplace seguro para conectar clientes e diaristas. Agende em minutos." },
     ],
   }),
@@ -349,7 +349,7 @@ function WhySection() {
       />
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="text-center mb-12 space-y-2">
-          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">Por que escolher a BabyClean?</h2>
+          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">Por que escolher a Gersepa Solutions?</h2>
           <p className="text-muted-foreground">Simplificamos o agendamento de serviços para sua casa e empresa.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -411,7 +411,7 @@ function BeWorkerSection() {
             Oportunidade
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">
-            Seja uma Diarista <span style={{ color: "var(--accent)" }}>BabyClean</span>
+            Seja uma Diarista <span style={{ color: "var(--accent)" }}>Gersepa Solutions</span>
           </h2>
           <p className="text-white/70 max-w-lg">
             Trabalhe com flexibilidade, escolha seus clientes e aumente sua renda.
@@ -456,7 +456,7 @@ function FooterSection() {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <ShieldCheck className="h-5 w-5" />
             </span>
-            Baby<span className="text-primary">Clean</span>
+            Gersepa<span className="text-primary"> Solutions</span>
           </div>
           <p className="text-muted-foreground">Marketplace de diaristas verificadas.</p>
         </div>
@@ -484,7 +484,7 @@ function FooterSection() {
         </div>
       </div>
       <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} BabyClean — Todos os direitos reservados.
+        © {new Date().getFullYear()} Gersepa Solutions — Todos os direitos reservados.
       </div>
     </footer>
   );

@@ -19,10 +19,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Entrar ou cadastrar — BabyClean" },
-      { name: "description", content: "Acesse sua conta BabyClean como cliente ou diarista." },
-      { property: "og:title", content: "Entrar — BabyClean" },
-      { property: "og:description", content: "Acesso ao marketplace BabyClean." },
+      { title: "Entrar ou cadastrar — Gersepa Solutions" },
+      { name: "description", content: "Acesse sua conta Gersepa Solutions como cliente ou diarista." },
+      { property: "og:title", content: "Entrar — Gersepa Solutions" },
+      { property: "og:description", content: "Acesso ao marketplace Gersepa Solutions." },
     ],
   }),
   component: AuthPage,
@@ -83,7 +83,7 @@ function AuthPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold">{mode === "signin" ? "Entrar" : "Criar conta"}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {mode === "signin" ? "Bem-vinda de volta ao BabyClean" : "Junte-se ao BabyClean"}
+              {mode === "signin" ? "Bem-vinda de volta ao Gersepa Solutions" : "Junte-se ao Gersepa Solutions"}
             </p>
           </div>
 

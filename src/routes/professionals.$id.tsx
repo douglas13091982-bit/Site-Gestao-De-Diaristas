@@ -11,9 +11,9 @@ const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 export const Route = createFileRoute("/professionals/$id")({
   head: ({ params }) => ({
     meta: [
-      { title: `Diarista ${params.id} — BabyClean` },
-      { name: "description", content: "Perfil, serviços e agenda da diarista no BabyClean." },
-      { property: "og:title", content: "Perfil da diarista — BabyClean" },
+      { title: `Diarista ${params.id} — Gersepa Solutions` },
+      { name: "description", content: "Perfil, serviços e agenda da diarista no Gersepa Solutions." },
+      { property: "og:title", content: "Perfil da diarista — Gersepa Solutions" },
       { property: "og:description", content: "Veja avaliações, serviços e agende diretamente." },
     ],
   }),
