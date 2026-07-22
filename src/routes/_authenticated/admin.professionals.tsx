@@ -20,7 +20,7 @@ type Pro = {
   rating: number;
   total_reviews: number;
   total_bookings: number;
-  credits_balance: number;
+  // credits removed
   is_verified: boolean;
   is_available: boolean;
 };
@@ -34,7 +34,7 @@ function ProsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,full_name,email,city,phone,pix_key,rating,total_reviews,total_bookings,credits_balance,is_verified,is_available")
+        .select("id,full_name,email,city,phone,pix_key,rating,total_reviews,total_bookings,is_verified,is_available")
         .eq("is_professional", true)
         .order("rating", { ascending: false });
       if (error) throw error;
@@ -109,11 +109,10 @@ function ProsPage() {
               <col className="w-[10%]" />
               <col className="w-[8%]" />
               <col className="w-[7%]" />
-              <col className="w-[8%]" />
               <col className="w-[11%]" />
               <col className="w-[16%]" />
               <col className="w-[9%]" />
-              <col className="w-[15%]" />
+              <col className="w-[23%]" />
             </colgroup>
             <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
               <tr>
@@ -121,7 +120,6 @@ function ProsPage() {
                 <th className="text-left p-2 font-medium">Cidade</th>
                 <th className="text-left p-2 font-medium">Aval.</th>
                 <th className="text-left p-2 font-medium">Limp.</th>
-                <th className="text-left p-2 font-medium">Créd.</th>
                 <th className="text-left p-2 font-medium">Telefone</th>
                 <th className="text-left p-2 font-medium">Chave PIX</th>
                 <th className="text-left p-2 font-medium">Verif.</th>
@@ -130,7 +128,7 @@ function ProsPage() {
             </thead>
             <tbody>
               {list.isLoading && (
-                <tr><td colSpan={9} className="p-6 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={8} className="p-6 text-center text-slate-500">Carregando...</td></tr>
               )}
               {!list.isLoading && filtered.map(p => (
                 <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/50">
@@ -143,7 +141,6 @@ function ProsPage() {
                     </span>
                   </td>
                   <td className="p-2 text-slate-700">{p.total_bookings ?? 0}</td>
-                  <td className="p-2 font-semibold text-emerald-600 whitespace-nowrap">R$ {Number(p.credits_balance ?? 0).toFixed(0)}</td>
                   <td className="p-2 text-slate-600 truncate">{p.phone ?? "—"}</td>
                   <td className="p-2">
                     <button onClick={() => editPix(p)} className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 w-full">
