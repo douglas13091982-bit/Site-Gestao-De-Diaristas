@@ -34,7 +34,6 @@ function ProfilePage() {
         phone: profile.data.phone ?? "",
         bio: profile.data.bio ?? "",
         experience: profile.data.experience ?? "",
-        hourly_rate: profile.data.hourly_rate?.toString() ?? "",
         specialties: (profile.data.specialties ?? []).join(", "),
         profile_photo: profile.data.profile_photo ?? "",
         city_slug: profile.data.city_slug ?? "",
@@ -52,7 +51,6 @@ function ProfilePage() {
       const cityName = cities.data?.find((c) => c.slug === f.city_slug)?.name ?? null;
       const { error } = await supabase.from("profiles").update({
         full_name: f.full_name, phone: f.phone, bio: f.bio, experience: f.experience,
-        hourly_rate: Number(f.hourly_rate) || null,
         specialties: f.specialties.split(",").map((s) => s.trim()).filter(Boolean),
         profile_photo: f.profile_photo || null,
         city_slug: f.city_slug || null, city: cityName,
@@ -87,15 +85,12 @@ function ProfilePage() {
         <Row label="Foto (URL)"><Input value={f.profile_photo ?? ""} onChange={upd("profile_photo")} /></Row>
         <Row label="Bio"><Textarea rows={3} value={f.bio ?? ""} onChange={upd("bio")} /></Row>
         <Row label="Experiência"><Textarea rows={2} value={f.experience ?? ""} onChange={upd("experience")} /></Row>
-        <div className="grid grid-cols-2 gap-3">
-          <Row label="Valor/hora (R$)"><Input type="number" value={f.hourly_rate ?? ""} onChange={upd("hourly_rate")} /></Row>
-          <Row label="Cidade">
-            <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={f.city_slug ?? ""} onChange={upd("city_slug")}>
-              <option value="">—</option>
-              {cities.data?.map((c) => <option key={c.slug} value={c.slug}>{c.name} — {c.state}</option>)}
-            </select>
-          </Row>
-        </div>
+        <Row label="Cidade">
+          <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={f.city_slug ?? ""} onChange={upd("city_slug")}>
+            <option value="">—</option>
+            {cities.data?.map((c) => <option key={c.slug} value={c.slug}>{c.name} — {c.state}</option>)}
+          </select>
+        </Row>
         <Row label="Especialidades (separadas por vírgula)"><Input value={f.specialties ?? ""} onChange={upd("specialties")} /></Row>
         <Row label="Endereço"><Input value={f.address ?? ""} onChange={upd("address")} /></Row>
         <div className="grid grid-cols-2 gap-3">
