@@ -121,10 +121,10 @@ function SettingsPage() {
   const set = <K extends keyof Settings>(k: K, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const platformDesc =
     form.payment_platform === "mercadopago"
-      ? "Os créditos serão liberados automaticamente quando o pagamento for confirmado pelo Mercado Pago."
+      ? "O agendamento será confirmado automaticamente quando o pagamento for aprovado pelo Mercado Pago."
       : form.payment_platform === "pagseguro"
-      ? "Os créditos serão liberados automaticamente quando o pagamento for confirmado pelo PagSeguro."
-      : "O cliente pagará via QR Code PIX. Os créditos precisam ser liberados manualmente após confirmação do pagamento.";
+      ? "O agendamento será confirmado automaticamente quando o pagamento for aprovado pelo PagSeguro."
+      : "O cliente pagará via QR Code PIX. O agendamento precisa ser confirmado manualmente após o pagamento.";
 
   return (
     <div className="p-8 space-y-6">
