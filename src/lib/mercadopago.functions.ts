@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  professional_id: z.number().int(),
+  professional_id: z.string().uuid(),
   package_id: z.number().int().optional().nullable(),
   duration_hours: z.number().int().min(1).max(12),
   total_price: z.number().positive(),
