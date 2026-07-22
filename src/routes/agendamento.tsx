@@ -67,6 +67,30 @@ function AgendamentoPage() {
   const [guestPhone, setGuestPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const meProfile = useQuery({
+    enabled: !!user?.id,
+    queryKey: ["ag-me", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles")
+        .select("full_name, phone, address, address_complement, neighborhood, city, state, zip_code")
+        .eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    const p = meProfile.data;
+    if (!p) return;
+    if (!address) {
+      const parts = [p.address, p.neighborhood, p.city, p.state].filter(Boolean);
+      if (parts.length) setAddress(parts.join(", "));
+    }
+    if (!complement && p.address_complement) setComplement(p.address_complement);
+    if (!guestName && p.full_name) setGuestName(p.full_name);
+    if (!guestPhone && p.phone) setGuestPhone(p.phone);
+    if (!email && user?.email) setEmail(user.email);
+  }, [meProfile.data, user?.email]);
+
   const pro = useQuery({
     enabled: !!s.pro,
     queryKey: ["ag-pro", s.pro],
