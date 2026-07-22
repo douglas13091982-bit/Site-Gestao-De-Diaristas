@@ -70,6 +70,16 @@
   --gradient-hero: linear-gradient(135deg, #eff6ff 0%, #d1fae5 100%);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.10);
   --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.06), 0 24px 60px -24px rgb(0 0 0 / 0.18);
+
+  /* Highlight + dark surface for hero/CTA sections */
+  --highlight: #f97316;
+  --surface-dark: #0b1220;
+  --surface-dark-foreground: #e2e8f0;
+  --gradient-quote: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
+  --dot-pattern: radial-gradient(circle, rgba(15,23,42,0.06) 1px, transparent 1px);
+  --plus-pattern:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px) 0 0/24px 24px;
 }
 
 body { font-family: var(--font-body); color: var(--foreground); background: var(--background); }
