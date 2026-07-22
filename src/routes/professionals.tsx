@@ -108,9 +108,19 @@ function ProfessionalsPage() {
           {q.data?.map((p) => (
             <Link key={p.id} to="/professionals/$id" params={{ id: p.id }} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
               <div className="flex items-center gap-3">
-                <div className="h-14 w-14 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
-                  {(p.full_name ?? "?")[0]}
-                </div>
+                {p.profile_photo ? (
+                  <img
+                    src={p.profile_photo}
+                    alt={p.full_name ?? "Diarista"}
+                    loading="lazy"
+                    className="h-14 w-14 rounded-full object-cover border border-border"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
+                    {(p.full_name ?? "?")[0]}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">

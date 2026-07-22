@@ -63,9 +63,17 @@ function ProfessionalPage() {
         {p && (
           <>
             <div className="bg-card border border-border rounded-2xl p-8 flex flex-col md:flex-row gap-6 items-start">
-              <div className="h-24 w-24 rounded-2xl bg-primary/10 text-primary grid place-items-center text-3xl font-bold">
-                {(p.full_name ?? "?")[0]}
-              </div>
+              {p.profile_photo ? (
+                <img
+                  src={p.profile_photo}
+                  alt={p.full_name ?? "Diarista"}
+                  className="h-24 w-24 rounded-2xl object-cover border border-border"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-2xl bg-primary/10 text-primary grid place-items-center text-3xl font-bold">
+                  {(p.full_name ?? "?")[0]}
+                </div>
+              )}
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold">{p.full_name ?? "Diarista"}</h1>
