@@ -21,7 +21,7 @@ export function Header() {
           <Link to="/categorias" className="hover:text-primary transition">Categorias</Link>
           <Link to="/professionals" className="hover:text-primary transition">Diaristas</Link>
           <Link to="/agendamento-rapido" className="hover:text-primary transition">Agendar</Link>
-          <Link to="/auth" search={{ mode: "signup", role: "worker" } as never} className="hover:text-primary transition">Sou diarista</Link>
+          <Link to="/seja-diarista" className="text-primary font-semibold hover:underline">Seja Diarista</Link>
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
