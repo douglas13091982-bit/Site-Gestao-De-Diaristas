@@ -1,0 +1,1 @@
+CREATE POLICY "Pro read booking via offer" ON public.bookings FOR SELECT USING (EXISTS (SELECT 1 FROM public.booking_offers o WHERE o.booking_id = bookings.id AND o.professional_id = auth.uid()));
