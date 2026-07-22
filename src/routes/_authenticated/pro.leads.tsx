@@ -116,30 +116,30 @@ function LeadCard({ offer, onAccept, onReject, busy }: { offer: OfferRow; onAcce
     expired: "bg-muted text-muted-foreground",
   };
   return (
-    <li className="rounded-xl border bg-card p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold">{b?.service_type ?? "Serviço"} · {b?.property_type ?? "Residência"}</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[offer.status] ?? "bg-muted"}`}>{offer.status}</span>
+    <li className="rounded-xl border bg-card p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-sm sm:text-base">{b?.service_type ?? "Serviço"} · {b?.property_type ?? "Residência"}</h3>
+            <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusColor[offer.status] ?? "bg-muted"}`}>{offer.status}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {b?.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "Data a combinar"}
             {b?.start_time ? ` às ${b.start_time}` : ""}
             {b?.duration_hours ? ` · ${b.duration_hours}h` : ""}
           </p>
-          {b?.address && <p className="text-sm mt-1">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
-          {b?.notes && <p className="text-sm text-muted-foreground mt-2 italic">"{b.notes}"</p>}
+          {b?.address && <p className="text-xs sm:text-sm mt-1 break-words">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
+          {b?.notes && <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words">"{b.notes}"</p>}
         </div>
-        <div className="text-right">
-          {b?.total_price && <div className="font-bold text-lg text-primary">R$ {Number(b.total_price).toFixed(2)}</div>}
-          {offer.status === "accepted" && b?.client_email && <div className="text-xs text-muted-foreground mt-1">{b.client_email}</div>}
+        <div className="text-right shrink-0">
+          {b?.total_price && <div className="font-bold text-base sm:text-lg text-primary whitespace-nowrap">R$ {Number(b.total_price).toFixed(2)}</div>}
+          {offer.status === "accepted" && b?.client_email && <div className="text-[11px] text-muted-foreground mt-1 break-all">{b.client_email}</div>}
         </div>
       </div>
       {offer.status === "pending" && onAccept && onReject && (
         <div className="flex gap-2 mt-4 pt-4 border-t">
-          <Button onClick={onAccept} disabled={busy} className="flex-1">Aceitar lead</Button>
-          <Button onClick={onReject} disabled={busy} variant="outline" className="flex-1">Recusar</Button>
+          <Button onClick={onAccept} disabled={busy} className="flex-1 min-h-11">Aceitar lead</Button>
+          <Button onClick={onReject} disabled={busy} variant="outline" className="flex-1 min-h-11">Recusar</Button>
         </div>
       )}
     </li>
