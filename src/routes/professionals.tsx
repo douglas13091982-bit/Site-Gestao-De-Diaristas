@@ -10,6 +10,7 @@ import { Star, MapPin } from "lucide-react";
 
 const search = z.object({
   city: z.string().optional(),
+  category: z.string().optional(),
   minRating: z.coerce.number().min(0).max(5).optional(),
 });
 
@@ -31,20 +32,26 @@ function ProfessionalsPage() {
   const nav = Route.useNavigate();
 
   const q = useQuery({
-    queryKey: ["pros", s.city ?? "", s.minRating ?? 0],
+    queryKey: ["pros", s.city ?? "", s.category ?? "", s.minRating ?? 0],
     queryFn: async () => {
       let qb = supabase
         .from("profiles")
-        .select("id, full_name, city, bio, rating, total_reviews, profile_photo")
+        .select("id, full_name, city, bio, rating, total_reviews, profile_photo, profession_category")
         .eq("is_verified", true)
         .order("rating", { ascending: false })
         .limit(60);
       if (s.city) qb = qb.ilike("city", `%${s.city}%`);
+      if (s.category) qb = qb.eq("profession_category", s.category);
       if (s.minRating) qb = qb.gte("rating", s.minRating);
       const { data, error } = await qb;
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const cats = useQuery({
+    queryKey: ["cats-filter"],
+    queryFn: async () => (await supabase.from("profession_categories").select("slug, name").eq("is_enabled", true).order("display_order")).data ?? [],
   });
 
   return (
@@ -57,13 +64,14 @@ function ProfessionalsPage() {
         </div>
 
         <form
-          className="grid sm:grid-cols-[1fr_180px_auto] gap-3 mb-8 bg-card border border-border rounded-xl p-4"
+          className="grid sm:grid-cols-[1fr_1fr_140px_auto] gap-3 mb-8 bg-card border border-border rounded-xl p-4"
           onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
             nav({
               search: {
                 city: (fd.get("city") as string) || undefined,
+                category: (fd.get("category") as string) || undefined,
                 minRating: fd.get("minRating") ? Number(fd.get("minRating")) : undefined,
               },
             });
@@ -72,6 +80,13 @@ function ProfessionalsPage() {
           <div className="space-y-1">
             <Label htmlFor="city">Cidade</Label>
             <Input id="city" name="city" defaultValue={s.city ?? ""} placeholder="Ex: Joinville" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="category">Categoria</Label>
+            <select id="category" name="category" defaultValue={s.category ?? ""} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              <option value="">Todas</option>
+              {cats.data?.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+            </select>
           </div>
           <div className="space-y-1">
             <Label htmlFor="minRating">Nota mínima</Label>
