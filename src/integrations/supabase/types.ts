@@ -177,9 +177,12 @@ export type Database = {
           id: number
           mp_payment_id: string | null
           notes: string | null
+          paid_at: string | null
           payment_amount: number | null
           payment_method: string | null
           payment_pix_code: string | null
+          payment_provider_id: string | null
+          payment_qr_base64: string | null
           payment_status: string | null
           professional_id: string | null
           property_type: string | null
@@ -208,9 +211,12 @@ export type Database = {
           id?: number
           mp_payment_id?: string | null
           notes?: string | null
+          paid_at?: string | null
           payment_amount?: number | null
           payment_method?: string | null
           payment_pix_code?: string | null
+          payment_provider_id?: string | null
+          payment_qr_base64?: string | null
           payment_status?: string | null
           professional_id?: string | null
           property_type?: string | null
@@ -239,9 +245,12 @@ export type Database = {
           id?: number
           mp_payment_id?: string | null
           notes?: string | null
+          paid_at?: string | null
           payment_amount?: number | null
           payment_method?: string | null
           payment_pix_code?: string | null
+          payment_provider_id?: string | null
+          payment_qr_base64?: string | null
           payment_status?: string | null
           professional_id?: string | null
           property_type?: string | null
