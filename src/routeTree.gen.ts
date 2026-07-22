@@ -29,6 +29,7 @@ import { Route as AuthenticatedProProfileRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
 import { Route as AuthenticatedProCreditsRouteImport } from './routes/_authenticated/pro.credits'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
+import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
@@ -146,6 +147,12 @@ const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedAdminWebhooksRoute =
+  AuthenticatedAdminWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -277,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
@@ -314,6 +322,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
@@ -354,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/credits': typeof AuthenticatedProCreditsRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/webhooks'
     | '/pro/agenda'
     | '/pro/credits'
     | '/pro/leads'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/webhooks'
     | '/pro/agenda'
     | '/pro/credits'
     | '/pro/leads'
@@ -470,6 +482,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
+    | '/_authenticated/admin/webhooks'
     | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/credits'
     | '/_authenticated/pro/leads'
@@ -634,6 +647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/admin/webhooks': {
+      id: '/_authenticated/admin/webhooks'
+      path: '/webhooks'
+      fullPath: '/admin/webhooks'
+      preLoaderRoute: typeof AuthenticatedAdminWebhooksRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -785,6 +805,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWebhooksRoute: typeof AuthenticatedAdminWebhooksRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -803,6 +824,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWebhooksRoute: AuthenticatedAdminWebhooksRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
