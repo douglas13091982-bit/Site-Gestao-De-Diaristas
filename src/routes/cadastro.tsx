@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Briefcase, User as UserIcon, MapPin, Home, Building2, Store, Building } from "lucide-react";
+import { Camera, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +67,45 @@ function CadastroPage() {
   const [bio, setBio] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
+
+  // Foto de perfil
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // Disponibilidade semanal
+  const DAYS: { idx: number; label: string }[] = [
+    { idx: 0, label: "Domingo" },
+    { idx: 1, label: "Segunda-feira" },
+    { idx: 2, label: "Terça-feira" },
+    { idx: 3, label: "Quarta-feira" },
+    { idx: 4, label: "Quinta-feira" },
+    { idx: 5, label: "Sexta-feira" },
+    { idx: 6, label: "Sábado" },
+  ];
+  const HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
+  const defaultAvail = () => {
+    const m = new Map<number, { on: boolean; start: string; end: string }>();
+    DAYS.forEach((d) => m.set(d.idx, { on: d.idx >= 1 && d.idx <= 5, start: "08:00", end: "17:00" }));
+    return m;
+  };
+  const [availability, setAvailability] = useState<Map<number, { on: boolean; start: string; end: string }>>(defaultAvail());
+  function updateAvail(idx: number, patch: Partial<{ on: boolean; start: string; end: string }>) {
+    setAvailability((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(idx)!;
+      next.set(idx, { ...cur, ...patch });
+      return next;
+    });
+  }
+
+  function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { toast.error("A foto deve ter no máximo 5MB."); return; }
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(f.type)) { toast.error("Envie JPEG, PNG, WebP ou GIF."); return; }
+    setPhotoFile(f);
+    setPhotoPreview(URL.createObjectURL(f));
+  }
 
   const cities = useQuery({
     queryKey: ["cadastro-cities"],
@@ -136,6 +176,17 @@ function CadastroPage() {
       toast.error("Selecione a categoria e ao menos uma região atendida.");
       return;
     }
+    if (tipo === "professional" && !photoFile) {
+      toast.error("Envie uma foto de perfil.");
+      return;
+    }
+    if (tipo === "professional") {
+      const anyOn = Array.from(availability.values()).some((d) => d.on);
+      if (!anyOn) { toast.error("Selecione ao menos um dia de disponibilidade."); return; }
+      for (const [idx, d] of availability.entries()) {
+        if (d.on && d.start >= d.end) { toast.error(`Horário inválido em ${DAYS[idx].label}.`); return; }
+      }
+    }
     setBusy(true);
     try {
       const { data: signUp, error } = await supabase.auth.signUp({
@@ -161,6 +212,20 @@ function CadastroPage() {
             address_complement: complement || null,
           }).eq("id", userId);
         } else {
+          // Upload da foto (bucket privado -> signed URL 10 anos)
+          let photoUrl: string | null = null;
+          if (photoFile) {
+            const ext = photoFile.name.split(".").pop() || "jpg";
+            const path = `${userId}/profile.${ext}`;
+            const up = await supabase.storage.from("professional-photos").upload(path, photoFile, { upsert: true, contentType: photoFile.type });
+            if (up.error) {
+              toast.error("Falha ao enviar foto: " + up.error.message);
+            } else {
+              const signed = await supabase.storage.from("professional-photos").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+              photoUrl = signed.data?.signedUrl ?? null;
+            }
+          }
+
           await supabase.from("profiles").update({
             ...base,
             cpf,
@@ -171,7 +236,17 @@ function CadastroPage() {
             regions: regions.join(","),
             experience,
             bio: bio || null,
+            profile_photo: photoUrl,
           }).eq("id", userId);
+
+          // Disponibilidade semanal
+          const rows = Array.from(availability.entries())
+            .filter(([, d]) => d.on)
+            .map(([idx, d]) => ({ professional_id: userId, day_of_week: idx, start_time: d.start, end_time: d.end, is_available: true }));
+          if (rows.length > 0) {
+            const av = await supabase.from("professional_availability").insert(rows);
+            if (av.error) toast.error("Não foi possível salvar a agenda: " + av.error.message);
+          }
         }
       }
       toast.success("Conta criada com sucesso!");
@@ -437,9 +512,84 @@ function CadastroPage() {
                     <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Fale um pouco sobre sua experiência e diferenciais." />
                   </div>
 
-                  <p className="text-xs text-muted-foreground">
-                    Após criar a conta você poderá configurar sua agenda semanal e enviar foto no painel.
-                  </p>
+                  {/* Foto de Perfil */}
+                  <div className="space-y-2">
+                    <Label>Foto de Perfil <span className="text-destructive">*</span></Label>
+                    {photoPreview ? (
+                      <div className="flex items-center gap-3">
+                        <img src={photoPreview} alt="Prévia" className="w-24 h-24 rounded-full object-cover border" />
+                        <button
+                          type="button"
+                          onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                          className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" /> Remover
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label className="cursor-pointer border-2 border-dashed border-input rounded-lg p-4 flex flex-col items-center justify-center text-sm text-muted-foreground hover:bg-secondary transition">
+                          <ImagePlus className="w-6 h-6 mb-1" />
+                          Escolher da galeria
+                          <input type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+                        </label>
+                        <label className="cursor-pointer border-2 border-dashed border-primary/40 bg-primary/5 rounded-lg p-4 flex flex-col items-center justify-center text-sm text-primary hover:bg-primary/10 transition">
+                          <Camera className="w-6 h-6 mb-1" />
+                          Tirar foto agora
+                          <input type="file" accept="image/*" capture="user" className="hidden" onChange={onPhotoChange} />
+                        </label>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">JPEG, PNG, WebP ou GIF (máx. 5MB)</p>
+                  </div>
+
+                  {/* Disponibilidade Semanal */}
+                  <div className="space-y-2">
+                    <Label>Disponibilidade Semanal</Label>
+                    <p className="text-xs text-muted-foreground">Selecione os dias e horários que você trabalha</p>
+                    <div className="space-y-2">
+                      {DAYS.map((d) => {
+                        const row = availability.get(d.idx)!;
+                        return (
+                          <div
+                            key={d.idx}
+                            className={`flex flex-wrap items-center gap-2 rounded-lg border p-3 transition ${
+                              row.on ? "border-primary/40 bg-primary/5" : "border-input bg-background"
+                            }`}
+                          >
+                            <label className="inline-flex items-center gap-2 min-w-[140px] cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={row.on}
+                                onChange={(e) => updateAvail(d.idx, { on: e.target.checked })}
+                                className="h-4 w-4 rounded border-input accent-primary"
+                              />
+                              <span className="text-sm font-medium">{d.label}</span>
+                            </label>
+                            <div className="flex items-center gap-2 ml-auto">
+                              <select
+                                disabled={!row.on}
+                                value={row.start}
+                                onChange={(e) => updateAvail(d.idx, { start: e.target.value })}
+                                className="h-9 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                              >
+                                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                              </select>
+                              <span className="text-sm text-muted-foreground">até</span>
+                              <select
+                                disabled={!row.on}
+                                value={row.end}
+                                onChange={(e) => updateAvail(d.idx, { end: e.target.value })}
+                                className="h-9 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                              >
+                                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </>
               )}
 
