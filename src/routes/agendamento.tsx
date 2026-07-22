@@ -282,11 +282,11 @@ function AgendamentoPage() {
                 {days.map(d => {
                   const active = date === d.iso;
                   return (
-                    <button key={d.iso} type="button" disabled={d.blocked} onClick={() => setDate(d.iso)}
+                    <button key={d.iso} type="button" disabled={d.blocked} onClick={() => { setDate(d.iso); setTime(""); }}
                       className={`rounded-xl border p-3 text-center transition ${d.blocked ? "opacity-50 cursor-not-allowed" : active ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/40"}`}>
                       <div className="text-xs text-muted-foreground">{d.weekday}</div>
                       <div className="font-semibold">{d.label}</div>
-                      {d.blocked && <div className="text-[10px] text-destructive">Indisponível</div>}
+                      {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : d.range ? <div className="text-[10px] text-muted-foreground">{d.range}</div> : null}
                     </button>
                   );
                 })}
@@ -405,6 +405,17 @@ function sumHours(start: string | null | undefined, dur: number): string {
   const end = new Date(2000, 0, 1, h, m);
   end.setHours(end.getHours() + Number(dur));
   return `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+}
+
+function timeToMinutes(value: string): number {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(value: number): string {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
