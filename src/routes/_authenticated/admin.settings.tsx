@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "./admin";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { CreditCard, Save } from "lucide-react";
+import { CreditCard, Save, Key, Webhook, Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: SettingsPage,
@@ -16,6 +16,13 @@ type Settings = {
   pix_key_type: string;
   pix_beneficiary_name: string;
   pix_qr_url: string;
+  mp_access_token: string;
+  mp_public_key: string;
+  mp_webhook_secret: string;
+  mp_environment: string;
+  ps_email: string;
+  ps_token: string;
+  ps_environment: string;
 };
 
 const DEFAULTS: Settings = {
@@ -24,6 +31,13 @@ const DEFAULTS: Settings = {
   pix_key_type: "email",
   pix_beneficiary_name: "",
   pix_qr_url: "",
+  mp_access_token: "",
+  mp_public_key: "",
+  mp_webhook_secret: "",
+  mp_environment: "sandbox",
+  ps_email: "",
+  ps_token: "",
+  ps_environment: "sandbox",
 };
 
 const META: Record<keyof Settings, { group: string; type: string; public: boolean; label: string }> = {
@@ -32,6 +46,13 @@ const META: Record<keyof Settings, { group: string; type: string; public: boolea
   pix_key_type: { group: "payment", type: "text", public: false, label: "Tipo da Chave PIX" },
   pix_beneficiary_name: { group: "payment", type: "text", public: false, label: "Nome do Beneficiário" },
   pix_qr_url: { group: "payment", type: "text", public: false, label: "URL do QR Code PIX" },
+  mp_access_token: { group: "payment", type: "text", public: false, label: "Mercado Pago - Access Token" },
+  mp_public_key: { group: "payment", type: "text", public: true, label: "Mercado Pago - Public Key" },
+  mp_webhook_secret: { group: "payment", type: "text", public: false, label: "Mercado Pago - Webhook Secret" },
+  mp_environment: { group: "payment", type: "text", public: false, label: "Mercado Pago - Ambiente" },
+  ps_email: { group: "payment", type: "text", public: false, label: "PagSeguro - Email" },
+  ps_token: { group: "payment", type: "text", public: false, label: "PagSeguro - Token" },
+  ps_environment: { group: "payment", type: "text", public: false, label: "PagSeguro - Ambiente" },
 };
 
 const PLATFORMS = [
@@ -51,6 +72,7 @@ const KEY_TYPES = [
 function SettingsPage() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Settings>(DEFAULTS);
+  const [showSecrets, setShowSecrets] = useState(false);
 
   const q = useQuery({
     queryKey: ["admin-settings"],
@@ -182,6 +204,110 @@ function SettingsPage() {
           )}
         </div>
       </section>
+
+      {form.payment_platform === "mercadopago" && (
+        <section className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2 text-slate-800">
+              <Key className="h-5 w-5 text-emerald-600" />
+              <h3 className="font-semibold">Credenciais Mercado Pago</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSecrets((s) => !s)}
+              className="text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-1"
+            >
+              {showSecrets ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              {showSecrets ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Ambiente">
+              <select
+                value={form.mp_environment}
+                onChange={(e) => set("mp_environment", e.target.value)}
+                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="sandbox">Sandbox (Teste)</option>
+                <option value="production">Produção</option>
+              </select>
+            </Field>
+            <Field label="Public Key">
+              <TextInput value={form.mp_public_key} onChange={(v) => set("mp_public_key", v)} placeholder="APP_USR-..." />
+            </Field>
+            <Field label="Access Token" className="md:col-span-2">
+              <TextInput
+                value={form.mp_access_token}
+                onChange={(v) => set("mp_access_token", v)}
+                placeholder="APP_USR-..."
+                type={showSecrets ? "text" : "password"}
+              />
+            </Field>
+            <Field label="Webhook Secret" className="md:col-span-2">
+              <TextInput
+                value={form.mp_webhook_secret}
+                onChange={(v) => set("mp_webhook_secret", v)}
+                placeholder="Chave para validar assinatura do webhook"
+                type={showSecrets ? "text" : "password"}
+              />
+            </Field>
+          </div>
+          <div className="mt-4 flex items-start gap-2 rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800">
+            <Webhook className="h-4 w-4 mt-0.5" />
+            <div>
+              URL do Webhook: <code className="font-mono">/api/public/webhooks/mercadopago</code> — configure no painel do Mercado Pago para receber confirmações de pagamento.
+            </div>
+          </div>
+        </section>
+      )}
+
+      {form.payment_platform === "pagseguro" && (
+        <section className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2 text-slate-800">
+              <Key className="h-5 w-5 text-emerald-600" />
+              <h3 className="font-semibold">Credenciais PagSeguro</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSecrets((s) => !s)}
+              className="text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-1"
+            >
+              {showSecrets ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              {showSecrets ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Ambiente">
+              <select
+                value={form.ps_environment}
+                onChange={(e) => set("ps_environment", e.target.value)}
+                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="sandbox">Sandbox (Teste)</option>
+                <option value="production">Produção</option>
+              </select>
+            </Field>
+            <Field label="Email da Conta">
+              <TextInput value={form.ps_email} onChange={(v) => set("ps_email", v)} placeholder="conta@empresa.com" />
+            </Field>
+            <Field label="Token" className="md:col-span-2">
+              <TextInput
+                value={form.ps_token}
+                onChange={(v) => set("ps_token", v)}
+                placeholder="Token de integração PagSeguro"
+                type={showSecrets ? "text" : "password"}
+              />
+            </Field>
+          </div>
+          <div className="mt-4 flex items-start gap-2 rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800">
+            <Webhook className="h-4 w-4 mt-0.5" />
+            <div>
+              URL de Notificação: <code className="font-mono">/api/public/webhooks/pagseguro</code> — configure em Integrações → Notificações no painel do PagSeguro.
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
