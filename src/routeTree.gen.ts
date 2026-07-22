@@ -43,6 +43,7 @@ import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminBlockedRouteImport } from './routes/_authenticated/admin.blocked'
 import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
+import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/public/webhooks/pagseguro'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
@@ -228,6 +229,12 @@ const AuthenticatedAdminAdminsRoute =
     path: '/admins',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicWebhooksPagseguroRoute =
+  ApiPublicWebhooksPagseguroRouteImport.update({
+    id: '/api/public/webhooks/pagseguro',
+    path: '/api/public/webhooks/pagseguro',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksMercadopagoRoute =
   ApiPublicWebhooksMercadopagoRouteImport.update({
     id: '/api/public/webhooks/mercadopago',
@@ -277,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -313,6 +321,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -352,6 +361,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   id:
     | '__root__'
     | '/'
@@ -465,6 +477,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/webhooks/pagseguro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -476,6 +489,7 @@ export interface RootRouteChildren {
   CidadesRoute: typeof CidadesRouteWithChildren
   ProfessionalsRoute: typeof ProfessionalsRouteWithChildren
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
+  ApiPublicWebhooksPagseguroRoute: typeof ApiPublicWebhooksPagseguroRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -718,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/webhooks/pagseguro': {
+      id: '/api/public/webhooks/pagseguro'
+      path: '/api/public/webhooks/pagseguro'
+      fullPath: '/api/public/webhooks/pagseguro'
+      preLoaderRoute: typeof ApiPublicWebhooksPagseguroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/mercadopago': {
       id: '/api/public/webhooks/mercadopago'
       path: '/api/public/webhooks/mercadopago'
@@ -868,6 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   CidadesRoute: CidadesRouteWithChildren,
   ProfessionalsRoute: ProfessionalsRouteWithChildren,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
+  ApiPublicWebhooksPagseguroRoute: ApiPublicWebhooksPagseguroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
