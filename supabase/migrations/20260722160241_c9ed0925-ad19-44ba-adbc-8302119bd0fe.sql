@@ -1,0 +1,1 @@
+UPDATE public.profiles SET profile_photo = NULL WHERE is_professional = true AND profile_photo IS NOT NULL AND profile_photo NOT LIKE '%/professional-photos/%/%';
