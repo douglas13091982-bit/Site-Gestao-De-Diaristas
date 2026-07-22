@@ -30,8 +30,8 @@ export function Header() {
                 <Link to="/pro/leads"><Button variant="outline" size="sm">Área da diarista</Button></Link>
               ) : (
                 <>
-                  <Link to="/bookings"><Button variant="ghost" size="sm">Meus agendamentos</Button></Link>
-                  <Link to="/dashboard"><Button variant="outline" size="sm">Painel</Button></Link>
+                  <Link to="/cliente/agendamentos"><Button variant="ghost" size="sm">Meus agendamentos</Button></Link>
+                  <Link to="/cliente"><Button variant="outline" size="sm">Minha conta</Button></Link>
                 </>
               )}
               <Button variant="ghost" size="sm" onClick={() => signOut()}>Sair</Button>
