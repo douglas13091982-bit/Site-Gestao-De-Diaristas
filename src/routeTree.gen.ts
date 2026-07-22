@@ -35,10 +35,12 @@ import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminProfessionalsRouteImport } from './routes/_authenticated/admin.professionals'
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
+import { Route as AuthenticatedAdminEmailsRouteImport } from './routes/_authenticated/admin.emails'
 import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authenticated/admin.credits'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin.cities'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
+import { Route as AuthenticatedAdminBlockedRouteImport } from './routes/_authenticated/admin.blocked'
 import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
@@ -177,6 +179,12 @@ const AuthenticatedAdminFinanceRoute =
     path: '/finance',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminEmailsRoute =
+  AuthenticatedAdminEmailsRouteImport.update({
+    id: '/emails',
+    path: '/emails',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCreditsRoute =
   AuthenticatedAdminCreditsRouteImport.update({
     id: '/credits',
@@ -199,6 +207,12 @@ const AuthenticatedAdminBookingsRoute =
   AuthenticatedAdminBookingsRouteImport.update({
     id: '/bookings',
     path: '/bookings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBlockedRoute =
+  AuthenticatedAdminBlockedRouteImport.update({
+    id: '/blocked',
+    path: '/blocked',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminAppearanceRoute =
@@ -237,10 +251,12 @@ export interface FileRoutesByFullPath {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
+  '/admin/emails': typeof AuthenticatedAdminEmailsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
@@ -270,10 +286,12 @@ export interface FileRoutesByTo {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
+  '/admin/emails': typeof AuthenticatedAdminEmailsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
@@ -306,10 +324,12 @@ export interface FileRoutesById {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
+  '/_authenticated/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/_authenticated/admin/credits': typeof AuthenticatedAdminCreditsRoute
+  '/_authenticated/admin/emails': typeof AuthenticatedAdminEmailsRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/_authenticated/admin/professionals': typeof AuthenticatedAdminProfessionalsRoute
@@ -342,10 +362,12 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/admin/admins'
     | '/admin/appearance'
+    | '/admin/blocked'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
     | '/admin/credits'
+    | '/admin/emails'
     | '/admin/finance'
     | '/admin/packages'
     | '/admin/professionals'
@@ -375,10 +397,12 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/admin/admins'
     | '/admin/appearance'
+    | '/admin/blocked'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
     | '/admin/credits'
+    | '/admin/emails'
     | '/admin/finance'
     | '/admin/packages'
     | '/admin/professionals'
@@ -410,10 +434,12 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/appearance'
+    | '/_authenticated/admin/blocked'
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/cities'
     | '/_authenticated/admin/credits'
+    | '/_authenticated/admin/emails'
     | '/_authenticated/admin/finance'
     | '/_authenticated/admin/packages'
     | '/_authenticated/admin/professionals'
@@ -622,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/emails': {
+      id: '/_authenticated/admin/emails'
+      path: '/emails'
+      fullPath: '/admin/emails'
+      preLoaderRoute: typeof AuthenticatedAdminEmailsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/credits': {
       id: '/_authenticated/admin/credits'
       path: '/credits'
@@ -648,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings'
       fullPath: '/admin/bookings'
       preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/blocked': {
+      id: '/_authenticated/admin/blocked'
+      path: '/blocked'
+      fullPath: '/admin/blocked'
+      preLoaderRoute: typeof AuthenticatedAdminBlockedRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/appearance': {
@@ -691,10 +731,12 @@ const AuthenticatedAdminBookingsRouteWithChildren =
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
   AuthenticatedAdminAppearanceRoute: typeof AuthenticatedAdminAppearanceRoute
+  AuthenticatedAdminBlockedRoute: typeof AuthenticatedAdminBlockedRoute
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
   AuthenticatedAdminCreditsRoute: typeof AuthenticatedAdminCreditsRoute
+  AuthenticatedAdminEmailsRoute: typeof AuthenticatedAdminEmailsRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
   AuthenticatedAdminProfessionalsRoute: typeof AuthenticatedAdminProfessionalsRoute
@@ -707,10 +749,12 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
   AuthenticatedAdminAppearanceRoute: AuthenticatedAdminAppearanceRoute,
+  AuthenticatedAdminBlockedRoute: AuthenticatedAdminBlockedRoute,
   AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
   AuthenticatedAdminCreditsRoute: AuthenticatedAdminCreditsRoute,
+  AuthenticatedAdminEmailsRoute: AuthenticatedAdminEmailsRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
   AuthenticatedAdminProfessionalsRoute: AuthenticatedAdminProfessionalsRoute,
