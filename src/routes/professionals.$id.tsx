@@ -29,7 +29,7 @@ function ProfessionalPage() {
     queryKey: ["pro", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, profile_photo, bio, city, rating, total_reviews, is_verified")
+        .select("id, full_name, profile_photo, bio, city, city_slug, rating, total_reviews, is_verified")
         .eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
