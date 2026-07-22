@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SejaDiaristaRouteImport } from './routes/seja-diarista'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgendamentoRapidoRouteImport } from './routes/agendamento-rapido'
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
@@ -64,6 +65,11 @@ const CidadesRoute = CidadesRouteImport.update({
 const CategoriasRoute = CategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/seja-diarista': typeof SejaDiaristaRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/seja-diarista': typeof SejaDiaristaRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
   '/seja-diarista': typeof SejaDiaristaRoute
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/cadastro'
     | '/categorias'
     | '/cidades'
     | '/seja-diarista'
@@ -449,6 +459,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/cadastro'
     | '/categorias'
     | '/cidades'
     | '/seja-diarista'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/cadastro'
     | '/categorias'
     | '/cidades'
     | '/seja-diarista'
@@ -535,6 +547,7 @@ export interface RootRouteChildren {
   AgendamentoRoute: typeof AgendamentoRoute
   AgendamentoRapidoRoute: typeof AgendamentoRapidoRoute
   AuthRoute: typeof AuthRoute
+  CadastroRoute: typeof CadastroRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
   SejaDiaristaRoute: typeof SejaDiaristaRoute
@@ -566,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/categorias'
       fullPath: '/categorias'
       preLoaderRoute: typeof CategoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -957,6 +977,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentoRoute: AgendamentoRoute,
   AgendamentoRapidoRoute: AgendamentoRapidoRoute,
   AuthRoute: AuthRoute,
+  CadastroRoute: CadastroRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
   SejaDiaristaRoute: SejaDiaristaRoute,
