@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Calendar, MapPin, Phone } from "lucide-react";
+import { Calendar, MapPin, Phone, Star } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/cliente/agendamentos")({
   head: () => ({ meta: [{ title: "Meus agendamentos — Gersepa" }, { name: "description", content: "Acompanhe seus serviços." }] }),
@@ -19,6 +21,7 @@ const STATUS: Record<string, { label: string; color: string }> = {
 
 function ClienteAgendamentos() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const q = useQuery({
     enabled: !!user,
     queryKey: ["cliente-bookings", user?.id],
@@ -34,7 +37,17 @@ function ClienteAgendamentos() {
         const { data: p } = await supabase.from("profiles").select("id,full_name,phone,profile_photo").in("id", ids);
         pros = Object.fromEntries((p ?? []).map((x) => [x.id, x]));
       }
-      return rows.map((r) => ({ ...r, professional: r.professional_id ? pros[r.professional_id] : null }));
+      const bookingIds = rows.map((r) => r.id);
+      let reviews: Record<string, { rating: number; comment: string | null }> = {};
+      if (bookingIds.length) {
+        const { data: rv } = await supabase.from("reviews").select("booking_id, rating, comment").in("booking_id", bookingIds);
+        reviews = Object.fromEntries((rv ?? []).map((x) => [x.booking_id, { rating: x.rating, comment: x.comment }]));
+      }
+      return rows.map((r) => ({
+        ...r,
+        professional: r.professional_id ? pros[r.professional_id] : null,
+        review: reviews[r.id] ?? null,
+      }));
     },
   });
 
@@ -45,14 +58,14 @@ function ClienteAgendamentos() {
           <h2 className="text-xl sm:text-2xl font-bold">Meus agendamentos</h2>
           <p className="text-sm text-muted-foreground">Acompanhe todos os serviços solicitados.</p>
         </div>
-        <Link to="/agendamento-rapido" className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 shrink-0">Novo</Link>
+        <Link to="/cliente" className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 shrink-0">Novo</Link>
       </div>
 
       {q.isLoading && <div className="text-muted-foreground">Carregando…</div>}
       {!q.isLoading && !q.data?.length && (
         <div className="bg-card border border-border rounded-2xl p-10 text-center text-muted-foreground">
           Você ainda não tem agendamentos.
-          <div className="mt-4"><Link to="/agendamento-rapido" className="text-primary font-semibold">Criar o primeiro</Link></div>
+          <div className="mt-4"><Link to="/cliente" className="text-primary font-semibold">Criar o primeiro</Link></div>
         </div>
       )}
 
@@ -107,10 +120,75 @@ function ClienteAgendamentos() {
                   <Link to="/agendamento-sucesso/$id" params={{ id: b.id }} className="text-xs font-semibold text-primary">Concluir pagamento →</Link>
                 </div>
               )}
+
+              {b.status === "completed" && b.professional_id && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  {b.review ? (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Sua avaliação</div>
+                      <StarsDisplay value={Number(b.review.rating)} />
+                      {b.review.comment && <p className="text-xs text-muted-foreground mt-1 italic">"{b.review.comment}"</p>}
+                    </div>
+                  ) : (
+                    <RateForm bookingId={b.id} professionalId={b.professional_id} onDone={() => qc.invalidateQueries({ queryKey: ["cliente-bookings"] })} />
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+function StarsDisplay({ value }: { value: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} className={`h-4 w-4 ${n <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"}`} />
+      ))}
+    </div>
+  );
+}
+
+function RateForm({ bookingId, professionalId, onDone }: { bookingId: number; professionalId: string; onDone: () => void }) {
+  const { user } = useAuth();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    if (!user || rating < 1) return;
+    setSaving(true);
+    const { error } = await supabase.from("reviews").insert({
+      booking_id: bookingId, professional_id: professionalId,
+      client_id: user.id, client_email: user.email ?? null,
+      rating, comment: comment.trim() || null,
+    });
+    setSaving(false);
+    if (error) return toast.error("Erro ao avaliar: " + error.message);
+    toast.success("Avaliação enviada!");
+    onDone();
+  }
+
+  return (
+    <div>
+      <div className="text-xs font-semibold mb-2">Avaliar diarista</div>
+      <div className="flex items-center gap-1 mb-2">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} type="button" onClick={() => setRating(n)} className="p-0.5">
+            <Star className={`h-6 w-6 ${n <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"}`} />
+          </button>
+        ))}
+      </div>
+      <textarea value={comment} onChange={(e) => setComment(e.target.value)} maxLength={300} rows={2}
+        placeholder="Deixe um comentário (opcional)"
+        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+      <button type="button" onClick={submit} disabled={saving || rating < 1}
+        className="mt-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-60">
+        {saving ? "Enviando…" : "Enviar avaliação"}
+      </button>
     </div>
   );
 }

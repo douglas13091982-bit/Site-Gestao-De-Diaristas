@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Camera, Upload, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cliente/perfil")({
   head: () => ({ meta: [{ title: "Meu perfil — Gersepa" }, { name: "description", content: "Atualize seus dados." }] }),
@@ -23,12 +24,16 @@ function ClientePerfil() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const camRef = useRef<HTMLInputElement>(null);
 
   const profile = useQuery({
     enabled: !!user,
     queryKey: ["cliente-perfil", user?.id],
     queryFn: async () => (await supabase.from("profiles")
-      .select("full_name,phone,cpf,city,address,address_number,address_complement,address_neighborhood,property_type,email")
+      .select("full_name,phone,cpf,city,address,address_number,address_complement,address_neighborhood,property_type,email,profile_photo")
       .eq("id", user!.id).maybeSingle()).data,
   });
 
@@ -45,10 +50,35 @@ function ClientePerfil() {
         address_neighborhood: profile.data.address_neighborhood ?? "",
         property_type: profile.data.property_type ?? "",
       });
+      setPhoto(profile.data.profile_photo ?? null);
     }
   }, [profile.data]);
 
   const set = <K extends keyof Form>(k: K) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function uploadPhoto(file: File) {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Foto muito grande. Máximo 5 MB.");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("professional-photos").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage.from("professional-photos").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (sErr) throw sErr;
+      const url = signed.signedUrl;
+      const { error: updErr } = await supabase.from("profiles").update({ profile_photo: url }).eq("id", user.id);
+      if (updErr) throw updErr;
+      setPhoto(url);
+      qc.invalidateQueries();
+      toast.success("Foto atualizada!");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha no upload");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -73,6 +103,35 @@ function ClientePerfil() {
 
   return (
     <form onSubmit={save} className="space-y-6 max-w-2xl">
+      <section className="bg-card border border-border rounded-2xl p-5">
+        <h2 className="font-bold text-lg mb-4">Foto de perfil</h2>
+        <div className="flex items-center gap-4">
+          <div className="relative h-20 w-20 rounded-full overflow-hidden bg-muted border shrink-0">
+            {photo ? (
+              <img src={photo} alt="Foto" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-2xl font-semibold text-muted-foreground">
+                {(form.full_name || user?.email || "?").charAt(0).toUpperCase()}
+              </div>
+            )}
+            {uploading && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-white" /></div>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap gap-2">
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
+              <input ref={camRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
+              <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-border text-xs font-semibold">
+                <Upload className="h-4 w-4" /> Enviar foto
+              </button>
+              <button type="button" disabled={uploading} onClick={() => camRef.current?.click()} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-border text-xs font-semibold">
+                <Camera className="h-4 w-4" /> Tirar foto
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">JPG ou PNG, até 5 MB.</p>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-card border border-border rounded-2xl p-5 space-y-4">
         <h2 className="font-bold text-lg">Dados pessoais</h2>
         <Field label="Nome completo" value={form.full_name} onChange={set("full_name")} required />
