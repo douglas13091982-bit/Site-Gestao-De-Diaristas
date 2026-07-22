@@ -313,6 +313,18 @@ function CadastroPage() {
 
               {tipo === "client" && (
                 <>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="client-cpf">CPF</Label>
+                    <Input
+                      id="client-cpf"
+                      value={cpf}
+                      onChange={(e) => setCpf(e.target.value)}
+                      placeholder="000.000.000-00"
+                      inputMode="numeric"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Necessário para validar o pagamento via Mercado Pago.</p>
+                  </div>
                   <div className="space-y-2">
                     <Label>Tipo de imóvel</Label>
                     <div className="grid grid-cols-2 gap-2">
