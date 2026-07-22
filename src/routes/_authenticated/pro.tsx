@@ -34,7 +34,7 @@ function ProLayout() {
   }
 
   const tabs = [
-    { to: "/pro/leads", label: "Leads" },
+    { to: "/pro/leads", label: "Serviços" },
     { to: "/pro/agenda", label: "Agenda" },
     { to: "/pro/profile", label: "Meu perfil" },
   ];
