@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Users, CalendarPlus, Grid3x3, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+// roles não é mais usado — o menu inferior sempre aparece em rotas públicas
 
 /**
  * Barra de navegação inferior estilo app nativo, visível apenas em mobile
