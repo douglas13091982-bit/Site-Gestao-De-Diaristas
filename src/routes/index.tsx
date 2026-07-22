@@ -322,7 +322,10 @@ function ProCard({ p }: { p: Pro }) {
         <Link to="/professionals/$id" params={{ id: p.id }}>
           <Button variant="outline" className="w-full gap-1">Ver Perfil <ArrowRight className="h-3.5 w-3.5" /></Button>
         </Link>
-        <Link to="/professionals/$id" params={{ id: p.id }}>
+        <Link
+          to="/agendamento"
+          search={{ pro: p.id, city: "joinville", dur: 4, type: "residential", rooms: 2, baths: 1 }}
+        >
           <Button className="w-full gap-1" style={{ background: "var(--accent)" }}>
             <Calendar className="h-3.5 w-3.5" /> Agendar
           </Button>
