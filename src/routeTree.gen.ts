@@ -16,7 +16,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 
 const ProfessionalsRoute = ProfessionalsRouteImport.update({
@@ -53,11 +52,6 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -69,7 +63,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -79,7 +72,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -91,7 +83,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -103,7 +94,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/professionals'
     | '/bookings'
-    | '/dashboard'
     | '/onboarding'
     | '/schedule'
     | '/professionals/$id'
@@ -113,7 +103,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/professionals'
     | '/bookings'
-    | '/dashboard'
     | '/onboarding'
     | '/schedule'
     | '/professionals/$id'
@@ -124,7 +113,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/professionals'
     | '/_authenticated/bookings'
-    | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
     | '/_authenticated/schedule'
     | '/professionals/$id'
@@ -188,13 +176,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/bookings': {
       id: '/_authenticated/bookings'
       path: '/bookings'
@@ -207,14 +188,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
 }
