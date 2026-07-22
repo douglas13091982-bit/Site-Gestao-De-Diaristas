@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
 import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
+import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
@@ -84,6 +85,11 @@ const CategoriasSlugRoute = CategoriasSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => CategoriasRoute,
+} as any)
+const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pro': typeof AuthenticatedProRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pro': typeof AuthenticatedProRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/pro': typeof AuthenticatedProRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/dashboard'
     | '/onboarding'
+    | '/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/dashboard'
     | '/onboarding'
+    | '/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings'
     | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
+    | '/_authenticated/pro'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -423,6 +435,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/categorias/$slug'
       preLoaderRoute: typeof CategoriasSlugRouteImport
       parentRoute: typeof CategoriasRoute
+    }
+    '/_authenticated/pro': {
+      id: '/_authenticated/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
@@ -589,6 +608,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedProRoute: typeof AuthenticatedProRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -596,6 +616,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedProRoute: AuthenticatedProRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
