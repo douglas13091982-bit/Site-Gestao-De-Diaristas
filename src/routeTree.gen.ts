@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SejaDiaristaRouteImport } from './routes/seja-diarista'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -49,6 +50,11 @@ import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/pub
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
+const SejaDiaristaRoute = SejaDiaristaRouteImport.update({
+  id: '/seja-diarista',
+  path: '/seja-diarista',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CidadesRoute = CidadesRouteImport.update({
   id: '/cidades',
   path: '/cidades',
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/seja-diarista': typeof SejaDiaristaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/seja-diarista': typeof SejaDiaristaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
+    | '/seja-diarista'
     | '/admin'
     | '/bookings'
     | '/dashboard'
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
+    | '/seja-diarista'
     | '/bookings'
     | '/dashboard'
     | '/onboarding'
@@ -471,6 +482,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
+    | '/seja-diarista'
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/dashboard'
@@ -513,6 +525,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
+  SejaDiaristaRoute: typeof SejaDiaristaRoute
   ProfessionalsIdRoute: typeof ProfessionalsIdRoute
   ProfessionalsIndexRoute: typeof ProfessionalsIndexRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
@@ -521,6 +534,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/seja-diarista': {
+      id: '/seja-diarista'
+      path: '/seja-diarista'
+      fullPath: '/seja-diarista'
+      preLoaderRoute: typeof SejaDiaristaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cidades': {
       id: '/cidades'
       path: '/cidades'
@@ -919,6 +939,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
+  SejaDiaristaRoute: SejaDiaristaRoute,
   ProfessionalsIdRoute: ProfessionalsIdRoute,
   ProfessionalsIndexRoute: ProfessionalsIndexRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
