@@ -155,6 +155,26 @@ function CadastroPage() {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   }
 
+  async function lookupCep(raw: string) {
+    const clean = raw.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    setCepLoading(true);
+    setCepError(null);
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await r.json();
+      if (data?.erro) { setCepError("CEP não encontrado"); return; }
+      if (data?.logradouro) setAddress(data.logradouro);
+      if (data?.bairro) setNeighborhood(data.bairro);
+      if (data?.localidade) setCity(data.localidade);
+      if (data?.complemento && !complement) setComplement(data.complemento);
+    } catch {
+      setCepError("Não foi possível buscar o CEP");
+    } finally {
+      setCepLoading(false);
+    }
+  }
+
   function selectTipo(t: Exclude<Tipo, null>) {
     setTipo(t);
     nav({ to: "/cadastro", search: { tipo: t }, replace: true });
