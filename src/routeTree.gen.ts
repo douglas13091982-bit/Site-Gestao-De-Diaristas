@@ -31,7 +31,6 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
-import { Route as AuthenticatedProCreditsRouteImport } from './routes/_authenticated/pro.credits'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -41,7 +40,6 @@ import { Route as AuthenticatedAdminProfessionalsRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin.notifications'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
-import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authenticated/admin.credits'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin.cities'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
@@ -161,11 +159,6 @@ const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
-const AuthenticatedProCreditsRoute = AuthenticatedProCreditsRouteImport.update({
-  id: '/credits',
-  path: '/credits',
-  getParentRoute: () => AuthenticatedProRoute,
-} as any)
 const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -216,12 +209,6 @@ const AuthenticatedAdminFinanceRoute =
   AuthenticatedAdminFinanceRouteImport.update({
     id: '/finance',
     path: '/finance',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminCreditsRoute =
-  AuthenticatedAdminCreditsRouteImport.update({
-    id: '/credits',
-    path: '/credits',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminCitiesRoute =
@@ -304,7 +291,6 @@ export interface FileRoutesByFullPath {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
-  '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -314,7 +300,6 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
-  '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -346,7 +331,6 @@ export interface FileRoutesByTo {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
-  '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -356,7 +340,6 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
-  '/pro/credits': typeof AuthenticatedProCreditsRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -391,7 +374,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
-  '/_authenticated/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -401,7 +383,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
-  '/_authenticated/pro/credits': typeof AuthenticatedProCreditsRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -436,7 +417,6 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
-    | '/admin/credits'
     | '/admin/finance'
     | '/admin/notifications'
     | '/admin/packages'
@@ -446,7 +426,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/webhooks'
     | '/pro/agenda'
-    | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
@@ -478,7 +457,6 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/cities'
-    | '/admin/credits'
     | '/admin/finance'
     | '/admin/notifications'
     | '/admin/packages'
@@ -488,7 +466,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/webhooks'
     | '/pro/agenda'
-    | '/pro/credits'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
@@ -522,7 +499,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/cities'
-    | '/_authenticated/admin/credits'
     | '/_authenticated/admin/finance'
     | '/_authenticated/admin/notifications'
     | '/_authenticated/admin/packages'
@@ -532,7 +508,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/webhooks'
     | '/_authenticated/pro/agenda'
-    | '/_authenticated/pro/credits'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
@@ -714,13 +689,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProLeadsRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
-    '/_authenticated/pro/credits': {
-      id: '/_authenticated/pro/credits'
-      path: '/credits'
-      fullPath: '/pro/credits'
-      preLoaderRoute: typeof AuthenticatedProCreditsRouteImport
-      parentRoute: typeof AuthenticatedProRoute
-    }
     '/_authenticated/pro/agenda': {
       id: '/_authenticated/pro/agenda'
       path: '/agenda'
@@ -782,13 +750,6 @@ declare module '@tanstack/react-router' {
       path: '/finance'
       fullPath: '/admin/finance'
       preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/credits': {
-      id: '/_authenticated/admin/credits'
-      path: '/credits'
-      fullPath: '/admin/credits'
-      preLoaderRoute: typeof AuthenticatedAdminCreditsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/cities': {
@@ -878,7 +839,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
-  AuthenticatedAdminCreditsRoute: typeof AuthenticatedAdminCreditsRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
@@ -897,7 +857,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
-  AuthenticatedAdminCreditsRoute: AuthenticatedAdminCreditsRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
@@ -914,14 +873,12 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
-  AuthenticatedProCreditsRoute: typeof AuthenticatedProCreditsRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
   AuthenticatedProProfileRoute: typeof AuthenticatedProProfileRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
-  AuthenticatedProCreditsRoute: AuthenticatedProCreditsRoute,
   AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
   AuthenticatedProProfileRoute: AuthenticatedProProfileRoute,
 }
