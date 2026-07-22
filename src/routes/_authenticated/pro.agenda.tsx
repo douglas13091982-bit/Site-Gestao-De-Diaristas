@@ -81,24 +81,24 @@ function AgendaPage() {
   const past = rows.filter((r) => r.status === "completed" || r.status === "cancelled");
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      <section className="lg:col-span-2 space-y-6">
-        <div className="rounded-xl border bg-card p-5">
+    <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+      <section className="lg:col-span-2 space-y-4 sm:space-y-6">
+        <div className="rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="font-semibold mb-3">Próximos serviços ({upcoming.length})</h2>
           {upcoming.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum serviço confirmado ainda.</p>
           ) : (
             <ul className="divide-y">
               {upcoming.map((b) => (
-                <li key={b.id} className="py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-medium">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
-                    <div className="text-sm text-muted-foreground">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
+                <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">Status: {b.status} {b.total_price ? `· R$ ${Number(b.total_price).toFixed(2)}` : ""}</div>
                   </div>
-                  <div className="flex gap-2">
-                    {b.status !== "in_progress" && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>}
-                    <Button size="sm" onClick={() => updateStatus.mutate({ id: b.id, status: "completed" })}>Concluir</Button>
+                  <div className="flex gap-2 shrink-0">
+                    {b.status !== "in_progress" && <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>}
+                    <Button size="sm" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "completed" })}>Concluir</Button>
                   </div>
                 </li>
               ))}
@@ -107,7 +107,7 @@ function AgendaPage() {
         </div>
 
         {past.length > 0 && (
-          <div className="rounded-xl border bg-card p-5">
+          <div className="rounded-xl border bg-card p-4 sm:p-5">
             <h2 className="font-semibold mb-3">Histórico</h2>
             <ul className="divide-y text-sm">
               {past.slice(0, 20).map((b) => (
@@ -121,13 +121,13 @@ function AgendaPage() {
         )}
       </section>
 
-      <aside className="space-y-6">
-        <div className="rounded-xl border bg-card p-5">
+      <aside className="space-y-4 sm:space-y-6">
+        <div className="rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="font-semibold mb-3">Dias que atendo</h2>
           <div className="grid grid-cols-7 gap-1">
             {DAYS.map((d, i) => (
               <button key={d} onClick={() => toggleDay.mutate(i)}
-                className={`h-10 rounded-md text-xs font-semibold ${enabledDays.has(i) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                className={`h-11 rounded-md text-xs font-semibold ${enabledDays.has(i) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                 {d}
               </button>
             ))}
@@ -135,11 +135,11 @@ function AgendaPage() {
           <p className="text-xs text-muted-foreground mt-2">08:00 – 18:00. Clique para ativar/desativar.</p>
         </div>
 
-        <div className="rounded-xl border bg-card p-5">
+        <div className="rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="font-semibold mb-3">Bloquear datas</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input type="date" value={blockDate} onChange={(e) => setBlockDate(e.target.value)} />
-            <Button onClick={() => addBlocked.mutate()} disabled={!blockDate || addBlocked.isPending}>Bloquear</Button>
+            <Button onClick={() => addBlocked.mutate()} disabled={!blockDate || addBlocked.isPending} className="min-h-11">Bloquear</Button>
           </div>
           <Input className="mt-2" placeholder="Motivo (opcional)" value={blockReason} onChange={(e) => setBlockReason(e.target.value)} />
           <ul className="mt-3 space-y-1 text-sm">
