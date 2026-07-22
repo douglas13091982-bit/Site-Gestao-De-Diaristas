@@ -12,7 +12,11 @@ import { Header } from "@/components/Header";
 const searchSchema = z.object({
   redirect: z.string().optional(),
   mode: z.enum(["signin", "signup"]).optional(),
-  role: z.enum(["client", "professional"]).optional(),
+  role: z
+    .string()
+    .optional()
+    .transform((v) => (v === "professional" || v === "worker" ? "professional" : v === "client" ? "client" : undefined))
+    .pipe(z.enum(["client", "professional"]).optional()),
 });
 
 export const Route = createFileRoute("/auth")({
