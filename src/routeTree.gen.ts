@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
 import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -83,6 +84,11 @@ const CategoriasSlugRoute = CategoriasSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => CategoriasRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/professionals': typeof ProfessionalsRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookings'
     | '/dashboard'
+    | '/onboarding'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/professionals'
     | '/bookings'
     | '/dashboard'
+    | '/onboarding'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/dashboard'
+    | '/_authenticated/onboarding'
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
@@ -411,6 +423,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/categorias/$slug'
       preLoaderRoute: typeof CategoriasSlugRouteImport
       parentRoute: typeof CategoriasRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -569,12 +588,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
