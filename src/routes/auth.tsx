@@ -12,7 +12,7 @@ import { Header } from "@/components/Header";
 const searchSchema = z.object({
   redirect: z.string().optional(),
   mode: z.enum(["signin", "signup"]).optional(),
-  role: z.enum(["client", "worker"]).optional(),
+  role: z.enum(["client", "professional"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -33,7 +33,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
-  const [role, setRole] = useState<"client" | "worker">(search.role ?? "client");
+  const [role, setRole] = useState<"client" | "professional">(search.role ?? "client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -92,7 +92,7 @@ function AuthPage() {
               <button type="button" onClick={() => setRole("client")} className={`py-2.5 rounded-lg text-sm font-semibold transition ${role === "client" ? "bg-background shadow" : "text-muted-foreground"}`}>
                 Sou cliente
               </button>
-              <button type="button" onClick={() => setRole("worker")} className={`py-2.5 rounded-lg text-sm font-semibold transition ${role === "worker" ? "bg-background shadow" : "text-muted-foreground"}`}>
+              <button type="button" onClick={() => setRole("professional")} className={`py-2.5 rounded-lg text-sm font-semibold transition ${role === "professional" ? "bg-background shadow" : "text-muted-foreground"}`}>
                 Sou diarista
               </button>
             </div>
