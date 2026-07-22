@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useLeadNotifications, useNotificationPermission } from "@/hooks/use-lead-notifications";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/pro/leads")({
   component: LeadsPage,
@@ -31,6 +33,12 @@ type OfferRow = {
 function LeadsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { status: notifStatus, request: requestNotif } = useNotificationPermission();
+
+  useLeadNotifications({
+    userId: user?.id,
+    onNewOffer: () => qc.invalidateQueries({ queryKey: ["my-offers", user?.id] }),
+  });
 
   const offers = useQuery({
     queryKey: ["my-offers", user?.id],
@@ -50,8 +58,13 @@ function LeadsPage() {
     mutationFn: async ({ id, status }: { id: number; status: "accepted" | "rejected" }) => {
       const { error } = await supabase.from("booking_offers").update({ status }).eq("id", id);
       if (error) throw error;
+      return status;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-offers", user?.id] }),
+    onSuccess: (status) => {
+      qc.invalidateQueries({ queryKey: ["my-offers", user?.id] });
+      if (status === "accepted") toast.success("Lead aceito! O cliente foi notificado.");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Não foi possível responder ao lead."),
   });
 
   if (offers.isLoading) return <p className="text-muted-foreground">Carregando leads…</p>;
@@ -61,6 +74,15 @@ function LeadsPage() {
 
   return (
     <div className="space-y-8">
+      {notifStatus !== "granted" && notifStatus !== "unsupported" && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-medium">Ative as notificações do navegador</p>
+            <p className="text-sm text-muted-foreground">Assim você é avisada na hora que um novo pedido cair — quem aceitar primeiro leva.</p>
+          </div>
+          <Button onClick={requestNotif}>Ativar notificações</Button>
+        </div>
+      )}
       <section>
         <h2 className="text-lg font-semibold mb-3">Pendentes ({pending.length})</h2>
         {pending.length === 0 ? (
