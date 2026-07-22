@@ -7,12 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { useServerFn } from "@tanstack/react-start";
-import { createPixPayment } from "@/lib/mercadopago.functions";
+import { createPayment } from "@/lib/mercadopago.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon } from "lucide-react";
+import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon, QrCode, CreditCard as CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -53,7 +53,7 @@ function AgendamentoPage() {
   const s = Route.useSearch();
   const { user } = useAuth();
   const nav = useNavigate();
-  const createPayment = useServerFn(createPixPayment);
+  const runCreatePayment = useServerFn(createPayment);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(2);
   const [pkgId, setPkgId] = useState<number | null>(null);
@@ -67,12 +67,59 @@ function AgendamentoPage() {
   const [guestPhone, setGuestPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Método selecionado no passo 4
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState(""); // MM/AA
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardCpf, setCardCpf] = useState("");
+  const [installments, setInstallments] = useState(1);
+
+  // Configurações públicas do gateway
+  const paySettings = useQuery({
+    queryKey: ["public-pay-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings")
+        .select("setting_key, setting_value")
+        .in("setting_key", ["payment_platform", "pix_enabled", "card_enabled", "mp_public_key"]);
+      const m: Record<string, string> = {};
+      for (const r of data ?? []) m[r.setting_key] = r.setting_value ?? "";
+      return {
+        platform: (m.payment_platform || "mercadopago").toLowerCase(),
+        pixEnabled: m.pix_enabled !== "0",
+        cardEnabled: m.card_enabled !== "0",
+        mpPublicKey: m.mp_public_key || "",
+      };
+    },
+  });
+
+  const platform = paySettings.data?.platform ?? "mercadopago";
+  const pixEnabled = paySettings.data?.pixEnabled ?? true;
+  const cardEnabled = (paySettings.data?.cardEnabled ?? true) && platform === "mercadopago";
+
+  useEffect(() => {
+    if (paymentMethod === "pix" && !pixEnabled && cardEnabled) setPaymentMethod("card");
+    if (paymentMethod === "card" && !cardEnabled && pixEnabled) setPaymentMethod("pix");
+  }, [pixEnabled, cardEnabled]);
+
+  // Carrega SDK do Mercado Pago quando o usuário abre a aba Cartão
+  useEffect(() => {
+    if (step !== 4 || paymentMethod !== "card" || platform !== "mercadopago") return;
+    if (typeof window === "undefined") return;
+    if ((window as any).MercadoPago) return;
+    const s = document.createElement("script");
+    s.src = "https://sdk.mercadopago.com/js/v2";
+    s.async = true;
+    document.head.appendChild(s);
+  }, [step, paymentMethod, platform]);
+
   const meProfile = useQuery({
     enabled: !!user?.id,
     queryKey: ["ag-me", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles")
-        .select("full_name, phone, address, address_number, address_complement, address_neighborhood, city")
+        .select("full_name, phone, cpf, address, address_number, address_complement, address_neighborhood, city")
         .eq("id", user!.id).maybeSingle();
       return data;
     },
@@ -90,6 +137,7 @@ function AgendamentoPage() {
     if (!guestName && p.full_name) setGuestName(p.full_name);
     if (!guestPhone && p.phone) setGuestPhone(p.phone);
     if (!email && user?.email) setEmail(user.email);
+    if (!cardCpf && (p as any).cpf) setCardCpf(String((p as any).cpf));
   }, [meProfile.data, user?.email]);
 
   const pro = useQuery({
@@ -210,7 +258,44 @@ function AgendamentoPage() {
       const cityName = pro.data?.city ?? s.city;
       const clientEmail = user?.email ?? email;
       if (!clientEmail) throw new Error("Informe seu e-mail para receber o pagamento.");
-      const result = await createPayment({
+
+      // Se cartão: tokeniza no navegador via SDK do Mercado Pago (o número do cartão nunca vai ao nosso servidor)
+      let cardToken: string | null = null;
+      let cardPaymentMethodId: string | null = null;
+      if (paymentMethod === "card") {
+        if (platform !== "mercadopago") throw new Error("Cartão disponível apenas via Mercado Pago no momento.");
+        const publicKey = paySettings.data?.mpPublicKey;
+        if (!publicKey) throw new Error("Cartão indisponível: peça ao administrador para preencher a Public Key do Mercado Pago.");
+        const digits = cardNumber.replace(/\D/g, "");
+        const [mmRaw, yyRaw] = cardExpiry.split("/");
+        const mm = (mmRaw || "").padStart(2, "0");
+        const yy = (yyRaw || "").slice(-2);
+        const cpfDigits = cardCpf.replace(/\D/g, "");
+        if (digits.length < 13 || !mm || !yy || cardCvv.length < 3 || !cardHolder.trim() || cpfDigits.length !== 11) {
+          throw new Error("Preencha corretamente os dados do cartão e o CPF do titular.");
+        }
+        const MP = (window as any).MercadoPago;
+        if (!MP) throw new Error("SDK do cartão ainda carregando. Aguarde alguns segundos e tente novamente.");
+        const mp = new MP(publicKey);
+        try {
+          const bin = digits.slice(0, 8);
+          const methodsRes = await mp.getPaymentMethods({ bin });
+          cardPaymentMethodId = methodsRes?.results?.[0]?.id ?? null;
+        } catch { cardPaymentMethodId = null; }
+        const tokenRes = await mp.createCardToken({
+          cardNumber: digits,
+          cardholderName: cardHolder.trim(),
+          cardExpirationMonth: mm,
+          cardExpirationYear: yy,
+          securityCode: cardCvv,
+          identificationType: "CPF",
+          identificationNumber: cpfDigits,
+        });
+        cardToken = tokenRes?.id ?? null;
+        if (!cardToken) throw new Error("Não foi possível validar o cartão. Verifique os dados.");
+      }
+
+      const result = await runCreatePayment({
         data: {
           professional_id: s.pro,
           package_id: selectedPkg.id,
@@ -230,9 +315,21 @@ function AgendamentoPage() {
           client_name: user?.user_metadata?.full_name ?? guestName ?? null,
           client_email: clientEmail,
           client_phone: user ? (user.user_metadata?.phone ?? null) : (guestPhone || null),
+          payment_method: paymentMethod,
+          card_token: cardToken,
+          card_installments: installments,
+          card_payment_method_id: cardPaymentMethodId,
+          card_issuer_id: null,
+          payer_document: cardCpf ? cardCpf.replace(/\D/g, "") : null,
         },
       });
-      toast.success("Cobrança PIX gerada! Efetue o pagamento para confirmar.");
+      if (paymentMethod === "card" && result.status === "approved") {
+        toast.success("Pagamento aprovado! Agendamento confirmado.");
+      } else if (paymentMethod === "card") {
+        toast.info(`Pagamento em análise (${result.status}). Você será notificado.`);
+      } else {
+        toast.success("Cobrança PIX gerada! Efetue o pagamento para confirmar.");
+      }
       nav({
         to: "/agendamento-sucesso/$id",
         params: { id: String(result.bookingId) },
@@ -415,7 +512,9 @@ function AgendamentoPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold">Pagamento</h1>
-              <p className="text-muted-foreground text-sm">Revise e confirme para gerar o PIX.</p>
+              <p className="text-muted-foreground text-sm">
+                Revise, escolha a forma de pagamento e confirme.
+              </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-6 space-y-3">
               <Row label="Profissional" value={p?.full_name ?? "—"} />
@@ -428,11 +527,127 @@ function AgendamentoPage() {
                 <span className="text-primary">R$ {Number(selectedPkg.price).toFixed(2)}</span>
               </div>
             </div>
+
+            {/* Seletor de método */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button
+                  type="button"
+                  disabled={!pixEnabled}
+                  onClick={() => setPaymentMethod("pix")}
+                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    paymentMethod === "pix"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <QrCode className="h-4 w-4" /> PIX
+                </button>
+                <button
+                  type="button"
+                  disabled={!cardEnabled}
+                  onClick={() => setPaymentMethod("card")}
+                  title={!cardEnabled && platform === "pagseguro" ? "Cartão via PagSeguro em breve" : undefined}
+                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    paymentMethod === "card"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <CreditCardIcon className="h-4 w-4" /> Cartão
+                </button>
+              </div>
+
+              {paymentMethod === "pix" && (
+                <div className="text-sm text-muted-foreground">
+                  Após confirmar, geramos um QR Code PIX válido por 30 minutos. O agendamento é liberado assim que o pagamento é aprovado por <strong>{platform === "pagseguro" ? "PagSeguro" : "Mercado Pago"}</strong>.
+                </div>
+              )}
+
+              {paymentMethod === "card" && (
+                <div className="space-y-3">
+                  <div>
+                    <Label>Número do cartão</Label>
+                    <Input
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      inputMode="numeric"
+                      maxLength={23}
+                      placeholder="0000 0000 0000 0000"
+                    />
+                  </div>
+                  <div>
+                    <Label>Nome impresso no cartão</Label>
+                    <Input
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                      maxLength={40}
+                      placeholder="NOME COMO NO CARTÃO"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Validade (MM/AA)</Label>
+                      <Input
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="12/28"
+                      />
+                    </div>
+                    <div>
+                      <Label>CVV</Label>
+                      <Input
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="123"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>CPF do titular</Label>
+                      <Input
+                        value={cardCpf}
+                        onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                        inputMode="numeric"
+                        placeholder="Somente números"
+                      />
+                    </div>
+                    <div>
+                      <Label>Parcelas</Label>
+                      <select
+                        value={installments}
+                        onChange={(e) => setInstallments(Number(e.target.value))}
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {[1, 2, 3, 4, 5, 6].map((n) => (
+                          <option key={n} value={n}>
+                            {n}x de R$ {(Number(selectedPkg.price) / n).toFixed(2)}{n === 1 ? " (à vista)" : " sem juros"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Seus dados são enviados diretamente ao Mercado Pago com criptografia — nós nunca armazenamos o número do cartão.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep(3)}>Voltar</Button>
               <Button size="lg" disabled={submitting} onClick={submitBooking}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                {submitting ? "Enviando…" : "Confirmar e gerar PIX"}
+                {submitting
+                  ? "Enviando…"
+                  : paymentMethod === "pix"
+                  ? "Confirmar e gerar PIX"
+                  : "Confirmar pagamento"}
               </Button>
             </div>
           </div>
@@ -486,4 +701,15 @@ function formatDate(iso: string) {
   if (!iso) return "—";
   const d = new Date(`${iso}T00:00:00`);
   return `${DAYS_SHORT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`;
+}
+
+function formatCardNumber(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 19);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
+}
+
+function formatExpiry(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length < 3) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
