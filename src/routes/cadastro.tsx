@@ -53,6 +53,9 @@ function CadastroPage() {
 
   // Client-only
   const [propertyType, setPropertyType] = useState<string>("");
+  const [cep, setCep] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [addressNumber, setAddressNumber] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
