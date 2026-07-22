@@ -128,6 +128,10 @@ function CadastroPage() {
       toast.error("Selecione o tipo de imóvel.");
       return;
     }
+    if (tipo === "client" && cpf.replace(/\D/g, "").length !== 11) {
+      toast.error("Informe um CPF válido (11 dígitos).");
+      return;
+    }
     if (tipo === "professional" && (!category || regions.length === 0)) {
       toast.error("Selecione a categoria e ao menos uma região atendida.");
       return;
@@ -149,6 +153,7 @@ function CadastroPage() {
         if (tipo === "client") {
           await supabase.from("profiles").update({
             ...base,
+            cpf,
             property_type: propertyType,
             address,
             address_number: addressNumber,
