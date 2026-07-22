@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Users, CalendarPlus, Grid3x3, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+// roles não é mais usado — o menu inferior sempre aparece em rotas públicas
 
 /**
  * Barra de navegação inferior estilo app nativo, visível apenas em mobile
@@ -9,12 +10,11 @@ import { useAuth } from "@/hooks/use-auth";
  */
 export function MobileAppShell() {
   const loc = useLocation();
-  const { user, roles } = useAuth();
+  const { user } = useAuth();
   const path = loc.pathname;
 
   const hiddenPrefixes = ["/pro", "/cliente", "/admin", "/auth", "/cadastro", "/onboarding", "/dashboard", "/bookings"];
   if (hiddenPrefixes.some((p) => path === p || path.startsWith(p + "/"))) return null;
-  if (roles.includes("professional") || roles.includes("admin")) return null;
 
   const accountHref = user ? "/cliente" : "/auth";
 
@@ -65,10 +65,8 @@ export function MobileAppShell() {
 /** Padding inferior para páginas públicas não ficarem escondidas atrás do tab bar. */
 export function MobileBottomSpacer() {
   const loc = useLocation();
-  const { roles } = useAuth();
   const path = loc.pathname;
   const hiddenPrefixes = ["/pro", "/cliente", "/admin", "/auth", "/cadastro", "/onboarding", "/dashboard", "/bookings"];
   if (hiddenPrefixes.some((p) => path === p || path.startsWith(p + "/"))) return null;
-  if (roles.includes("professional") || roles.includes("admin")) return null;
   return <div aria-hidden className="md:hidden h-20" />;
 }
