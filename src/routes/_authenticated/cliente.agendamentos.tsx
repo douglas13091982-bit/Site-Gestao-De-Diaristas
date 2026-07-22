@@ -130,7 +130,7 @@ function ClienteAgendamentos() {
                       {b.review.comment && <p className="text-xs text-muted-foreground mt-1 italic">"{b.review.comment}"</p>}
                     </div>
                   ) : (
-                    <RateForm bookingId={String(b.id)} professionalId={b.professional_id} onDone={() => qc.invalidateQueries({ queryKey: ["cliente-bookings"] })} />
+                    <RateForm bookingId={b.id} professionalId={b.professional_id} onDone={() => qc.invalidateQueries({ queryKey: ["cliente-bookings"] })} />
                   )}
                 </div>
               )}
@@ -152,7 +152,7 @@ function StarsDisplay({ value }: { value: number }) {
   );
 }
 
-function RateForm({ bookingId, professionalId, onDone }: { bookingId: string | number; professionalId: string; onDone: () => void }) {
+function RateForm({ bookingId, professionalId, onDone }: { bookingId: number; professionalId: string; onDone: () => void }) {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
