@@ -6,6 +6,8 @@ import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
+import { useServerFn } from "@tanstack/react-start";
+import { createPixPayment } from "@/lib/mercadopago.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,7 @@ function AgendamentoPage() {
   const s = Route.useSearch();
   const { user } = useAuth();
   const nav = useNavigate();
+  const createPayment = useServerFn(createPixPayment);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(2);
   const [pkgId, setPkgId] = useState<number | null>(null);
@@ -180,44 +183,38 @@ function AgendamentoPage() {
     setSubmitting(true);
     try {
       const cityName = pro.data?.city ?? s.city;
-      const { data: booking, error } = await supabase.from("bookings").insert({
-        client_id: user?.id ?? null,
-        client_email: user?.email ?? email ?? null,
-        client_name: user ? null : guestName || null,
-        client_phone: user ? null : guestPhone || null,
-        professional_id: s.pro,
-        booking_type: "direct",
-        service_type: "diarista",
-        property_type: s.type,
-        booking_date: date,
-        start_time: time,
-        duration_hours: selectedPkg.duration_hours,
-        rooms: s.rooms,
-        bathrooms: s.baths,
-        address: address,
-        address_complement: complement || null,
-        city: cityName,
-        city_slug: pro.data?.city_slug ?? s.city ?? null,
-        notes: notes || null,
-        status: "pending",
-        total_price: selectedPkg.price,
-        payment_method: "pix",
-        payment_status: "pending",
-        payment_amount: selectedPkg.price,
-      }).select("id, guest_token").single();
-      if (error) throw error;
-      toast.success("Agendamento criado!");
-      if (user) {
-        nav({ to: "/bookings/$bookingId", params: { bookingId: String(booking.id) } });
-      } else {
-        nav({
-          to: "/agendamento-sucesso/$id",
-          params: { id: String(booking.id) },
-          search: { t: booking.guest_token as string },
-        });
-      }
+      const clientEmail = user?.email ?? email;
+      if (!clientEmail) throw new Error("Informe seu e-mail para receber o pagamento.");
+      const result = await createPayment({
+        data: {
+          professional_id: s.pro,
+          package_id: selectedPkg.id,
+          duration_hours: Number(selectedPkg.duration_hours),
+          total_price: Number(selectedPkg.price),
+          booking_date: date,
+          start_time: time,
+          property_type: s.type,
+          rooms: s.rooms,
+          bathrooms: s.baths,
+          address,
+          address_complement: complement || null,
+          city: cityName || null,
+          city_slug: pro.data?.city_slug ?? s.city ?? null,
+          notes: notes || null,
+          client_id: user?.id ?? null,
+          client_name: user?.user_metadata?.full_name ?? guestName ?? null,
+          client_email: clientEmail,
+          client_phone: user ? (user.user_metadata?.phone ?? null) : (guestPhone || null),
+        },
+      });
+      toast.success("Cobrança PIX gerada! Efetue o pagamento para confirmar.");
+      nav({
+        to: "/agendamento-sucesso/$id",
+        params: { id: String(result.bookingId) },
+        search: { t: result.guestToken },
+      });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao criar agendamento");
+      toast.error(err instanceof Error ? err.message : "Erro ao gerar pagamento");
     } finally {
       setSubmitting(false);
     }

@@ -5,7 +5,7 @@ import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, MapPin, Copy, Home as HomeIcon, MessageCircle } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, Copy, Home as HomeIcon, MessageCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -37,13 +37,14 @@ function SuccessPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, booking_date, start_time, duration_hours, address, city, total_price, payment_amount, payment_status, payment_pix_code, client_name, client_email, professional_id, guest_token")
+        .select("id, booking_date, start_time, duration_hours, address, city, total_price, payment_amount, payment_status, payment_pix_code, payment_qr_base64, client_name, client_email, professional_id, guest_token")
         .eq("id", Number(id))
         .maybeSingle();
       if (error) throw error;
       if (!data || data.guest_token !== t) throw new Error("Agendamento não encontrado");
       return data;
     },
+    refetchInterval: (q) => (q.state.data?.payment_status === "paid" ? false : 5000),
   });
 
   const pro = useQuery({
@@ -70,6 +71,7 @@ function SuccessPage() {
 
   const b = booking.data;
   const pixKey = pro.data?.pix_key ?? null;
+  const isPaid = b.payment_status === "paid";
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -111,8 +113,33 @@ function SuccessPage() {
 
         <div className="bg-card border border-border rounded-2xl p-6 mb-6">
           <h2 className="font-bold text-lg mb-3">Pagamento via PIX</h2>
-          {b.payment_pix_code ? (
-            <PixBlock code={b.payment_pix_code} />
+          {isPaid ? (
+            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-800">
+              <CheckCircle2 className="h-5 w-5" />
+              <div>
+                <div className="font-semibold">Pagamento confirmado!</div>
+                <div className="text-sm">Sua diarista foi notificada e confirmará em instantes.</div>
+              </div>
+            </div>
+          ) : b.payment_pix_code ? (
+            <div className="space-y-4">
+              {b.payment_qr_base64 && (
+                <div className="flex justify-center">
+                  <img
+                    src={`data:image/png;base64,${b.payment_qr_base64}`}
+                    alt="QR Code PIX"
+                    className="h-56 w-56 rounded-xl border border-border bg-white p-2"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground text-center">
+                Escaneie o QR Code ou use o código copia-e-cola abaixo para pagar <strong>R$ {Number(b.total_price ?? 0).toFixed(2)}</strong>.
+              </p>
+              <PixBlock code={b.payment_pix_code} />
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Aguardando confirmação do pagamento…
+              </div>
+            </div>
           ) : pixKey ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">Faça um PIX para a chave abaixo, no valor de <strong>R$ {Number(b.total_price ?? 0).toFixed(2)}</strong>. Envie o comprovante para a diarista.</p>
