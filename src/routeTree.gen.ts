@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
+import { Route as AuthenticatedClientePerfilRouteImport } from './routes/_authenticated/cliente.perfil'
 import { Route as AuthenticatedClienteAgendamentosRouteImport } from './routes/_authenticated/cliente.agendamentos'
 import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -178,6 +179,12 @@ const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedClientePerfilRoute =
+  AuthenticatedClientePerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
+    getParentRoute: () => AuthenticatedClienteRoute,
+  } as any)
 const AuthenticatedClienteAgendamentosRoute =
   AuthenticatedClienteAgendamentosRouteImport.update({
     id: '/agendamentos',
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
@@ -363,6 +371,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
@@ -409,6 +418,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
   '/_authenticated/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
+  '/_authenticated/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/webhooks'
     | '/cliente/agendamentos'
+    | '/cliente/perfil'
     | '/pro/agenda'
     | '/pro/leads'
     | '/pro/profile'
@@ -497,6 +508,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/webhooks'
     | '/cliente/agendamentos'
+    | '/cliente/perfil'
     | '/pro/agenda'
     | '/pro/leads'
     | '/pro/profile'
@@ -542,6 +554,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/webhooks'
     | '/_authenticated/cliente/agendamentos'
+    | '/_authenticated/cliente/perfil'
     | '/_authenticated/pro/agenda'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
@@ -746,6 +759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProAgendaRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/cliente/perfil': {
+      id: '/_authenticated/cliente/perfil'
+      path: '/perfil'
+      fullPath: '/cliente/perfil'
+      preLoaderRoute: typeof AuthenticatedClientePerfilRouteImport
+      parentRoute: typeof AuthenticatedClienteRoute
+    }
     '/_authenticated/cliente/agendamentos': {
       id: '/_authenticated/cliente/agendamentos'
       path: '/agendamentos'
@@ -930,11 +950,13 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedClienteRouteChildren {
   AuthenticatedClienteAgendamentosRoute: typeof AuthenticatedClienteAgendamentosRoute
+  AuthenticatedClientePerfilRoute: typeof AuthenticatedClientePerfilRoute
   AuthenticatedClienteIndexRoute: typeof AuthenticatedClienteIndexRoute
 }
 
 const AuthenticatedClienteRouteChildren: AuthenticatedClienteRouteChildren = {
   AuthenticatedClienteAgendamentosRoute: AuthenticatedClienteAgendamentosRoute,
+  AuthenticatedClientePerfilRoute: AuthenticatedClientePerfilRoute,
   AuthenticatedClienteIndexRoute: AuthenticatedClienteIndexRoute,
 }
 

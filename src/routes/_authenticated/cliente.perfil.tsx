@@ -120,7 +120,8 @@ function ClientePerfil() {
   );
 }
 
-function Field({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & React.InputHTMLAttributes<HTMLInputElement>) {
+type FieldProps = { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">;
+function Field({ label, value, onChange, ...rest }: FieldProps) {
   return (
     <div>
       <label className="text-sm font-medium">{label}</label>
