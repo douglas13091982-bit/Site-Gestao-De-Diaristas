@@ -56,7 +56,7 @@ function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="min-h-screen flex bg-slate-50">
-      <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col">
+      <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col sticky top-0 h-screen">
         <div className="px-5 py-6 border-b border-slate-800">
           <div className="text-lg font-bold">Gersepa</div>
           <div className="text-xs text-slate-400">Painel Admin</div>
