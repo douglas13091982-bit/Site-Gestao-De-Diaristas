@@ -213,8 +213,10 @@ function HeroSection({ city }: { city: string }) {
               </div>
 
               <Link
-                to={mode === "choose" ? "/professionals" : "/auth"}
-                search={mode === "choose" ? undefined : ({ mode: "signup" } as never)}
+                to={mode === "choose" ? "/professionals" : "/agendamento-rapido"}
+                search={mode === "choose"
+                  ? ({ type: propertyType } as never)
+                  : ({ type: propertyType } as never)}
                 className="block"
               >
                 <Button size="lg" className="w-full gap-2 text-base font-semibold h-12" style={{ background: "var(--accent)" }}>

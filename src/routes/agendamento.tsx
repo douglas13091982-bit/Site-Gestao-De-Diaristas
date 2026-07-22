@@ -60,6 +60,8 @@ function AgendamentoPage() {
   const [complement, setComplement] = useState("");
   const [notes, setNotes] = useState("");
   const [email, setEmail] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const pro = useQuery({
@@ -168,7 +170,10 @@ function AgendamentoPage() {
   }, [time, times]);
 
   const canNextFromStep2 = !!(selectedPkg && date && time && !selectedDay?.blocked && times.includes(time));
-  const canNextFromStep3 = !!(address.trim().length >= 3 && (user || email.trim()));
+  const canNextFromStep3 = !!(
+    address.trim().length >= 3 &&
+    (user || (email.trim() && guestName.trim().length >= 2 && guestPhone.trim().length >= 8))
+  );
 
   async function submitBooking() {
     if (!selectedPkg || !date || !time || !s.pro) return;
@@ -178,6 +183,8 @@ function AgendamentoPage() {
       const { data: booking, error } = await supabase.from("bookings").insert({
         client_id: user?.id ?? null,
         client_email: user?.email ?? email ?? null,
+        client_name: user ? null : guestName || null,
+        client_phone: user ? null : guestPhone || null,
         professional_id: s.pro,
         booking_type: "direct",
         service_type: "diarista",
@@ -197,10 +204,18 @@ function AgendamentoPage() {
         payment_method: "pix",
         payment_status: "pending",
         payment_amount: selectedPkg.price,
-      }).select("id").single();
+      }).select("id, guest_token").single();
       if (error) throw error;
-      toast.success("Agendamento criado! Você receberá o código PIX em instantes.");
-      nav({ to: user ? "/bookings/$bookingId" : "/", params: { bookingId: String(booking.id) } });
+      toast.success("Agendamento criado!");
+      if (user) {
+        nav({ to: "/bookings/$bookingId", params: { bookingId: String(booking.id) } });
+      } else {
+        nav({
+          to: "/agendamento-sucesso/$id",
+          params: { id: String(booking.id) },
+          search: { t: booking.guest_token as string },
+        });
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar agendamento");
     } finally {
@@ -350,9 +365,20 @@ function AgendamentoPage() {
                 <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={500} placeholder="Detalhes que a diarista deve saber" />
               </div>
               {!user && (
-                <div>
-                  <Label>Seu e-mail para contato</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Seu nome</Label>
+                    <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} maxLength={100} placeholder="Como devemos te chamar" required />
+                  </div>
+                  <div>
+                    <Label>WhatsApp</Label>
+                    <Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} maxLength={20} placeholder="(47) 99999-9999" required />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label>Seu e-mail</Label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} placeholder="voce@email.com" required />
+                    <p className="text-xs text-muted-foreground mt-1">Enviaremos a confirmação e o código PIX por e-mail.</p>
+                  </div>
                 </div>
               )}
             </div>

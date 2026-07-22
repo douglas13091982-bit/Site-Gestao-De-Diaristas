@@ -169,8 +169,11 @@ export type Database = {
           city_slug: string | null
           client_email: string | null
           client_id: string | null
+          client_name: string | null
+          client_phone: string | null
           created_at: string
           duration_hours: number | null
+          guest_token: string
           id: number
           mp_payment_id: string | null
           notes: string | null
@@ -197,8 +200,11 @@ export type Database = {
           city_slug?: string | null
           client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           duration_hours?: number | null
+          guest_token?: string
           id?: number
           mp_payment_id?: string | null
           notes?: string | null
@@ -225,8 +231,11 @@ export type Database = {
           city_slug?: string | null
           client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           duration_hours?: number | null
+          guest_token?: string
           id?: number
           mp_payment_id?: string | null
           notes?: string | null
