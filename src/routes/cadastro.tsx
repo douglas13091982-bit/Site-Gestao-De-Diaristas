@@ -53,6 +53,9 @@ function CadastroPage() {
 
   // Client-only
   const [propertyType, setPropertyType] = useState<string>("");
+  const [cep, setCep] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [addressNumber, setAddressNumber] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
@@ -150,6 +153,26 @@ function CadastroPage() {
 
   function toggle(arr: string[], v: string, set: (x: string[]) => void) {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  }
+
+  async function lookupCep(raw: string) {
+    const clean = raw.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    setCepLoading(true);
+    setCepError(null);
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await r.json();
+      if (data?.erro) { setCepError("CEP não encontrado"); return; }
+      if (data?.logradouro) setAddress(data.logradouro);
+      if (data?.bairro) setNeighborhood(data.bairro);
+      if (data?.localidade) setCity(data.localidade);
+      if (data?.complemento && !complement) setComplement(data.complemento);
+    } catch {
+      setCepError("Não foi possível buscar o CEP");
+    } finally {
+      setCepLoading(false);
+    }
   }
 
   function selectTipo(t: Exclude<Tipo, null>) {
@@ -429,6 +452,32 @@ function CadastroPage() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cep">CEP</Label>
+                    <div className="relative">
+                      <Input
+                        id="cep"
+                        value={cep}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, "").slice(0, 8);
+                          const masked = v.length > 5 ? `${v.slice(0,5)}-${v.slice(5)}` : v;
+                          setCep(masked);
+                          if (v.length === 8) lookupCep(v);
+                        }}
+                        onBlur={() => lookupCep(cep)}
+                        placeholder="00000-000"
+                        inputMode="numeric"
+                        maxLength={9}
+                        required
+                      />
+                      {cepLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">buscando…</span>}
+                    </div>
+                    {cepError ? (
+                      <p className="text-xs text-destructive">{cepError}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Preenchemos rua, bairro e cidade automaticamente.</p>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="addr">Endereço (Rua/Avenida)</Label>
