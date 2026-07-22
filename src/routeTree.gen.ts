@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfessionalsRouteImport } from './routes/professionals'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -17,6 +16,7 @@ import { Route as AgendamentoRapidoRouteImport } from './routes/agendamento-rapi
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfessionalsIndexRouteImport } from './routes/professionals.index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
 import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
@@ -49,11 +49,6 @@ import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/pub
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
-const ProfessionalsRoute = ProfessionalsRouteImport.update({
-  id: '/professionals',
-  path: '/professionals',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CidadesRoute = CidadesRouteImport.update({
   id: '/cidades',
   path: '/cidades',
@@ -88,10 +83,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfessionalsIndexRoute = ProfessionalsIndexRouteImport.update({
+  id: '/professionals/',
+  path: '/professionals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfessionalsIdRoute = ProfessionalsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ProfessionalsRoute,
+  id: '/professionals/$id',
+  path: '/professionals/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CidadesSlugRoute = CidadesSlugRouteImport.update({
   id: '/$slug',
@@ -268,7 +268,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
-  '/professionals': typeof ProfessionalsRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -277,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/professionals/': typeof ProfessionalsIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
@@ -308,7 +308,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
-  '/professionals': typeof ProfessionalsRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -316,6 +315,7 @@ export interface FileRoutesByTo {
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/professionals': typeof ProfessionalsIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
@@ -349,7 +349,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
-  '/professionals': typeof ProfessionalsRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -358,6 +357,7 @@ export interface FileRoutesById {
   '/categorias/$slug': typeof CategoriasSlugRoute
   '/cidades/$slug': typeof CidadesSlugRoute
   '/professionals/$id': typeof ProfessionalsIdRoute
+  '/professionals/': typeof ProfessionalsIndexRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/_authenticated/admin/blocked': typeof AuthenticatedAdminBlockedRoute
@@ -391,7 +391,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
-    | '/professionals'
     | '/admin'
     | '/bookings'
     | '/dashboard'
@@ -400,6 +399,7 @@ export interface FileRouteTypes {
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
+    | '/professionals/'
     | '/admin/admins'
     | '/admin/appearance'
     | '/admin/blocked'
@@ -431,7 +431,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
-    | '/professionals'
     | '/bookings'
     | '/dashboard'
     | '/onboarding'
@@ -439,6 +438,7 @@ export interface FileRouteTypes {
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
+    | '/professionals'
     | '/admin/admins'
     | '/admin/appearance'
     | '/admin/blocked'
@@ -471,7 +471,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/categorias'
     | '/cidades'
-    | '/professionals'
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/dashboard'
@@ -480,6 +479,7 @@ export interface FileRouteTypes {
     | '/categorias/$slug'
     | '/cidades/$slug'
     | '/professionals/$id'
+    | '/professionals/'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/appearance'
     | '/_authenticated/admin/blocked'
@@ -513,20 +513,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
-  ProfessionalsRoute: typeof ProfessionalsRouteWithChildren
+  ProfessionalsIdRoute: typeof ProfessionalsIdRoute
+  ProfessionalsIndexRoute: typeof ProfessionalsIndexRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
   ApiPublicWebhooksPagseguroRoute: typeof ApiPublicWebhooksPagseguroRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/professionals': {
-      id: '/professionals'
-      path: '/professionals'
-      fullPath: '/professionals'
-      preLoaderRoute: typeof ProfessionalsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cidades': {
       id: '/cidades'
       path: '/cidades'
@@ -576,12 +570,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/professionals/': {
+      id: '/professionals/'
+      path: '/professionals'
+      fullPath: '/professionals/'
+      preLoaderRoute: typeof ProfessionalsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/professionals/$id': {
       id: '/professionals/$id'
-      path: '/$id'
+      path: '/professionals/$id'
       fullPath: '/professionals/$id'
       preLoaderRoute: typeof ProfessionalsIdRouteImport
-      parentRoute: typeof ProfessionalsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/cidades/$slug': {
       id: '/cidades/$slug'
@@ -910,18 +911,6 @@ const CidadesRouteChildren: CidadesRouteChildren = {
 const CidadesRouteWithChildren =
   CidadesRoute._addFileChildren(CidadesRouteChildren)
 
-interface ProfessionalsRouteChildren {
-  ProfessionalsIdRoute: typeof ProfessionalsIdRoute
-}
-
-const ProfessionalsRouteChildren: ProfessionalsRouteChildren = {
-  ProfessionalsIdRoute: ProfessionalsIdRoute,
-}
-
-const ProfessionalsRouteWithChildren = ProfessionalsRoute._addFileChildren(
-  ProfessionalsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -930,7 +919,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
-  ProfessionalsRoute: ProfessionalsRouteWithChildren,
+  ProfessionalsIdRoute: ProfessionalsIdRoute,
+  ProfessionalsIndexRoute: ProfessionalsIndexRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
   ApiPublicWebhooksPagseguroRoute: ApiPublicWebhooksPagseguroRoute,
 }
