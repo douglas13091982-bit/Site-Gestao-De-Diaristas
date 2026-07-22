@@ -79,7 +79,7 @@ function SejaDiaristaPage() {
               Seja um profissional de limpeza na Gersepa Solutions. Defina seus horários, escolha seus clientes e ganhe até R$100 por hora fazendo o que você já sabe fazer.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/auth" search={{ mode: "signup", role: "professional" } as never}>
+              <Link to="/cadastro" search={{ tipo: "professional" } as never}>
                 <Button size="lg" className="gap-2">Começar Agora <ArrowRight className="h-4 w-4" /></Button>
               </Link>
               <a href="#como-funciona">
@@ -163,7 +163,7 @@ function SejaDiaristaPage() {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Link to="/auth" search={{ mode: "signup", role: "professional" } as never}>
+            <Link to="/cadastro" search={{ tipo: "professional" } as never}>
               <Button size="lg" className="gap-2">Cadastre-se Gratuitamente <ArrowRight className="h-4 w-4" /></Button>
             </Link>
           </div>
@@ -223,7 +223,7 @@ function SejaDiaristaPage() {
             Junte-se a milhares de profissionais que já estão transformando suas vidas com a Gersepa Solutions. O cadastro é gratuito e leva menos de 5 minutos.
           </p>
           <div className="mt-8">
-            <Link to="/auth" search={{ mode: "signup", role: "professional" } as never}>
+            <Link to="/cadastro" search={{ tipo: "professional" } as never}>
               <Button size="lg" variant="secondary" className="gap-2">
                 Criar Minha Conta Grátis <ArrowRight className="h-4 w-4" />
               </Button>
