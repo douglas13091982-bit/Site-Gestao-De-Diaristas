@@ -8,7 +8,6 @@ import {
   CalendarCheck,
   History,
   CalendarDays,
-  Wallet,
   Calendar,
   User as UserIcon,
   ShieldCheck,
@@ -193,4 +192,3 @@ function Divider() {
   return <div className="my-1 h-px bg-border" />;
 }
 
-function Wallet_() { return <Wallet className="h-4 w-4" />; }
