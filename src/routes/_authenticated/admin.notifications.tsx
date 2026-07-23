@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
-import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2 } from "lucide-react";
+import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X } from "lucide-react";
 import { sendPushToUsers } from "@/lib/push.functions";
 
 type Audience = "all" | "professionals" | "clients" | "select";
@@ -23,6 +23,7 @@ function AdminNotifications() {
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -185,13 +186,64 @@ function AdminNotifications() {
         <label className="text-xs font-medium text-slate-700 mb-1 block">Link (opcional)</label>
         <Input placeholder="Ex: /dashboard ou https://..." value={link} onChange={(e) => setLink(e.target.value)} className="mb-5" />
 
-        <label className="text-xs font-medium text-slate-700 mb-1 block">Imagem (URL — opcional)</label>
-        <Input
-          placeholder="https://.../banner.jpg"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          className="mb-3"
-        />
+        <label className="text-xs font-medium text-slate-700 mb-1 block">Imagem (opcional)</label>
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <label
+            className={`inline-flex items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-100 ${uploading ? "opacity-60 pointer-events-none" : ""}`}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploading ? "Enviando..." : "Enviar JPG/PNG"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error("Imagem muito grande (máx 5MB)");
+                  return;
+                }
+                setUploading(true);
+                try {
+                  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+                  const path = `admin/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+                  const { error: upErr } = await supabase.storage
+                    .from("notification-images")
+                    .upload(path, file, { contentType: file.type, upsert: false });
+                  if (upErr) throw upErr;
+                  const { data: signed, error: signErr } = await supabase.storage
+                    .from("notification-images")
+                    .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 ano
+                  if (signErr) throw signErr;
+                  setImageUrl(signed.signedUrl);
+                  toast.success("Imagem enviada");
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : "Falha no upload";
+                  toast.error(msg);
+                } finally {
+                  setUploading(false);
+                }
+              }}
+            />
+          </label>
+          <Input
+            placeholder="ou cole uma URL https://..."
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="flex-1"
+          />
+          {imageUrl && (
+            <button
+              type="button"
+              onClick={() => setImageUrl("")}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+            >
+              <X className="h-4 w-4" /> Remover
+            </button>
+          )}
+        </div>
         {imageUrl.trim() && (
           <div className="mb-5">
             <div className="text-[11px] text-slate-500 mb-1">Prévia</div>
