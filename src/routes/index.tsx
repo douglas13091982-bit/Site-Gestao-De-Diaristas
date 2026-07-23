@@ -112,13 +112,15 @@ function HeroSection({ city }: { city: string }) {
       </div>
 
       <div className="w-full lg:w-2/5 relative flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-white">
-        <div className="relative w-full max-w-md bg-[var(--bc-navy)] border border-white/10 rounded-[28px] p-7 sm:p-9 lg:p-10 shadow-2xl bc-rise">
-          <h2 className="font-display text-3xl font-bold text-white mb-1.5">Agende agora</h2>
-          <p className="text-white/50 text-sm mb-8">Escolha o melhor formato para sua limpeza.</p>
+        <div className="relative w-full max-w-md bg-white border border-black/5 rounded-[28px] shadow-2xl bc-rise overflow-hidden">
+          <div className="px-7 sm:px-9 lg:px-10 pt-7 pb-6 bg-[linear-gradient(90deg,#10b981_0%,#22c1a4_45%,#3aa8d8_100%)]">
+            <h2 className="font-display text-3xl font-bold text-white mb-1.5">Agende agora</h2>
+            <p className="text-white/85 text-sm">Escolha o melhor formato para sua limpeza.</p>
+          </div>
 
-          <div className="space-y-5">
+          <div className="space-y-5 p-7 sm:p-9 lg:p-10 pt-6">
             <div className="space-y-2">
-              <div className="text-[10px] uppercase font-bold text-[var(--bc-teal-soft)] tracking-[0.18em]">
+              <div className="text-[10px] uppercase font-bold text-[var(--bc-navy-2)] tracking-[0.18em]">
                 Como deseja agendar?
               </div>
               <div className="space-y-2">
@@ -140,7 +142,7 @@ function HeroSection({ city }: { city: string }) {
             </div>
 
             <div className="space-y-2">
-              <div className="text-[10px] uppercase font-bold text-[var(--bc-teal-soft)] tracking-[0.18em]">
+              <div className="text-[10px] uppercase font-bold text-[var(--bc-navy-2)] tracking-[0.18em]">
                 Tipo de imóvel
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -153,8 +155,8 @@ function HeroSection({ city }: { city: string }) {
                       onClick={() => setPropertyType(opt.id)}
                       className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all duration-300 ${
                         Active
-                          ? "border-[var(--bc-teal-soft)] bg-white/10 text-white"
-                          : "border-white/10 bg-white/[0.03] text-white/70 hover:border-white/30 hover:text-white"
+                          ? "border-[var(--bc-teal)] bg-[var(--bc-mist)] text-[var(--bc-navy)]"
+                          : "border-black/10 bg-white text-[var(--bc-navy)]/70 hover:border-[var(--bc-teal)]/40 hover:text-[var(--bc-navy)]"
                       }`}
                     >
                       <opt.icon className="h-4 w-4" />
@@ -172,16 +174,16 @@ function HeroSection({ city }: { city: string }) {
             >
               <Button
                 size="lg"
-                className="group w-full h-14 rounded-2xl text-base font-extrabold tracking-wide bg-[var(--bc-teal-soft)] text-[var(--bc-navy)] hover:bg-white transition-all duration-300"
+                className="group w-full h-14 rounded-2xl text-base font-extrabold tracking-wide bg-[var(--bc-teal)] text-white hover:bg-[var(--bc-navy-2)] transition-all duration-300"
               >
                 AGENDAR AGORA
                 <ArrowRight className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
             </Link>
 
-            <div className="flex items-center justify-center gap-2 pt-2 opacity-60">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bc-teal-soft)] animate-pulse" />
-              <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white">
+            <div className="flex items-center justify-center gap-2 pt-2 opacity-80">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bc-teal)] animate-pulse" />
+              <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-[var(--bc-navy-2)]">
                 Pagamento seguro • Garantia total
               </p>
             </div>
@@ -203,20 +205,20 @@ function ModeButton({
       onClick={onClick}
       className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
         active
-          ? "border-[var(--bc-teal-soft)] bg-white/10"
-          : "border-white/10 bg-white/[0.03] hover:border-white/30"
+          ? "border-[var(--bc-teal)] bg-[var(--bc-mist)]"
+          : "border-black/10 bg-white hover:border-[var(--bc-teal)]/40"
       }`}
     >
       <span
         className={`h-9 w-9 shrink-0 rounded-xl grid place-items-center transition-colors ${
-          active ? "bg-[var(--bc-teal-soft)] text-[var(--bc-navy)]" : "bg-white/10 text-[var(--bc-teal-soft)]"
+          active ? "bg-[var(--bc-teal)] text-white" : "bg-[var(--bc-mist)] text-[var(--bc-teal)]"
         }`}
       >
         {icon}
       </span>
       <span className="flex-1 min-w-0">
-        <span className="block font-semibold text-sm text-white">{title}</span>
-        <span className="block text-[11px] text-white/50 truncate">{desc}</span>
+        <span className="block font-semibold text-sm text-[var(--bc-navy)]">{title}</span>
+        <span className="block text-[11px] text-[var(--bc-navy-2)]/60 truncate">{desc}</span>
       </span>
     </button>
   );
