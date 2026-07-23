@@ -87,28 +87,6 @@ function HeroSection({ city }: { city: string }) {
             A Gersepa Solutions conecta residências exclusivas às profissionais de limpeza mais qualificadas de {city}.
           </p>
 
-          <div className="flex items-center gap-6">
-            <div className="flex -space-x-3">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-11 w-11 rounded-full border-2 border-white bg-[var(--bc-mist)] grid place-items-center text-[var(--bc-navy-2)] font-bold text-sm shadow"
-                >
-                  {["A", "M", "J"][i]}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex text-[var(--bc-teal)] text-xs gap-0.5 mb-1">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                ))}
-              </div>
-              <p className="text-[10px] font-bold text-[var(--bc-navy-2)] uppercase tracking-[0.18em]">
-                Referência em alto padrão
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
