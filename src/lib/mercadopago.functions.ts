@@ -221,6 +221,15 @@ export const createPayment = createServerFn({ method: "POST" })
         })
         .eq("id", booking.id);
 
+      if (approved) {
+        try {
+          const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
+          await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+        } catch (e) {
+          console.warn("[push] falha ao notificar profissional (card)", e);
+        }
+      }
+
       return {
         bookingId: booking.id as number,
         guestToken: booking.guest_token as string,
