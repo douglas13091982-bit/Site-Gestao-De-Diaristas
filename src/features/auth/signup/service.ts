@@ -1,5 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image-utils";
+import {
+  sanitizeText,
+  sanitizeTextOrNull,
+  sanitizeEmail,
+  sanitizeDigits,
+  sanitizeStringArray,
+} from "@/shared/lib/sanitize";
 import type { AvailabilityMap } from "@/shared/components/AvailabilityGrid";
 import type {
   ClientFieldsState,
@@ -60,30 +67,36 @@ function availabilityRows(userId: string, availability: AvailabilityMap) {
 
 export async function submitSignup(payload: SignupPayload) {
   const redirectSuffix = payload.tipo === "professional" ? "onboarding" : "dashboard";
+  const fullName = sanitizeText(payload.fullName, { maxLength: 120, collapseWhitespace: true });
+  const email = sanitizeEmail(payload.email);
+  const phone = sanitizeDigits(payload.phone, 15);
+  const city = sanitizeTextOrNull(payload.city, { maxLength: 80, collapseWhitespace: true });
+  if (!fullName) throw new Error("Informe um nome válido.");
+  if (!email) throw new Error("Informe um e-mail válido.");
   const { data: signUp, error } = await supabase.auth.signUp({
-    email: payload.email,
+    email,
     password: payload.password,
     options: {
       emailRedirectTo: `${window.location.origin}/${redirectSuffix}`,
-      data: { full_name: payload.fullName, phone: payload.phone, role: payload.tipo },
+      data: { full_name: fullName, phone, role: payload.tipo },
     },
   });
   if (error) throw error;
   const userId = signUp.user?.id;
   if (!userId) return;
 
-  const base = { full_name: payload.fullName, phone: payload.phone, city: payload.city || null };
+  const base = { full_name: fullName, phone, city };
 
   if (payload.tipo === "client") {
     const f = payload.fields;
     const { error: upErr } = await supabase.from("profiles").update({
       ...base,
-      cpf: f.cpf,
-      property_type: f.propertyType,
-      address: f.address,
-      address_number: f.addressNumber,
-      address_neighborhood: f.neighborhood,
-      address_complement: f.complement || null,
+      cpf: sanitizeDigits(f.cpf, 11),
+      property_type: sanitizeText(f.propertyType, { maxLength: 40 }),
+      address: sanitizeText(f.address, { maxLength: 200, collapseWhitespace: true }),
+      address_number: sanitizeText(f.addressNumber, { maxLength: 20 }),
+      address_neighborhood: sanitizeText(f.neighborhood, { maxLength: 120, collapseWhitespace: true }),
+      address_complement: sanitizeTextOrNull(f.complement, { maxLength: 120 }),
     }).eq("id", userId);
     if (upErr) throw new Error("Falha ao salvar perfil: " + upErr.message);
     return;
@@ -97,14 +110,14 @@ export async function submitSignup(payload: SignupPayload) {
 
   const { error: upProErr } = await supabase.from("profiles").update({
     ...base,
-    cpf: f.cpf,
-    pix_key: f.pixKey,
-    pix_key_type: f.pixKeyType,
-    profession_category: f.category,
-    specialties: f.specialties,
-    regions: f.regions.join(","),
-    experience: f.experience,
-    bio: f.bio || null,
+    cpf: sanitizeDigits(f.cpf, 11),
+    pix_key: sanitizeText(f.pixKey, { maxLength: 120, collapseWhitespace: true }),
+    pix_key_type: sanitizeText(f.pixKeyType, { maxLength: 20 }),
+    profession_category: sanitizeText(f.category, { maxLength: 60 }),
+    specialties: sanitizeStringArray(f.specialties, { maxLength: 60, maxItems: 30 }),
+    regions: sanitizeStringArray(f.regions, { maxLength: 60, maxItems: 30 }).join(","),
+    experience: sanitizeText(f.experience, { maxLength: 60 }),
+    bio: sanitizeTextOrNull(f.bio, { maxLength: 1000 }),
     profile_photo: photoUrl,
   }).eq("id", userId);
   if (upProErr) throw new Error("Falha ao salvar perfil profissional: " + upProErr.message);
