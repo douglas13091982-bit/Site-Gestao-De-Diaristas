@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X, Zap } from "lucide-react";
 import { sendPushToUsers } from "@/lib/push.functions";
+import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 type Audience = "all" | "professionals" | "clients" | "select";
 
