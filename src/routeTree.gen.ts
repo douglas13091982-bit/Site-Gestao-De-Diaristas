@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SejaDiaristaRouteImport } from './routes/seja-diarista'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CadastroRouteImport } from './routes/cadastro'
@@ -56,6 +57,11 @@ import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_aut
 const SejaDiaristaRoute = SejaDiaristaRouteImport.update({
   id: '/seja-diarista',
   path: '/seja-diarista',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CidadesRoute = CidadesRouteImport.update({
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/reset-password'
     | '/seja-diarista'
     | '/admin'
     | '/bookings'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/reset-password'
     | '/seja-diarista'
     | '/bookings'
     | '/onboarding'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/reset-password'
     | '/seja-diarista'
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
@@ -562,6 +574,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SejaDiaristaRoute: typeof SejaDiaristaRoute
   AgendamentoSucessoIdRoute: typeof AgendamentoSucessoIdRoute
   ProfessionalsIdRoute: typeof ProfessionalsIdRoute
@@ -577,6 +590,13 @@ declare module '@tanstack/react-router' {
       path: '/seja-diarista'
       fullPath: '/seja-diarista'
       preLoaderRoute: typeof SejaDiaristaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cidades': {
@@ -1010,6 +1030,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   SejaDiaristaRoute: SejaDiaristaRoute,
   AgendamentoSucessoIdRoute: AgendamentoSucessoIdRoute,
   ProfessionalsIdRoute: ProfessionalsIdRoute,
