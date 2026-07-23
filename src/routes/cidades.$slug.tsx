@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
-import { Star, MapPin, ShieldCheck } from "lucide-react";
+import { ProfessionalCard } from "@/components/ProfessionalCard";
 
 export const Route = createFileRoute("/cidades/$slug")({
   head: ({ params }) => ({
@@ -40,20 +40,7 @@ function CityPage() {
         <h1 className="text-3xl font-bold mt-2">Diaristas em {city.data?.name ?? "…"}</h1>
         <p className="text-muted-foreground mb-8">{pros.data?.length ?? 0} profissionais verificadas.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pros.data?.map((p) => (
-            <Link key={p.id} to="/professionals/$id" params={{ id: p.id }} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">{(p.full_name ?? "?")[0]}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold flex items-center gap-1 truncate">{p.full_name}{p.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-accent" />}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{p.city}</div>
-                </div>
-                <div className="flex items-center gap-1 text-sm font-semibold"><Star className="h-3.5 w-3.5 fill-accent text-accent" />{Number(p.rating ?? 0).toFixed(1)}</div>
-              </div>
-              {p.profession_category && <span className="inline-block mt-3 text-[10px] uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full">{p.profession_category}</span>}
-              {p.bio && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{p.bio}</p>}
-            </Link>
-          ))}
+          {pros.data?.map((p) => <ProfessionalCard key={p.id} p={p} />)}
           {!pros.isLoading && !pros.data?.length && <div className="text-muted-foreground col-span-full text-center py-16">Nenhuma diarista nesta cidade ainda.</div>}
         </div>
       </div>
