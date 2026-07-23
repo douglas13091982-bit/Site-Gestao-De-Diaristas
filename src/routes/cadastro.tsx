@@ -166,18 +166,6 @@ function CadastroPage() {
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
 
-              {tipo === "professional" && (
-                <ProfessionalFields
-                  value={professionalFields}
-                  onChange={patchProfessional}
-                  photoFile={photoFile}
-                  photoPreview={photoPreview}
-                  onPhotoChange={(f, p) => { setPhotoFile(f); setPhotoPreview(p); }}
-                  availability={availability}
-                  onAvailabilityChange={setAvailability}
-                />
-              )}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="email">E-mail</Label>
@@ -187,21 +175,6 @@ function CadastroPage() {
                   <Label htmlFor="phone">Telefone / WhatsApp</Label>
                   <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(47) 99999-9999" />
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  placeholder="Mín. 8 caract., com A-Z, a-z, número e símbolo"
-                  aria-describedby="password-help"
-                />
-                <PasswordChecklist value={password} className="mt-1" />
               </div>
 
               <div className="space-y-1.5">
@@ -220,6 +193,33 @@ function CadastroPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {tipo === "professional" && (
+                <ProfessionalFields
+                  value={professionalFields}
+                  onChange={patchProfessional}
+                  photoFile={photoFile}
+                  photoPreview={photoPreview}
+                  onPhotoChange={(f, p) => { setPhotoFile(f); setPhotoPreview(p); }}
+                  availability={availability}
+                  onAvailabilityChange={setAvailability}
+                />
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  placeholder="Mín. 8 caract., com A-Z, a-z, número e símbolo"
+                  aria-describedby="password-help"
+                />
+                <PasswordChecklist value={password} className="mt-1" />
               </div>
 
               {tipo === "client" && (
