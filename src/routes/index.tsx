@@ -83,9 +83,6 @@ function HeroSection({ city }: { city: string }) {
             <br />
             <span className="text-[var(--bc-teal)]">impecável.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-[var(--bc-navy-2)] font-medium leading-relaxed mb-10 max-w-md">
-            A Gersepa Solutions conecta residências exclusivas às profissionais de limpeza mais qualificadas de {city}.
-          </p>
 
         </div>
       </div>
