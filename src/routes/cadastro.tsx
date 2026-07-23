@@ -213,6 +213,12 @@ function CadastroPage() {
     }
     setBusy(true);
     try {
+      // Validação de senha forte
+      if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+        toast.error("A senha deve ter no mínimo 8 caracteres, com letras e números.");
+        setBusy(false);
+        return;
+      }
       const { data: signUp, error } = await supabase.auth.signUp({
         email,
         password,
