@@ -14,19 +14,24 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
       include: [
         "src/lib/**/*.ts",
         "src/hooks/use-taxa-sistema.ts",
+        "src/shared/lib/**/*.ts",
+        "src/features/**/*.ts",
       ],
       exclude: [
         "src/lib/**/*.server.ts",
         "src/lib/**/*.functions.ts",
         "src/lib/**/index.ts",
-        "src/lib/**/*.test.ts",
+        "src/**/*.test.ts",
+        "src/features/**/service.ts",
+        "src/features/**/queries.ts",
+        "src/features/**/components/**",
       ],
     },
   },
