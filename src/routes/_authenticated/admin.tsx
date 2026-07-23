@@ -11,11 +11,26 @@ import { useState, type ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Painel Admin — Gersepa Solutions" }] }),
-  beforeLoad: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+  beforeLoad: async ({ context }) => {
+    // O gate pai (_authenticated) já garantiu sessão. Reaproveitamos
+    // o user do context para evitar um segundo getUser lento que
+    // pode disparar erros transitórios (e a tela "Algo deu errado").
+    const user = (context as { user?: { id: string } }).user;
     if (!user) throw redirect({ to: "/auth" });
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!data) throw redirect({ to: "/" });
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!data) throw redirect({ to: "/" });
+    } catch (err) {
+      // Reencaminha redirects; qualquer outra falha volta para a home
+      // silenciosamente, sem exibir errorComponent.
+      if (err && typeof err === "object" && "to" in (err as object)) throw err;
+      throw redirect({ to: "/" });
+    }
   },
   component: AdminLayout,
 });
