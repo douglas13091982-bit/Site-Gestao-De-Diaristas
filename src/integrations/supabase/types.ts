@@ -378,6 +378,7 @@ export type Database = {
           body: string | null
           created_at: string
           id: number
+          image_url: string | null
           is_read: boolean
           link: string | null
           title: string
@@ -387,6 +388,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_url?: string | null
           is_read?: boolean
           link?: string | null
           title: string
@@ -396,6 +398,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_url?: string | null
           is_read?: boolean
           link?: string | null
           title?: string
