@@ -30,7 +30,7 @@ function CityPage() {
   });
   const pros = useQuery({
     queryKey: ["pros-city", slug],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name, city, profession_category, bio, rating, total_reviews, is_verified").eq("city_slug", slug).eq("is_verified", true).order("rating", { ascending: false }).limit(60)).data ?? [],
+    queryFn: async () => (await supabase.rpc("list_public_professionals", { _city_slug: slug, _limit: 60 })).data ?? [],
   });
   return (
     <div className="min-h-screen bg-secondary/40">

@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
-import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Clock, MapPin, Copy, Home as HomeIcon, MessageCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getGuestBooking } from "@/lib/guest-booking.functions";
 
 const searchSchema = z.object({
   t: fallback(z.string(), "").default(""),
@@ -32,26 +32,14 @@ function SuccessPage() {
   const { id } = Route.useParams();
   const { t } = Route.useSearch();
 
-  const booking = useQuery({
+  const guest = useQuery({
     queryKey: ["guest-booking", id, t],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("id, booking_date, start_time, duration_hours, address, city, total_price, payment_amount, payment_status, payment_pix_code, payment_qr_base64, client_name, client_email, professional_id, guest_token")
-        .eq("id", Number(id))
-        .maybeSingle();
-      if (error) throw error;
-      if (!data || data.guest_token !== t) throw new Error("Agendamento não encontrado");
-      return data;
-    },
-    refetchInterval: (q) => (q.state.data?.payment_status === "paid" ? false : 5000),
+    queryFn: () => getGuestBooking({ data: { id: Number(id), token: t } }),
+    refetchInterval: (q) => (q.state.data?.booking.payment_status === "paid" ? false : 5000),
+    retry: false,
   });
-
-  const pro = useQuery({
-    enabled: !!booking.data?.professional_id,
-    queryKey: ["guest-pro", booking.data?.professional_id],
-    queryFn: async () => (await supabase.from("profiles").select("full_name, profile_photo, phone, pix_key").eq("id", booking.data!.professional_id!).maybeSingle()).data,
-  });
+  const booking = { data: guest.data?.booking, isLoading: guest.isLoading, error: guest.error };
+  const pro = { data: guest.data?.professional ?? null };
 
   if (booking.isLoading) {
     return <div className="min-h-screen bg-secondary/40"><Header /><div className="max-w-2xl mx-auto p-10 text-center text-muted-foreground">Carregando…</div></div>;
@@ -69,7 +57,7 @@ function SuccessPage() {
     );
   }
 
-  const b = booking.data;
+  const b = booking.data!;
   const pixKey = pro.data?.pix_key ?? null;
   const isPaid = b.payment_status === "paid";
 

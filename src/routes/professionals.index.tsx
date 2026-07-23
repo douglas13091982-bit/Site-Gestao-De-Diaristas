@@ -34,18 +34,14 @@ function ProfessionalsPage() {
   const q = useQuery({
     queryKey: ["pros", s.city ?? "", s.category ?? "", s.minRating ?? 0],
     queryFn: async () => {
-      let qb = supabase
-        .from("profiles")
-        .select("id, full_name, city, bio, rating, total_reviews, profile_photo, profession_category")
-        .eq("is_verified", true)
-        .order("rating", { ascending: false })
-        .limit(60);
-      if (s.city) qb = qb.ilike("city", `%${s.city}%`);
-      if (s.category) qb = qb.eq("profession_category", s.category);
-      if (s.minRating) qb = qb.gte("rating", s.minRating);
-      const { data, error } = await qb;
+      const { data, error } = await supabase.rpc("list_public_professionals", {
+        _search: s.city || null,
+        _category: s.category || null,
+        _limit: 60,
+      });
       if (error) throw error;
-      return data ?? [];
+      const rows = data ?? [];
+      return s.minRating ? rows.filter((r: { rating: number | null }) => (r.rating ?? 0) >= s.minRating!) : rows;
     },
   });
 

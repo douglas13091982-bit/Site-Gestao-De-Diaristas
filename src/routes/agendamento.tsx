@@ -144,11 +144,9 @@ function AgendamentoPage() {
     enabled: !!s.pro,
     queryKey: ["ag-pro", s.pro],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, profile_photo, city, city_slug, rating, total_reviews, bio")
-        .eq("id", s.pro).maybeSingle();
+      const { data, error } = await supabase.rpc("get_public_professional", { _id: s.pro! });
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     },
   });
 
