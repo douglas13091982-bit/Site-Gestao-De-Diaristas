@@ -5,18 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import {
-  ShieldCheck, Star, MapPin, ArrowRight, Zap, Users, Home, Building2,
-  Store, Building, Calendar, Target, MessageCircle, CheckCircle2, Clock,
-  Wallet, HeartHandshake, BadgeCheck,
+  ShieldCheck, Star, ArrowRight, Zap, Users, Home, Building2,
+  Store, Building, MessageCircle, BadgeCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Gersepa Solutions — Diaristas verificadas na sua região" },
-      { name: "description", content: "Encontre diaristas profissionais, agende horários e pague com segurança pelo Gersepa Solutions." },
-      { property: "og:title", content: "Gersepa Solutions — Diaristas verificadas" },
-      { property: "og:description", content: "Marketplace seguro para conectar clientes e diaristas. Agende em minutos." },
+      { title: "BabyClean — Sua casa impecável em Joinville" },
+      { name: "description", content: "Marketplace editorial de diaristas premium em Joinville. Curadoria rigorosa, pagamento seguro e garantia de satisfação." },
+      { property: "og:title", content: "BabyClean — Sua casa impecável" },
+      { property: "og:description", content: "Diaristas verificadas em Joinville. Agende em minutos com curadoria premium." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: HomePage,
@@ -32,37 +33,24 @@ function HomePage() {
         .select("id, full_name, profile_photo, city, rating, total_reviews, bio")
         .eq("is_verified", true)
         .order("rating", { ascending: false })
-        .limit(6);
+        .limit(4);
       return data ?? [];
     },
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[var(--bc-paper)] text-[var(--bc-navy)] selection:bg-[var(--bc-teal-soft)] selection:text-[var(--bc-navy)]">
       <Header />
-
-      {/* HERO — split with quote card */}
       <HeroSection city={city} />
-
-      {/* Melhores diaristas */}
       <FeaturedSection city={city} pros={featured.data ?? []} />
-
-      {/* Por que escolher */}
       <WhySection />
-
-      {/* Seja diarista */}
-      <BeWorkerSection />
-
-      {/* Footer */}
       <FooterSection />
-
-      {/* WhatsApp float */}
       <a
         href="https://wa.me/5547999999999"
         target="_blank"
         rel="noreferrer"
         aria-label="Fale conosco no WhatsApp"
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-accent text-white grid place-items-center shadow-xl hover:scale-105 transition"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[var(--bc-teal)] text-white grid place-items-center shadow-[var(--shadow-glow-teal)] hover:scale-105 hover:bg-[var(--bc-teal-soft)] hover:text-[var(--bc-navy)] transition-all duration-300"
       >
         <MessageCircle className="h-6 w-6" />
       </a>
@@ -83,151 +71,164 @@ function HeroSection({ city }: { city: string }) {
   ] as const;
 
   return (
-    <section
-      className="relative overflow-hidden"
-      style={{ background: "var(--gradient-hero)" }}
-    >
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-70 pointer-events-none"
-        style={{ backgroundImage: "var(--dot-pattern)", backgroundSize: "22px 22px" }}
-      />
-      <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-start">
-        {/* Left */}
-        <div className="space-y-6 pt-4">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur px-3 py-1.5 text-xs font-semibold text-accent border border-accent/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Disponível em 46 cidades
+    <section className="relative flex flex-col lg:flex-row min-h-[92vh] border-b border-[var(--bc-navy)]/5">
+      <div className="w-full lg:w-3/5 flex items-center px-6 sm:px-10 lg:px-24 py-16 lg:py-24 relative overflow-hidden bg-white">
+        <div
+          aria-hidden
+          className="absolute top-0 left-0 w-72 h-72 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"
+          style={{ background: "color-mix(in oklab, var(--bc-teal-soft) 22%, transparent)" }}
+        />
+        <div className="relative z-10 max-w-2xl bc-rise">
+          <span className="inline-block px-4 py-1.5 mb-8 rounded-full border border-[var(--bc-teal)] text-[var(--bc-teal)] text-[10px] font-bold uppercase tracking-[0.22em]">
+            Excelência em {city}
           </span>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] tracking-tight text-foreground">
-            Sua Casa Limpa e Organizada em{" "}
-            <span className="relative inline-block">
-              <span style={{ color: "var(--highlight)" }}>{city}</span>
-              <svg
-                aria-hidden
-                viewBox="0 0 200 12"
-                preserveAspectRatio="none"
-                className="absolute -bottom-2 left-0 w-full h-3"
-              >
-                <path
-                  d="M2 8 C 50 2, 150 2, 198 8"
-                  fill="none"
-                  stroke="var(--highlight)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-[104px] font-extrabold leading-[0.88] tracking-tight mb-8 text-[var(--bc-navy)]">
+            Sua casa,
+            <br />
+            <span className="text-[var(--bc-teal)]">impecável.</span>
           </h1>
-
-          <p className="text-lg text-muted-foreground max-w-xl">
-            Encontre profissionais de limpeza qualificados perto de você.
+          <p className="text-lg sm:text-xl text-[var(--bc-navy-2)] font-medium leading-relaxed mb-10 max-w-md">
+            A BabyClean conecta residências exclusivas às profissionais de limpeza mais qualificadas de {city}.
           </p>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-foreground/80">
-            <span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Profissionais verificadas</span>
-            <span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Pagamento seguro</span>
-            <span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Garantia de satisfação</span>
-          </div>
-
-          {/* Google reviews strip */}
-          <div className="mt-6 rounded-2xl border border-primary/15 bg-white/70 backdrop-blur px-5 py-3 max-w-md">
-            <div className="flex items-center justify-center gap-1 text-highlight">
-              {[0, 1, 2, 3].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-current" style={{ color: "var(--highlight)" }} />
+          <div className="flex items-center gap-6">
+            <div className="flex -space-x-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-11 w-11 rounded-full border-2 border-white bg-[var(--bc-mist)] grid place-items-center text-[var(--bc-navy-2)] font-bold text-sm shadow"
+                >
+                  {["A", "M", "J"][i]}
+                </div>
               ))}
-              <Star className="h-4 w-4" style={{ color: "var(--highlight)" }} />
             </div>
-            <div className="text-center text-sm mt-1">
-              <span className="font-bold text-primary">4.5</span>
-              <span className="text-muted-foreground"> de 505 avaliações em {city}</span>
+            <div>
+              <div className="flex text-[var(--bc-teal)] text-xs gap-0.5 mb-1">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                ))}
+              </div>
+              <p className="text-[10px] font-bold text-[var(--bc-navy-2)] uppercase tracking-[0.18em]">
+                Referência em alto padrão
+              </p>
             </div>
-            <div className="text-center text-xs text-muted-foreground mt-1">Google Reviews</div>
           </div>
         </div>
+      </div>
 
-        {/* Right — Quote card */}
-        <div className="lg:sticky lg:top-24">
-          <div className="rounded-2xl bg-card border border-border overflow-hidden shadow-[var(--shadow-elevated)]">
-            <div className="px-6 py-5 text-white" style={{ background: "var(--gradient-quote)" }}>
-              <div className="font-bold text-lg">Agende seu Serviço</div>
-              <div className="text-white/85 text-sm">Em {city}</div>
+      <div className="w-full lg:w-2/5 relative flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-[var(--bc-navy)]">
+        <div aria-hidden className="absolute inset-0 opacity-30 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--bc-teal)] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-0 w-72 h-72 bg-[var(--bc-navy-2)] rounded-full blur-[100px]" />
+        </div>
+
+        <div className="relative w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] p-7 sm:p-9 lg:p-10 shadow-2xl bc-rise">
+          <h2 className="font-display text-3xl font-bold text-white mb-1.5">Agende agora</h2>
+          <p className="text-white/50 text-sm mb-8">Escolha o melhor formato para sua limpeza.</p>
+
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <div className="text-[10px] uppercase font-bold text-[var(--bc-teal-soft)] tracking-[0.18em]">
+                Como deseja agendar?
+              </div>
+              <div className="space-y-2">
+                <ModeButton
+                  active={mode === "fast"}
+                  onClick={() => setMode("fast")}
+                  icon={<Zap className="h-4 w-4" />}
+                  title="Agendamento Rápido"
+                  desc="Enviamos para várias profissionais"
+                />
+                <ModeButton
+                  active={mode === "choose"}
+                  onClick={() => setMode("choose")}
+                  icon={<Users className="h-4 w-4" />}
+                  title="Escolher Profissional"
+                  desc="Você escolhe quem realiza o serviço"
+                />
+              </div>
             </div>
-            <div className="p-6 space-y-5">
-              <div>
-                <div className="text-sm font-semibold mb-2">Como deseja agendar?</div>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => setMode("fast")}
-                    className={`w-full flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                      mode === "fast" ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:border-accent/40"
-                    }`}
-                  >
-                    <span className="h-9 w-9 rounded-lg grid place-items-center bg-accent/10 text-accent">
-                      <Zap className="h-4 w-4" />
-                    </span>
-                    <span className="flex-1">
-                      <span className="block font-semibold text-sm">Agendamento Rápido</span>
-                      <span className="block text-xs text-muted-foreground">Enviamos para várias profissionais disponíveis</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMode("choose")}
-                    className={`w-full flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                      mode === "choose" ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:border-accent/40"
-                    }`}
-                  >
-                    <span className="h-9 w-9 rounded-lg grid place-items-center bg-primary/10 text-primary">
-                      <Users className="h-4 w-4" />
-                    </span>
-                    <span className="flex-1">
-                      <span className="block font-semibold text-sm">Escolher Profissional</span>
-                      <span className="block text-xs text-muted-foreground">Você escolhe quem vai realizar o serviço</span>
-                    </span>
-                  </button>
-                </div>
-              </div>
 
-              <div>
-                <div className="text-sm font-semibold mb-2">Tipo de Imóvel</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {propertyOptions.map((opt) => {
-                    const Active = propertyType === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setPropertyType(opt.id)}
-                        className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
-                          Active ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:border-accent/40"
-                        }`}
-                      >
-                        <opt.icon className="h-4 w-4 text-muted-foreground" />
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div className="space-y-2">
+              <div className="text-[10px] uppercase font-bold text-[var(--bc-teal-soft)] tracking-[0.18em]">
+                Tipo de imóvel
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                {propertyOptions.map((opt) => {
+                  const Active = propertyType === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setPropertyType(opt.id)}
+                      className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all duration-300 ${
+                        Active
+                          ? "border-[var(--bc-teal-soft)] bg-white/10 text-white"
+                          : "border-white/10 bg-white/[0.03] text-white/70 hover:border-white/30 hover:text-white"
+                      }`}
+                    >
+                      <opt.icon className="h-4 w-4" />
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-              <Link
-                to={mode === "choose" ? "/professionals" : "/agendamento-rapido"}
-                search={mode === "choose"
-                  ? ({ type: propertyType } as never)
-                  : ({ type: propertyType } as never)}
-                className="block"
+            <Link
+              to={mode === "choose" ? "/professionals" : "/agendamento-rapido"}
+              search={{ type: propertyType } as never}
+              className="block"
+            >
+              <Button
+                size="lg"
+                className="group w-full h-14 rounded-2xl text-base font-extrabold tracking-wide bg-[var(--bc-teal-soft)] text-[var(--bc-navy)] hover:bg-white transition-all duration-300"
               >
-                <Button size="lg" className="w-full gap-2 text-base font-semibold h-12" style={{ background: "var(--accent)" }}>
-                  <Zap className="h-4 w-4" /> Agendar Agora <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+                AGENDAR AGORA
+                <ArrowRight className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+            </Link>
+
+            <div className="flex items-center justify-center gap-2 pt-2 opacity-60">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bc-teal-soft)] animate-pulse" />
+              <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white">
+                Pagamento seguro • Garantia total
+              </p>
             </div>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function ModeButton({
+  active, onClick, icon, title, desc,
+}: {
+  active: boolean; onClick: () => void; icon: React.ReactNode; title: string; desc: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
+        active
+          ? "border-[var(--bc-teal-soft)] bg-white/10"
+          : "border-white/10 bg-white/[0.03] hover:border-white/30"
+      }`}
+    >
+      <span
+        className={`h-9 w-9 shrink-0 rounded-xl grid place-items-center transition-colors ${
+          active ? "bg-[var(--bc-teal-soft)] text-[var(--bc-navy)]" : "bg-white/10 text-[var(--bc-teal-soft)]"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block font-semibold text-sm text-white">{title}</span>
+        <span className="block text-[11px] text-white/50 truncate">{desc}</span>
+      </span>
+    </button>
   );
 }
 
@@ -237,7 +238,6 @@ type Pro = {
   full_name: string | null;
   profile_photo: string | null;
   city: string | null;
-
   rating: number | null;
   total_reviews: number | null;
   bio: string | null;
@@ -245,93 +245,94 @@ type Pro = {
 
 function FeaturedSection({ city, pros }: { city: string; pros: Pro[] }) {
   return (
-    <section className="relative py-20" style={{ background: "var(--gradient-hero)" }}>
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-70 pointer-events-none"
-        style={{ backgroundImage: "var(--dot-pattern)", backgroundSize: "22px 22px" }}
-      />
-      <div className="relative max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12 space-y-2">
-          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">
-            Melhores Diaristas em {city}
-          </h2>
-          <p className="text-muted-foreground">Diaristas qualificadas, avaliadas e prontas para atender você.</p>
+    <section className="py-24 lg:py-32 px-6 sm:px-10 lg:px-24 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 lg:mb-20 gap-8">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--bc-teal)] mb-4">
+              Curadoria BabyClean
+            </p>
+            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[0.95] mb-6 text-[var(--bc-navy)]">
+              Elite da limpeza em {city}.
+            </h2>
+            <p className="text-lg text-[var(--bc-navy-2)] font-medium max-w-xl">
+              Nossas profissionais passam por um rigoroso protocolo de verificação antes de atender você.
+            </p>
+          </div>
+          <Link to="/professionals" className="group inline-flex items-center gap-4 shrink-0">
+            <span className="font-bold text-[var(--bc-navy)] border-b-2 border-[var(--bc-navy)] pb-1 group-hover:text-[var(--bc-teal)] group-hover:border-[var(--bc-teal)] transition-colors">
+              Conhecer todas
+            </span>
+            <span className="w-10 h-10 rounded-full border border-[var(--bc-navy)]/15 grid place-items-center text-[var(--bc-navy)] group-hover:bg-[var(--bc-navy)] group-hover:text-white group-hover:border-[var(--bc-navy)] transition-all duration-300">
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
         </div>
 
         {pros.length ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {pros.slice(0, 3).map((p) => (
-              <ProCard key={p.id} p={p} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            {pros.slice(0, 4).map((p, i) => <ProCard key={p.id} p={p} index={i} />)}
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-16 border border-dashed border-[var(--bc-navy)]/10 rounded-3xl text-[var(--bc-navy-2)]">
             Nenhuma diarista cadastrada ainda.{" "}
-            <Link to="/auth" search={{ mode: "signup", role: "professional" } as never} className="text-primary font-semibold">
+            <Link to="/cadastro" search={{ tipo: "professional" } as never} className="text-[var(--bc-teal)] font-semibold hover:underline">
               Seja a primeira
             </Link>.
           </div>
         )}
-
-        <div className="text-center mt-8">
-          <Link to="/professionals" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-            Ver todas as diaristas <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </div>
     </section>
   );
 }
 
-function ProCard({ p }: { p: Pro }) {
+function ProCard({ p, index }: { p: Pro; index: number }) {
+  const initial = (p.full_name ?? "?")[0]?.toUpperCase() ?? "?";
+  const rating = Number(p.rating ?? 0).toFixed(1);
   return (
-    <div className="bg-card rounded-2xl border border-border p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition">
-      <div className="flex items-start gap-3">
-        <div className="relative shrink-0">
-          <div className="h-16 w-16 rounded-xl bg-primary/10 text-primary grid place-items-center font-bold text-xl overflow-hidden">
-            {p.profile_photo ? (
-              <img src={p.profile_photo} alt={p.full_name ?? ""} className="h-full w-full object-cover" />
-            ) : (
-              (p.full_name ?? "?")[0]
-            )}
+    <div className="group bc-rise" style={{ animationDelay: `${index * 80}ms` }}>
+      <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-[var(--bc-mist)]">
+        {p.profile_photo ? (
+          <img
+            src={p.profile_photo}
+            alt={p.full_name ?? "Diarista"}
+            className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-[1.04] transition-all duration-[900ms]"
+          />
+        ) : (
+          <div className="w-full h-full grid place-items-center bg-gradient-to-br from-[var(--bc-navy-2)] to-[var(--bc-navy)] text-white font-display font-extrabold text-7xl">
+            {initial}
           </div>
-          <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-highlight grid place-items-center text-white shadow" style={{ background: "var(--highlight)" }}>
-            <BadgeCheck className="h-3.5 w-3.5" />
-          </span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <div className="font-bold truncate">{p.full_name ?? "Diarista"}</div>
-            <BadgeCheck className="h-4 w-4 text-accent shrink-0" />
-          </div>
-          <div className="flex items-center gap-2 text-sm mt-0.5">
-            <span className="inline-flex items-center gap-1 font-semibold">
-              <Star className="h-3.5 w-3.5" style={{ color: "var(--highlight)", fill: "var(--highlight)" }} />
-              {Number(p.rating ?? 0).toFixed(1)}
-            </span>
-            <span className="text-muted-foreground text-xs">{p.total_reviews ?? 0}+ limpezas</span>
-          </div>
-          <div className="mt-1">
-            <span className="inline-block rounded-md bg-secondary text-secondary-foreground text-[11px] font-medium px-2 py-0.5">
-              Verificada
-            </span>
-          </div>
-        </div>
-      </div>
-      {p.bio && <p className="text-sm text-muted-foreground mt-4 line-clamp-3">{p.bio}</p>}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Link to="/professionals/$id" params={{ id: p.id }}>
-          <Button variant="outline" className="w-full gap-1">Ver Perfil <ArrowRight className="h-3.5 w-3.5" /></Button>
-        </Link>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bc-navy)]/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <span className="absolute top-5 left-5 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[9px] font-black uppercase text-[var(--bc-navy)] tracking-[0.18em] shadow">
+          Verificada
+        </span>
         <Link
           to="/agendamento"
           search={{ pro: p.id, city: "joinville", dur: 4, type: "residential", rooms: 2, baths: 1 }}
+          className="absolute bottom-5 left-5 right-5 h-11 rounded-full bg-[var(--bc-teal-soft)] text-[var(--bc-navy)] font-bold text-sm grid place-items-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500"
         >
-          <Button className="w-full gap-1" style={{ background: "var(--accent)" }}>
-            <Calendar className="h-3.5 w-3.5" /> Agendar
-          </Button>
+          Agendar agora
         </Link>
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-display text-xl font-bold tracking-tight truncate flex items-center gap-1.5">
+            {p.full_name ?? "Diarista"}
+            <BadgeCheck className="h-4 w-4 text-[var(--bc-teal)] shrink-0" />
+          </h3>
+          <span className="text-[var(--bc-teal)] font-bold text-sm shrink-0 inline-flex items-center gap-1">
+            <Star className="h-3.5 w-3.5 fill-current" /> {rating}
+          </span>
+        </div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--bc-navy-2)]">
+          {p.total_reviews ?? 0}+ limpezas concluídas
+        </p>
+        {p.bio && (
+          <p className="text-sm text-[var(--bc-navy-2)]/80 line-clamp-2 pt-1 leading-relaxed">
+            {p.bio}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -340,111 +341,63 @@ function ProCard({ p }: { p: Pro }) {
 /* ————————————————— WHY ————————————————— */
 function WhySection() {
   const items = [
-    { icon: Zap, tint: "accent", title: "Agendamento Rápido", desc: "Agende em menos de 3 minutos, 100% online e sem complicação." },
-    { icon: Target, tint: "accent", title: "Controle Total", desc: "Escolha o profissional, dia e duração que melhor se encaixam." },
-    { icon: Calendar, tint: "accent", title: "Flexibilidade", desc: "Encontre horários que se encaixem na sua disponibilidade." },
-    { icon: MessageCircle, tint: "primary", title: "Suporte 24/7", desc: "Suporte do pré ao pós limpeza, reagendamento garantido." },
+    { n: "01", title: "CURADORIA EXCLUSIVA", desc: "Profissionais com referências comprovadas são admitidas na rede após protocolo rigoroso." },
+    { n: "02", title: "SEGURO E GARANTIA", desc: "Garantimos o refazimento total do serviço caso ele não atinja nosso padrão de excelência." },
+    { n: "03", title: "PAGAMENTO SEM FRICÇÃO", desc: "Agende, pague e gerencie tudo pelo app. Transparência total, sem surpresas." },
   ];
   return (
-    <section id="por-que" className="relative py-20" style={{ background: "var(--gradient-hero)" }}>
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-70 pointer-events-none"
-        style={{ backgroundImage: "var(--dot-pattern)", backgroundSize: "22px 22px" }}
-      />
-      <div className="relative max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12 space-y-2">
-          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">Por que escolher a Gersepa Solutions?</h2>
-          <p className="text-muted-foreground">Simplificamos o agendamento de serviços para sua casa e empresa.</p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {items.map((it) => {
-            const isPrimary = it.tint === "primary";
-            return (
-              <div key={it.title} className="relative rounded-2xl bg-card border border-border p-6 shadow-[var(--shadow-card)]">
-                <span
-                  className="absolute inset-x-6 top-0 h-1 rounded-b-full"
-                  style={{ background: isPrimary ? "var(--primary)" : "var(--accent)" }}
-                />
-                <div
-                  className="h-12 w-12 rounded-xl grid place-items-center mb-4"
-                  style={{
-                    background: isPrimary ? "color-mix(in oklab, var(--primary) 12%, transparent)" : "color-mix(in oklab, var(--accent) 15%, transparent)",
-                    color: isPrimary ? "var(--primary)" : "var(--accent)",
-                  }}
-                >
-                  <it.icon className="h-6 w-6" />
-                </div>
-                <div className="font-bold text-lg">{it.title}</div>
-                <p className="text-sm text-muted-foreground mt-2">{it.desc}</p>
-              </div>
-            );
-          })}
-        </div>
+    <section id="por-que" className="relative py-24 lg:py-32 px-6 sm:px-10 lg:px-24 bg-[var(--bc-navy)] text-white overflow-hidden">
+      <div aria-hidden className="absolute inset-0 opacity-40 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[var(--bc-teal)] rounded-full blur-[140px]" />
       </div>
-    </section>
-  );
-}
 
-/* ————————————————— BE WORKER ————————————————— */
-function BeWorkerSection() {
-  const perks = [
-    { icon: Clock, text: "Escolha seus horários" },
-    { icon: Wallet, text: "Renda extra ou principal" },
-    { icon: Users, text: "Milhares de clientes" },
-    { icon: HeartHandshake, text: "Suporte dedicado" },
-  ];
-  const stats = [
-    { v: "500+", l: "Profissionais ativas" },
-    { v: "R$ 150", l: "Média por serviço" },
-    { v: "4.8", l: "Avaliação média" },
-    { v: "72h", l: "Tempo de aprovação" },
-  ];
-  return (
-    <section
-      className="relative overflow-hidden py-20 text-white"
-      style={{ background: "var(--surface-dark)" }}
-    >
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-30 pointer-events-none"
-        style={{ background: "var(--plus-pattern)" }}
-      />
-      <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs font-semibold text-accent">
-            Oportunidade
-          </span>
-          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight">
-            Seja uma Diarista <span style={{ color: "var(--accent)" }}>Gersepa Solutions</span>
-          </h2>
-          <p className="text-white/70 max-w-lg">
-            Trabalhe com flexibilidade, escolha seus clientes e aumente sua renda.
-            Junte-se a centenas de profissionais que já transformaram suas carreiras.
+      <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--bc-teal-soft)] mb-4">
+            O padrão BabyClean
           </p>
-          <div className="grid sm:grid-cols-2 gap-3 max-w-lg">
-            {perks.map((p) => (
-              <div key={p.text} className="flex items-center gap-3 text-sm">
-                <span className="h-9 w-9 rounded-lg bg-white/5 border border-white/10 grid place-items-center">
-                  <p.icon className="h-4 w-4 text-accent" />
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-12 lg:mb-16 leading-[0.92]">
+            Por que a
+            <br />
+            <span className="text-[var(--bc-teal-soft)]">BabyClean?</span>
+          </h2>
+          <div className="space-y-12 lg:space-y-14">
+            {items.map((it) => (
+              <div key={it.n} className="flex gap-6 lg:gap-8 group">
+                <span className="font-display text-3xl lg:text-4xl font-bold text-[var(--bc-teal)] opacity-40 group-hover:opacity-100 transition-opacity duration-500">
+                  {it.n}
                 </span>
-                <span>{p.text}</span>
+                <div>
+                  <h4 className="font-display text-lg lg:text-xl font-bold mb-3 tracking-[0.06em]">
+                    {it.title}
+                  </h4>
+                  <p className="text-white/55 leading-relaxed text-sm lg:text-base max-w-md">
+                    {it.desc}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
-          <Link to="/auth" search={{ mode: "signup", role: "professional" } as never}>
-            <Button size="lg" className="gap-2 h-12 px-6" style={{ background: "var(--accent)" }}>
-              Quero ser Diarista <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          {stats.map((s) => (
-            <div key={s.l} className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur p-6">
-              <div className="text-3xl lg:text-4xl font-extrabold tracking-tight">{s.v}</div>
-              <div className="text-sm text-white/70 mt-1">{s.l}</div>
+
+        <div className="relative">
+          <div className="aspect-square rounded-[40px] lg:rounded-[48px] overflow-hidden border border-white/10 bg-gradient-to-br from-[var(--bc-navy-2)] to-[var(--bc-navy)] grid place-items-center">
+            <div className="p-12 text-center">
+              <ShieldCheck className="h-16 w-16 text-[var(--bc-teal-soft)] mx-auto mb-6 opacity-70" />
+              <p className="font-display text-2xl font-bold text-white/80 mb-2">Padrão hoteleiro 5★</p>
+              <p className="text-white/40 text-sm max-w-xs mx-auto">
+                Metodologia baseada em checklists de hotelaria de luxo, adaptada ao seu lar.
+              </p>
             </div>
-          ))}
+          </div>
+          <div className="absolute -bottom-8 -left-4 sm:-bottom-10 sm:-left-10 bg-[var(--bc-teal-soft)] p-8 lg:p-12 rounded-2xl lg:rounded-3xl shadow-[var(--shadow-elevated)]">
+            <p className="font-display text-5xl lg:text-6xl font-extrabold text-[var(--bc-navy)] leading-none mb-2">
+              +15k
+            </p>
+            <p className="text-[var(--bc-navy)] font-bold text-[10px] uppercase tracking-[0.24em]">
+              Limpezas concluídas
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -454,42 +407,44 @@ function BeWorkerSection() {
 /* ————————————————— FOOTER ————————————————— */
 function FooterSection() {
   return (
-    <footer id="contato" className="bg-background border-t border-border">
-      <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-8 text-sm">
+    <footer id="contato" className="bg-white border-t border-[var(--bc-navy)]/8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-24 py-16 grid md:grid-cols-4 gap-10 text-sm">
         <div className="space-y-3">
-          <div className="flex items-center gap-2 font-bold text-lg">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex items-center gap-2 font-display font-bold text-lg text-[var(--bc-navy)]">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--bc-navy)] text-white">
               <ShieldCheck className="h-5 w-5" />
             </span>
-            Gersepa<span className="text-primary"> Solutions</span>
+            Baby<span className="text-[var(--bc-teal)]">Clean</span>
           </div>
-          <p className="text-muted-foreground">Marketplace de diaristas verificadas.</p>
+          <p className="text-[var(--bc-navy-2)]/70 max-w-xs leading-relaxed">
+            Marketplace editorial de diaristas verificadas em Joinville.
+          </p>
         </div>
         <div>
-          <div className="font-semibold mb-3">Cliente</div>
-          <ul className="space-y-2 text-muted-foreground">
-            <li><Link to="/professionals" className="hover:text-primary">Encontrar diarista</Link></li>
-            <li><a href="#por-que" className="hover:text-primary">Como funciona</a></li>
-            <li><Link to="/auth" className="hover:text-primary">Entrar</Link></li>
+          <div className="font-display font-bold mb-4 text-[var(--bc-navy)] text-[11px] uppercase tracking-[0.2em]">Cliente</div>
+          <ul className="space-y-2.5 text-[var(--bc-navy-2)]/80">
+            <li><Link to="/professionals" className="hover:text-[var(--bc-teal)] transition-colors">Encontrar diarista</Link></li>
+            <li><a href="#por-que" className="hover:text-[var(--bc-teal)] transition-colors">Como funciona</a></li>
+            <li><Link to="/auth" className="hover:text-[var(--bc-teal)] transition-colors">Entrar</Link></li>
           </ul>
         </div>
         <div>
-          <div className="font-semibold mb-3">Diarista</div>
-          <ul className="space-y-2 text-muted-foreground">
-            <li><Link to="/auth" search={{ mode: "signup", role: "professional" } as never} className="hover:text-primary">Cadastrar-se</Link></li>
-            <li><Link to="/auth" className="hover:text-primary">Painel</Link></li>
+          <div className="font-display font-bold mb-4 text-[var(--bc-navy)] text-[11px] uppercase tracking-[0.2em]">Diarista</div>
+          <ul className="space-y-2.5 text-[var(--bc-navy-2)]/80">
+            <li><Link to="/cadastro" search={{ tipo: "professional" } as never} className="hover:text-[var(--bc-teal)] transition-colors">Cadastrar-se</Link></li>
+            <li><Link to="/auth" className="hover:text-[var(--bc-teal)] transition-colors">Painel</Link></li>
           </ul>
         </div>
         <div>
-          <div className="font-semibold mb-3">Contato</div>
-          <ul className="space-y-2 text-muted-foreground">
-            <li><a href="mailto:ola@babyclean.com.br" className="hover:text-primary">ola@babyclean.com.br</a></li>
-            <li><a href="https://wa.me/5547999999999" className="hover:text-primary">WhatsApp</a></li>
+          <div className="font-display font-bold mb-4 text-[var(--bc-navy)] text-[11px] uppercase tracking-[0.2em]">Contato</div>
+          <ul className="space-y-2.5 text-[var(--bc-navy-2)]/80">
+            <li><a href="mailto:ola@babyclean.com.br" className="hover:text-[var(--bc-teal)] transition-colors">ola@babyclean.com.br</a></li>
+            <li><a href="https://wa.me/5547999999999" className="hover:text-[var(--bc-teal)] transition-colors">WhatsApp</a></li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Gersepa Solutions — Todos os direitos reservados.
+      <div className="border-t border-[var(--bc-navy)]/8 py-6 text-center text-[11px] uppercase tracking-[0.2em] text-[var(--bc-navy-2)]/60">
+        © {new Date().getFullYear()} BabyClean — Todos os direitos reservados.
       </div>
     </footer>
   );
