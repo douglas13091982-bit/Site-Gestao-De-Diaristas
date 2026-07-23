@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import {
+  sanitizeText,
+  sanitizeTextOrNull,
+  sanitizeEmail,
+  sanitizeDigits,
+} from "@/shared/lib/sanitize";
 
 const inputSchema = z.object({
   professional_id: z.string().uuid(),
@@ -34,6 +40,25 @@ export const createPayment = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // ---- Sanitização de todo texto vindo do cliente -----------------
+    // Remove HTML/scripts/caracteres de controle e aplica limites de
+    // tamanho antes de qualquer uso (DB, Mercado Pago, PagSeguro).
+    const clean = {
+      address: sanitizeText(data.address, { maxLength: 200, collapseWhitespace: true }),
+      address_complement: sanitizeTextOrNull(data.address_complement, { maxLength: 120 }),
+      city: sanitizeTextOrNull(data.city, { maxLength: 80, collapseWhitespace: true }),
+      city_slug: sanitizeTextOrNull(data.city_slug, { maxLength: 80 }),
+      notes: sanitizeTextOrNull(data.notes, { maxLength: 500 }),
+      property_type: sanitizeTextOrNull(data.property_type, { maxLength: 40 }),
+      client_name: sanitizeTextOrNull(data.client_name, { maxLength: 80, collapseWhitespace: true }),
+      client_email: sanitizeEmail(data.client_email),
+      client_phone: sanitizeDigits(data.client_phone, 15) || null,
+      payer_document: sanitizeDigits(data.payer_document, 14),
+    };
+    if (!clean.address || clean.address.length < 3) {
+      throw new Error("Endereço inválido.");
+    }
 
     // ---- Autorização opcional ----------------------------------------
     // Se houver bearer válido, prendemos o booking ao usuário autenticado.
@@ -97,23 +122,23 @@ export const createPayment = createServerFn({ method: "POST" })
       .from("bookings")
       .insert({
         client_id: authenticatedUserId,
-        client_email: data.client_email,
-        client_name: data.client_name ?? null,
-        client_phone: data.client_phone ?? null,
+        client_email: clean.client_email,
+        client_name: clean.client_name,
+        client_phone: clean.client_phone,
         professional_id: data.professional_id,
         booking_type: "direct",
         service_type: "diarista",
-        property_type: data.property_type ?? null,
+        property_type: clean.property_type,
         booking_date: data.booking_date,
         start_time: data.start_time,
         duration_hours: trustedDuration,
         rooms: data.rooms ?? null,
         bathrooms: data.bathrooms ?? null,
-        address: data.address,
-        address_complement: data.address_complement ?? null,
-        city: data.city ?? null,
-        city_slug: data.city_slug ?? null,
-        notes: data.notes ?? null,
+        address: clean.address,
+        address_complement: clean.address_complement,
+        city: clean.city,
+        city_slug: clean.city_slug,
+        notes: clean.notes,
         status: "awaiting_payment",
         total_price: trustedPrice,
         payment_method: method,
@@ -124,8 +149,8 @@ export const createPayment = createServerFn({ method: "POST" })
       .single();
     if (bkErr || !booking) throw new Error(bkErr?.message ?? "Falha ao criar agendamento");
 
-    const [firstName, ...rest] = (data.client_name ?? "Cliente").trim().split(" ");
-    const cpfDigits = (data.payer_document ?? "").replace(/\D/g, "");
+    const [firstName, ...rest] = (clean.client_name ?? "Cliente").split(" ");
+    const cpfDigits = clean.payer_document;
 
     // -------------------- MERCADO PAGO --------------------
     if (platform === "mercadopago") {
@@ -141,7 +166,7 @@ export const createPayment = createServerFn({ method: "POST" })
         description: `Agendamento Gersepa #${booking.id}`,
         external_reference: `booking:${booking.id}`,
         payer: {
-          email: data.client_email,
+          email: clean.client_email,
           first_name: firstName || "Cliente",
           last_name: rest.join(" ") || "Gersepa",
           ...(cpfDigits.length === 11 ? { identification: { type: "CPF", number: cpfDigits } } : {}),
@@ -230,11 +255,11 @@ export const createPayment = createServerFn({ method: "POST" })
       const payload = {
         reference_id: `booking-${booking.id}`,
         customer: {
-          name: (data.client_name ?? "Cliente").slice(0, 30),
-          email: data.client_email,
+          name: (clean.client_name ?? "Cliente").slice(0, 30),
+          email: clean.client_email,
           tax_id: cpfDigits || "00000000000",
-          phones: data.client_phone
-            ? [{ country: "55", area: (data.client_phone.replace(/\D/g, "").slice(0, 2) || "11"), number: data.client_phone.replace(/\D/g, "").slice(2, 11) || "999999999", type: "MOBILE" }]
+          phones: clean.client_phone
+            ? [{ country: "55", area: (clean.client_phone.slice(0, 2) || "11"), number: clean.client_phone.slice(2, 11) || "999999999", type: "MOBILE" }]
             : undefined,
         },
         qr_codes: [{ amount: { value: cents }, expiration_date: expiresAt }],
