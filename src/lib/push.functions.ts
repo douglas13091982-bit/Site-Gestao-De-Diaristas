@@ -6,6 +6,7 @@ const sendSchema = z.object({
   title: z.string().min(1).max(120),
   body: z.string().min(1).max(300),
   link: z.string().max(300).optional(),
+  imageUrl: z.string().url().max(500).optional(),
 });
 
 /**
@@ -36,6 +37,7 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
           title: data.title,
           body: data.body,
           link: data.link,
+          imageUrl: data.imageUrl,
         });
         if (r.ok) sent++;
         else {
