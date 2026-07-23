@@ -115,3 +115,67 @@ export const broadcastNewBookingPush = createServerFn({ method: "POST" })
     }
     return { sent, failed };
   });
+
+/**
+ * Notifica UMA diarista que um agendamento direto foi confirmado para ela.
+ * - Cria uma linha em `notifications` (in-app)
+ * - Envia push (FCM) para todos os tokens da diarista
+ */
+export const notifyProfessionalBookingConfirmed = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ bookingId: z.number().int().positive() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendFcmMessage } = await import("./fcm.server");
+
+    const { data: booking } = await supabaseAdmin
+      .from("bookings")
+      .select("id, professional_id, service_type, city, booking_date, start_time, total_price")
+      .eq("id", data.bookingId)
+      .maybeSingle();
+    if (!booking || !booking.professional_id) return { sent: 0, failed: 0, error: "sem profissional" };
+
+    const dateStr = booking.booking_date
+      ? new Date(booking.booking_date as string).toLocaleDateString("pt-BR")
+      : "";
+    const timeStr = typeof booking.start_time === "string" ? (booking.start_time as string).slice(0, 5) : "";
+    const title = "Novo agendamento confirmado!";
+    const body = `${booking.service_type ?? "Serviço"}${booking.city ? " em " + booking.city : ""}${
+      dateStr ? " — " + dateStr : ""
+    }${timeStr ? " às " + timeStr : ""}`;
+    const link = "/pro/agenda";
+
+    // In-app
+    await supabaseAdmin.from("notifications").insert({
+      user_id: booking.professional_id,
+      title,
+      body,
+      link,
+    });
+
+    // Push
+    const { data: subs } = await supabaseAdmin
+      .from("push_subscriptions")
+      .select("endpoint")
+      .eq("user_id", booking.professional_id);
+    if (!subs || subs.length === 0) return { sent: 0, failed: 0 };
+
+    let sent = 0;
+    let failed = 0;
+    const stale: string[] = [];
+    await Promise.all(
+      subs.map(async (s) => {
+        const r = await sendFcmMessage({ token: s.endpoint, title, body, link });
+        if (r.ok) sent++;
+        else {
+          failed++;
+          if (r.error && /UNREGISTERED|INVALID_ARGUMENT|NOT_FOUND|404/i.test(r.error)) {
+            stale.push(s.endpoint);
+          }
+        }
+      }),
+    );
+    if (stale.length) {
+      await supabaseAdmin.from("push_subscriptions").delete().in("endpoint", stale);
+    }
+    return { sent, failed };
+  });
