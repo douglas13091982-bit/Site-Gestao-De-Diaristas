@@ -15,8 +15,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Gersepa Solutions — Sua casa impecável em Joinville" },
       { name: "description", content: "Marketplace editorial de diaristas premium em Joinville. Curadoria rigorosa, pagamento seguro e garantia de satisfação." },
-      { property: "og:title", content: "Gersepa Solutions — Sua casa impecável" },
-      { property: "og:description", content: "Diaristas verificadas em Joinville. Agende em minutos com curadoria premium." },
+      { property: "og:title", content: "Gersepa Solutions — Sua casa impecável em Joinville" },
+      { property: "og:description", content: "Marketplace editorial de diaristas premium em Joinville. Curadoria rigorosa, pagamento seguro e garantia de satisfação." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
