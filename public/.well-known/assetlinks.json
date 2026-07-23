@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "br.com.gersepa.twa",
+        "sha256_cert_fingerprints": ["E0:5C:B6:FF:A8:50:A4:D5:8C:0E:FB:F0:E6:01:17:A6:ED:55:FF:CE:DA:C8:6B:62:7B:F0:C0:6D:D0:A4:68:C3"]
+      }
+    }]
