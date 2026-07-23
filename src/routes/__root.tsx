@@ -6,6 +6,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { MobileAppShell, MobileBottomSpacer } from "@/components/MobileAppShell";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { NotificationPrompt } from "@/components/NotificationPrompt";
 import { registerAppServiceWorker } from "@/lib/register-sw";
 import appCss from "../styles.css?url";
 
@@ -221,6 +222,7 @@ function RootComponent() {
         <MobileBottomSpacer />
         <MobileAppShell />
         <InstallPrompt />
+        <NotificationPrompt />
         <Toaster position="top-right" richColors />
       </AuthProvider>
     </QueryClientProvider>
