@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Camera, Upload, Loader2 } from "lucide-react";
+import { compressImage } from "@/lib/image-utils";
 
 export const Route = createFileRoute("/_authenticated/cliente/perfil")({
   head: () => ({ meta: [{ title: "Meu perfil — Gersepa" }, { name: "description", content: "Atualize seus dados." }] }),
@@ -56,13 +57,13 @@ function ClientePerfil() {
 
   const set = <K extends keyof Form>(k: K) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  async function uploadPhoto(file: File) {
+  async function uploadPhoto(input: File) {
     if (!user) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Foto muito grande. Máximo 5 MB.");
+    if (input.size > 10 * 1024 * 1024) return toast.error("Foto muito grande. Máximo 10 MB.");
     setUploading(true);
     try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const file = await compressImage(input, { maxWidth: 1200, maxHeight: 1200, quality: 0.82 });
+      const path = `${user.id}/avatar-${Date.now()}.webp`;
       const { error: upErr } = await supabase.storage.from("professional-photos").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data: signed, error: sErr } = await supabase.storage.from("professional-photos").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
