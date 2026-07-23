@@ -69,27 +69,27 @@ export function AvailabilityGrid({ value, onChange, disabled }: Props) {
         return (
           <div
             key={idx}
-            className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card/60 px-3 py-2"
+            className="flex items-center gap-2 rounded-lg border border-border bg-card/60 px-2 py-2"
           >
-            <div className="flex min-w-[8rem] items-center gap-2">
+            <div className="flex flex-1 min-w-0 items-center gap-2">
               <DayToggle
                 checked={day.on}
                 disabled={disabled}
                 onCheckedChange={(v) => update(idx, { on: v })}
               />
-              <span className="text-sm font-medium">{label}</span>
+              <span className="text-sm font-medium truncate">{label}</span>
             </div>
             <Input
               type="time"
-              className="w-28"
+              className="w-[92px] px-2 text-sm shrink-0"
               value={day.start}
               disabled={disabled || !day.on}
               onChange={(e) => update(idx, { start: e.target.value })}
             />
-            <span className="text-xs text-muted-foreground">até</span>
+            <span className="text-xs text-muted-foreground shrink-0">até</span>
             <Input
               type="time"
-              className="w-28"
+              className="w-[92px] px-2 text-sm shrink-0"
               value={day.end}
               disabled={disabled || !day.on}
               onChange={(e) => update(idx, { end: e.target.value })}
