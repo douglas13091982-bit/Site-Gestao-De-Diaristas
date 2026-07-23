@@ -102,6 +102,51 @@ function RootShell({ children }: { children: React.ReactNode }) {
               }}
             />
           </div>
+          <div
+            id="gersepa-splash-status"
+            style={{
+              marginTop: 8,
+              fontFamily: "Manrope, system-ui, sans-serif",
+              fontSize: 13,
+              color: "rgba(255,255,255,0.85)",
+              textAlign: "center",
+              maxWidth: 280,
+              padding: "0 24px",
+              minHeight: 20,
+            }}
+          >
+            Preparando sua experiência…
+          </div>
+          <div
+            id="gersepa-splash-fallback"
+            style={{
+              display: "none",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+              marginTop: 8,
+              pointerEvents: "auto",
+            }}
+          >
+            <button
+              type="button"
+              id="gersepa-splash-retry"
+              style={{
+                background: "#fff",
+                color: "#0c2340",
+                border: "none",
+                borderRadius: 999,
+                padding: "10px 22px",
+                fontFamily: "Sora, system-ui, sans-serif",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+              }}
+            >
+              Recarregar
+            </button>
+          </div>
           <style
             dangerouslySetInnerHTML={{
               __html: `
@@ -112,6 +157,40 @@ function RootShell({ children }: { children: React.ReactNode }) {
             }}
           />
         </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){
+  try {
+    var status = document.getElementById('gersepa-splash-status');
+    var fallback = document.getElementById('gersepa-splash-fallback');
+    var retry = document.getElementById('gersepa-splash-retry');
+    var slowTimer, offlineTimer;
+    function setStatus(msg){ if(status) status.textContent = msg; }
+    function showFallback(msg){
+      setStatus(msg);
+      if(fallback){ fallback.style.display = 'flex'; }
+    }
+    slowTimer = setTimeout(function(){
+      setStatus('Sua conexão está lenta. Estamos tentando carregar…');
+    }, 6000);
+    offlineTimer = setTimeout(function(){
+      showFallback(navigator.onLine
+        ? 'Demorou mais do que o esperado. Toque em recarregar para tentar novamente.'
+        : 'Você está offline. Verifique sua conexão e recarregue.');
+    }, 15000);
+    if (retry) retry.addEventListener('click', function(){ location.reload(); });
+    window.addEventListener('offline', function(){
+      showFallback('Você está offline. Verifique sua conexão e recarregue.');
+    });
+    window.__gersepaSplashClear = function(){
+      clearTimeout(slowTimer); clearTimeout(offlineTimer);
+    };
+  } catch(e) {}
+})();
+            `,
+          }}
+        />
         {children}
         <Scripts />
       </body>
@@ -124,6 +203,8 @@ function RootComponent() {
   React.useEffect(() => {
     const el = document.getElementById("gersepa-splash");
     if (!el) return;
+    const w = window as unknown as { __gersepaSplashClear?: () => void };
+    if (typeof w.__gersepaSplashClear === "function") w.__gersepaSplashClear();
     const t = window.setTimeout(() => {
       el.classList.add("gersepa-splash-hide");
       window.setTimeout(() => el.remove(), 500);
