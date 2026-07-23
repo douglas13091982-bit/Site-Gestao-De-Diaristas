@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   head: () => ({ meta: [{ title: "Área da diarista — Gersepa Solutions" }, { name: "description", content: "Painel da diarista." }] }),
@@ -63,6 +64,9 @@ function ProLayout() {
         <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:gap-3 sm:justify-end text-sm">
           <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
           <Stat label="Serviços" value={String(profile.data?.total_bookings ?? 0)} />
+        </div>
+        <div className="mt-3 flex justify-end">
+          <PushNotificationButton label="Ativar alertas de leads" />
         </div>
         <nav className="mt-4 sm:mt-6 hidden md:flex gap-1 border-b">
           {tabs.map((t) => {

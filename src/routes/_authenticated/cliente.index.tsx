@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Calendar, MapPin, Sparkles, Users, Home, Building2, Store, Landmark } from "lucide-react";
 import { useState } from "react";
+import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 export const Route = createFileRoute("/_authenticated/cliente/")({
   head: () => ({ meta: [{ title: "Início — Minha conta Gersepa" }, { name: "description", content: "Resumo dos seus agendamentos." }] }),
@@ -59,6 +60,9 @@ function ClienteHome() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <PushNotificationButton />
+      </div>
       <section className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="bg-gradient-to-r from-primary to-primary/70 text-primary-foreground p-5">
           <div className="font-bold text-xl">Agende seu Serviço</div>
