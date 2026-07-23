@@ -84,6 +84,7 @@ export type FcmPayload = {
   title: string;
   body: string;
   link?: string;
+  imageUrl?: string;
   data?: Record<string, string>;
 };
 
@@ -93,12 +94,24 @@ export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean
   const message = {
     message: {
       token: payload.token,
-      notification: { title: payload.title, body: payload.body },
+      notification: {
+        title: payload.title,
+        body: payload.body,
+        ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
+      },
       webpush: {
         fcm_options: payload.link ? { link: payload.link } : undefined,
-        notification: { icon: "/icons/icon-192.png", badge: "/icons/icon-192.png" },
+        notification: {
+          icon: "/icons/icon-192.png",
+          badge: "/icons/icon-192.png",
+          ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
+        },
       },
-      data: { ...(payload.data ?? {}), ...(payload.link ? { link: payload.link } : {}) },
+      data: {
+        ...(payload.data ?? {}),
+        ...(payload.link ? { link: payload.link } : {}),
+        ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
+      },
     },
   };
   const res = await fetch(

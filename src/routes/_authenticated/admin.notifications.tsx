@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2 } from "lucide-react";
+import { sendPushToUsers } from "@/lib/push.functions";
 
 type Audience = "all" | "professionals" | "clients" | "select";
 
@@ -21,6 +22,7 @@ function AdminNotifications() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -53,20 +55,43 @@ function AdminNotifications() {
       if (!title.trim()) throw new Error("Título obrigatório");
       if (!body.trim()) throw new Error("Mensagem obrigatória");
       if (targets.length === 0) throw new Error("Nenhum destinatário selecionado");
+      const trimmedImage = imageUrl.trim();
+      const trimmedLink = link.trim();
       const rows = targets.map((u) => ({
         user_id: u.id,
         title: title.trim(),
         body: body.trim(),
-        link: link.trim() || null,
+        link: trimmedLink || null,
+        image_url: trimmedImage || null,
         is_read: false,
       }));
       const { error } = await supabase.from("notifications").insert(rows);
       if (error) throw error;
-      return rows.length;
+      // Dispara push (FCM) para quem tem token registrado
+      let pushSent = 0;
+      try {
+        const userIds = targets.map((u) => u.id);
+        const res = await sendPushToUsers({
+          data: {
+            userIds,
+            title: title.trim(),
+            body: body.trim(),
+            link: trimmedLink || "/notificacoes",
+            ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
+          },
+        });
+        pushSent = res?.sent ?? 0;
+      } catch (err) {
+        console.warn("[push] falha no envio FCM", err);
+      }
+      return { total: rows.length, pushSent };
     },
-    onSuccess: (n) => {
-      toast.success(`Notificação enviada para ${n} usuário(s)`);
-      setTitle(""); setBody(""); setLink(""); setSelected(new Set());
+    onSuccess: ({ total, pushSent }) => {
+      toast.success(
+        `Notificação enviada para ${total} usuário(s)` +
+          (pushSent ? ` — ${pushSent} push entregues` : ""),
+      );
+      setTitle(""); setBody(""); setLink(""); setImageUrl(""); setSelected(new Set());
       qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -159,6 +184,25 @@ function AdminNotifications() {
 
         <label className="text-xs font-medium text-slate-700 mb-1 block">Link (opcional)</label>
         <Input placeholder="Ex: /dashboard ou https://..." value={link} onChange={(e) => setLink(e.target.value)} className="mb-5" />
+
+        <label className="text-xs font-medium text-slate-700 mb-1 block">Imagem (URL — opcional)</label>
+        <Input
+          placeholder="https://.../banner.jpg"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          className="mb-3"
+        />
+        {imageUrl.trim() && (
+          <div className="mb-5">
+            <div className="text-[11px] text-slate-500 mb-1">Prévia</div>
+            <img
+              src={imageUrl}
+              alt="Prévia da notificação"
+              className="max-h-40 rounded-lg border border-slate-200 object-cover"
+              onError={(e) => ((e.currentTarget.style.display = "none"))}
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="text-sm text-slate-500">

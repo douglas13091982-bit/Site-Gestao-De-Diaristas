@@ -14,6 +14,7 @@ import {
   LogOut,
   Users as UsersIcon,
   Settings,
+  Bell,
 } from "lucide-react";
 
 type Profile = { full_name: string | null; profile_photo: string | null };
@@ -91,6 +92,11 @@ export function UserMenu() {
           </div>
 
           <div className="py-1 text-sm">
+            <MenuLink to="/notificacoes" onClick={close} icon={<Bell className="h-4 w-4" />}>
+              Notificações
+            </MenuLink>
+            <Divider />
+
             {isAdmin && (
               <>
                 <MenuLink to="/admin" onClick={close} icon={<ShieldCheck className="h-4 w-4" />} highlight>
