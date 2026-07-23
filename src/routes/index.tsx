@@ -13,9 +13,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BabyClean — Sua casa impecável em Joinville" },
+      { title: "Gersepa Solutions — Sua casa impecável em Joinville" },
       { name: "description", content: "Marketplace editorial de diaristas premium em Joinville. Curadoria rigorosa, pagamento seguro e garantia de satisfação." },
-      { property: "og:title", content: "BabyClean — Sua casa impecável" },
+      { property: "og:title", content: "Gersepa Solutions — Sua casa impecável" },
       { property: "og:description", content: "Diaristas verificadas em Joinville. Agende em minutos com curadoria premium." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -84,7 +84,7 @@ function HeroSection({ city }: { city: string }) {
             <span className="text-[var(--bc-teal)]">impecável.</span>
           </h1>
           <p className="text-lg sm:text-xl text-[var(--bc-navy-2)] font-medium leading-relaxed mb-10 max-w-md">
-            A BabyClean conecta residências exclusivas às profissionais de limpeza mais qualificadas de {city}.
+            A Gersepa Solutions conecta residências exclusivas às profissionais de limpeza mais qualificadas de {city}.
           </p>
 
           <div className="flex items-center gap-6">
@@ -243,7 +243,7 @@ function FeaturedSection({ city, pros }: { city: string; pros: Pro[] }) {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 lg:mb-20 gap-8">
           <div className="max-w-2xl">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--bc-teal)] mb-4">
-              Curadoria BabyClean
+              Curadoria Gersepa Solutions
             </p>
             <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[0.95] mb-6 text-[var(--bc-navy)]">
               Elite da limpeza em {city}.
@@ -348,12 +348,12 @@ function WhySection() {
       <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/90 mb-4">
-            O padrão BabyClean
+            O padrão Gersepa Solutions
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-12 lg:mb-16 leading-[0.92]">
             Por que a
             <br />
-            <span className="text-white/95">BabyClean?</span>
+            <span className="text-white/95">Gersepa Solutions?</span>
           </h2>
           <div className="space-y-12 lg:space-y-14">
             {items.map((it) => (
@@ -432,13 +432,13 @@ function FooterSection() {
         <div>
           <div className="font-display font-bold mb-4 text-[var(--bc-navy)] text-[11px] uppercase tracking-[0.2em]">Contato</div>
           <ul className="space-y-2.5 text-[var(--bc-navy-2)]/80">
-            <li><a href="mailto:ola@babyclean.com.br" className="hover:text-[var(--bc-teal)] transition-colors">ola@babyclean.com.br</a></li>
+            <li><a href="mailto:contato@gersepa.com.br" className="hover:text-[var(--bc-teal)] transition-colors">contato@gersepa.com.br</a></li>
             <li><a href="https://wa.me/5547999999999" className="hover:text-[var(--bc-teal)] transition-colors">WhatsApp</a></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-[var(--bc-navy)]/8 py-6 text-center text-[11px] uppercase tracking-[0.2em] text-[var(--bc-navy-2)]/60">
-        © {new Date().getFullYear()} BabyClean — Todos os direitos reservados.
+        © {new Date().getFullYear()} Gersepa Solutions — Todos os direitos reservados.
       </div>
     </footer>
   );
