@@ -408,7 +408,7 @@ function FooterSection() {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--bc-navy)] text-white">
               <ShieldCheck className="h-5 w-5" />
             </span>
-            Baby<span className="text-[var(--bc-teal)]">Clean</span>
+            Gersepa<span className="text-[var(--bc-teal)]">Solutions</span>
           </div>
           <p className="text-[var(--bc-navy-2)]/70 max-w-xs leading-relaxed">
             Marketplace editorial de diaristas verificadas em Joinville.
