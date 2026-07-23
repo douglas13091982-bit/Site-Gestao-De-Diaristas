@@ -28,12 +28,7 @@ function HomePage() {
   const featured = useQuery({
     queryKey: ["featured-pros"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, profile_photo, city, rating, total_reviews, bio")
-        .eq("is_verified", true)
-        .order("rating", { ascending: false })
-        .limit(4);
+      const { data } = await supabase.rpc("list_public_professionals", { _limit: 4 });
       return data ?? [];
     },
   });
