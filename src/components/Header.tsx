@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { UserMenu } from "@/components/UserMenu";
 
 export function Header() {
-  const { user, signOut, roles } = useAuth();
-  const isWorker = roles.includes("professional");
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto h-14 md:h-16 px-4 md:px-6 flex items-center justify-between gap-3">
@@ -25,17 +25,7 @@ export function Header() {
         </nav>
         <div className="hidden md:flex items-center gap-2">
           {user ? (
-            <>
-              {isWorker ? (
-                <Link to="/pro/leads"><Button variant="outline" size="sm">Área da diarista</Button></Link>
-              ) : (
-                <>
-                  <Link to="/cliente/agendamentos"><Button variant="ghost" size="sm">Meus agendamentos</Button></Link>
-                  <Link to="/cliente"><Button variant="outline" size="sm">Minha conta</Button></Link>
-                </>
-              )}
-              <Button variant="ghost" size="sm" onClick={() => signOut()}>Sair</Button>
-            </>
+            <UserMenu />
           ) : (
             <>
               <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-primary">Entrar</Link>
@@ -45,9 +35,11 @@ export function Header() {
             </>
           )}
         </div>
-        {/* Mobile: navegação principal fica na tab bar inferior. Só mostramos CTA quando usuário está deslogado. */}
+        {/* Mobile: navegação principal fica na tab bar inferior. */}
         <div className="md:hidden">
-          {!user && (
+          {user ? (
+            <UserMenu />
+          ) : (
             <Link to="/seja-diarista"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Seja diarista</Button></Link>
           )}
         </div>
