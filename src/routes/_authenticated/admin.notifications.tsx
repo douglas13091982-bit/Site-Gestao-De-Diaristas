@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
-import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X } from "lucide-react";
+import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X, Zap } from "lucide-react";
 import { sendPushToUsers } from "@/lib/push.functions";
 
 type Audience = "all" | "professionals" | "clients" | "select";
@@ -93,6 +93,35 @@ function AdminNotifications() {
           (pushSent ? ` — ${pushSent} push entregues` : ""),
       );
       setTitle(""); setBody(""); setLink(""); setImageUrl(""); setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const sendTestToMe = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Você precisa estar logado");
+      const testTitle = "🔔 Teste Gersepa";
+      const testBody = "Notificação de teste — " + new Date().toLocaleTimeString("pt-BR");
+      const { error } = await supabase.from("notifications").insert([{
+        user_id: user.id, title: testTitle, body: testBody, link: "/notificacoes", is_read: false,
+      }]);
+      if (error) throw error;
+      let pushSent = 0;
+      try {
+        const res = await sendPushToUsers({
+          data: { userIds: [user.id], title: testTitle, body: testBody, link: "/notificacoes" },
+        });
+        pushSent = res?.sent ?? 0;
+      } catch (err) {
+        console.warn("[push] falha no teste", err);
+      }
+      return { pushSent };
+    },
+    onSuccess: ({ pushSent }) => {
+      if (pushSent > 0) toast.success(`Push enviada para você (${pushSent})`);
+      else toast.warning("In-app criada, mas nenhum token FCM registrado no seu usuário. Ative as notificações no navegador/app primeiro.");
       qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -260,10 +289,22 @@ function AdminNotifications() {
           <div className="text-sm text-slate-500">
             Será enviada para <span className="font-semibold text-slate-900">{targets.length}</span> usuário(s)
           </div>
-          <Button onClick={() => send.mutate()} disabled={send.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-            {send.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-            Enviar Notificação
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={() => sendTestToMe.mutate()}
+              disabled={sendTestToMe.isPending}
+              variant="outline"
+              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            >
+              {sendTestToMe.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+              Enviar teste para mim
+            </Button>
+            <Button onClick={() => send.mutate()} disabled={send.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+              {send.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+              Enviar Notificação
+            </Button>
+          </div>
         </div>
       </div>
 
