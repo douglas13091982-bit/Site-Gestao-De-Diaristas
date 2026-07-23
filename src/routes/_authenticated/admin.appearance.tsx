@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "./admin";
 import { Image as ImageIcon, Phone, MessageCircle, Save, Eye, EyeOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Upload, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/appearance")({
   component: AppearancePage,
@@ -49,6 +51,9 @@ const META: Record<keyof Settings, { group: string; type: string; public: boolea
 function AppearancePage() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Settings>(DEFAULTS);
+  const { user } = useAuth();
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const q = useQuery({
     queryKey: ["admin-appearance"],
@@ -95,6 +100,43 @@ function AppearancePage() {
   const set = <K extends keyof Settings>(k: K, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const waOn = form.whatsapp_enabled === "1" || form.whatsapp_enabled === "true";
 
+  async function uploadLogo(input: File) {
+    if (!user) return;
+    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/.test(input.type)) {
+      toast.error("Envie um arquivo PNG, JPG, WebP ou SVG.");
+      return;
+    }
+    if (input.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Máximo 5 MB.");
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const { compressImage } = await import("@/lib/image-utils");
+      // Keep PNG for logos (preserve transparency). SVG passes through.
+      const isSvg = input.type === "image/svg+xml";
+      const file = isSvg
+        ? input
+        : await compressImage(input, { maxWidth: 800, maxHeight: 800, quality: 0.92, mimeType: "image/png" });
+      const ext = isSvg ? "svg" : "png";
+      const path = `logo/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("site-assets")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("site-assets")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (sErr) throw sErr;
+      setForm((f) => ({ ...f, logo_url: signed.signedUrl }));
+      toast.success("Logo enviada! Clique em Salvar para aplicar.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enviar logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -126,14 +168,34 @@ function AppearancePage() {
             <TextInput value={form.site_subtitle} onChange={(v) => set("site_subtitle", v)} />
           </Field>
         </div>
-        {form.logo_url && (
-          <div className="mt-4">
-            <div className="text-xs text-slate-500 mb-2">Preview da Logo:</div>
-            <div className="h-14 w-14 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
+        <div className="mt-4 flex items-center gap-4">
+          <div className="h-16 w-16 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+            {form.logo_url ? (
               <img src={form.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
-            </div>
+            ) : (
+              <ImageIcon className="h-6 w-6 text-slate-300" />
+            )}
           </div>
-        )}
+          <div>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0])}
+            />
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploadingLogo}
+              className="h-10 px-4 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploadingLogo ? "Enviando..." : "Enviar logo (PNG/JPG)"}
+            </button>
+            <p className="text-xs text-slate-500 mt-1.5">PNG, JPG, WebP ou SVG — até 5 MB.</p>
+          </div>
+        </div>
       </section>
 
       {/* Contato */}
