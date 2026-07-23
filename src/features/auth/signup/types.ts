@@ -51,7 +51,7 @@ export const emptyProfessionalFields = (): ProfessionalFieldsState => ({
 export const PROPERTY_TYPES = [
   { value: "casa", label: "Casa" },
   { value: "apartamento", label: "Apartamento" },
-  { value: "sala_comercial", label: "Sala Comercial" },
+  { value: "sala_comercial", label: "Comercial" },
   { value: "condominio", label: "Condomínio" },
 ] as const;
 
