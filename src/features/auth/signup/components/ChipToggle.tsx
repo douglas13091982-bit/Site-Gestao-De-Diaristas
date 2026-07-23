@@ -8,12 +8,15 @@ type Props = {
 };
 
 export function ChipToggle({ active, onClick, children, size = "sm" }: Props) {
-  const sizing = size === "md" ? "h-10 px-3 text-sm" : "px-3 py-1.5 text-xs";
+  const sizing =
+    size === "md"
+      ? "min-h-10 px-3 py-2 text-sm text-center leading-tight"
+      : "px-3 py-1.5 text-xs";
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full border transition ${sizing} ${
+      className={`inline-flex items-center justify-center gap-2 rounded-full border transition whitespace-normal ${sizing} ${
         active
           ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
           : "border-primary/20 bg-primary/10 text-foreground/80 hover:bg-primary/20"
