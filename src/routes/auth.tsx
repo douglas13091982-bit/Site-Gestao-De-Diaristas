@@ -44,7 +44,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: (search.redirect as "/dashboard") ?? "/dashboard" });
+    if (!loading && user) navigate({ to: (search.redirect as "/") ?? "/" });
   }, [user, loading, navigate, search.redirect]);
 
   async function submit(e: React.FormEvent) {
