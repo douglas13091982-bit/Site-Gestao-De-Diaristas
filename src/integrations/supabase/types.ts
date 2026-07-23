@@ -156,6 +156,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "booking_offers_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bookings: {
@@ -270,10 +277,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bookings_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
             referencedColumns: ["id"]
           },
         ]
@@ -371,6 +392,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_transactions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
@@ -407,6 +435,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
             referencedColumns: ["id"]
           },
         ]
@@ -525,6 +560,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "professional_availability_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       professional_blocked_dates: {
@@ -558,6 +600,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_blocked_dates_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
             referencedColumns: ["id"]
           },
         ]
@@ -703,6 +752,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       reviews: {
@@ -755,10 +811,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "public_professionals"
             referencedColumns: ["id"]
           },
         ]
@@ -828,7 +898,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_professionals: {
+        Row: {
+          bio: string | null
+          city: string | null
+          city_slug: string | null
+          experience: string | null
+          full_name: string | null
+          hourly_rate: number | null
+          id: string | null
+          is_available: boolean | null
+          is_verified: boolean | null
+          neighborhoods: string | null
+          profession_category: string | null
+          profile_photo: string | null
+          rating: number | null
+          regions: string | null
+          specialties: string[] | null
+          total_bookings: number | null
+          total_reviews: number | null
+        }
+        Insert: {
+          bio?: string | null
+          city?: string | null
+          city_slug?: string | null
+          experience?: string | null
+          full_name?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          neighborhoods?: string | null
+          profession_category?: string | null
+          profile_photo?: string | null
+          rating?: number | null
+          regions?: string | null
+          specialties?: string[] | null
+          total_bookings?: number | null
+          total_reviews?: number | null
+        }
+        Update: {
+          bio?: string | null
+          city?: string | null
+          city_slug?: string | null
+          experience?: string | null
+          full_name?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          neighborhoods?: string | null
+          profession_category?: string | null
+          profile_photo?: string | null
+          rating?: number | null
+          regions?: string | null
+          specialties?: string[] | null
+          total_bookings?: number | null
+          total_reviews?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
