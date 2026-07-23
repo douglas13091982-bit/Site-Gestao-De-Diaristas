@@ -48,13 +48,87 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
       <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <body>
+        <div
+          id="gersepa-splash"
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1.5rem",
+            background: "linear-gradient(135deg, #10b981 0%, #3aa8d8 100%)",
+            transition: "opacity 400ms ease",
+            pointerEvents: "none",
+          }}
+        >
+          <img
+            src="/icons/icon-512.png"
+            alt="Gersepa Solutions"
+            width={140}
+            height={140}
+            style={{
+              width: 140,
+              height: 140,
+              borderRadius: 32,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              animation: "gersepaSplashPulse 1.4s ease-in-out infinite",
+            }}
+          />
+          <div style={{ fontFamily: "Sora, system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: "#fff", letterSpacing: "0.02em" }}>
+            Gersepa Solutions
+          </div>
+          <div
+            style={{
+              width: 48,
+              height: 3,
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.4)",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "#fff",
+                animation: "gersepaSplashBar 1.2s ease-in-out infinite",
+              }}
+            />
+          </div>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes gersepaSplashPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+                @keyframes gersepaSplashBar { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+                #gersepa-splash.gersepa-splash-hide { opacity: 0; }
+              `,
+            }}
+          />
+        </div>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  React.useEffect(() => {
+    const el = document.getElementById("gersepa-splash");
+    if (!el) return;
+    const t = window.setTimeout(() => {
+      el.classList.add("gersepa-splash-hide");
+      window.setTimeout(() => el.remove(), 500);
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
