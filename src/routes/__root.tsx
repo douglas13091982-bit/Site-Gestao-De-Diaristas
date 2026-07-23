@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { MobileAppShell, MobileBottomSpacer } from "@/components/MobileAppShell";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { registerAppServiceWorker } from "@/lib/register-sw";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -201,6 +203,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   React.useEffect(() => {
+    registerAppServiceWorker();
     const el = document.getElementById("gersepa-splash");
     if (!el) return;
     const w = window as unknown as { __gersepaSplashClear?: () => void };
@@ -217,6 +220,7 @@ function RootComponent() {
         <Outlet />
         <MobileBottomSpacer />
         <MobileAppShell />
+        <InstallPrompt />
         <Toaster position="top-right" richColors />
       </AuthProvider>
     </QueryClientProvider>
