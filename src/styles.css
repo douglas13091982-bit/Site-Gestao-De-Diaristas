@@ -38,9 +38,9 @@
 :root {
   --radius: 1rem;
 
-  /* Gersepa — Emerald & Mint palette (mocha reference) */
-  --bc-navy: #0b1f1a;      /* deep ink */
-  --bc-navy-2: #123a2f;    /* mid green ink */
+  /* Gersepa — Emerald & Sky palette */
+  --bc-navy: #0a2f4a;      /* deep sky-navy ink */
+  --bc-navy-2: #123f5c;    /* mid navy ink */
   --bc-teal: #10b981;      /* signature emerald */
   --bc-teal-soft: #6ee7b7; /* emerald luminance */
   --bc-sky: #3aa8d8;       /* signature sky blue */
