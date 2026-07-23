@@ -133,7 +133,7 @@ function AuthPage() {
 
           {mode === "signin" && (
             <PasswordSetupCard
-              highlighted={needsSetup}
+              highlighted={false}
               sending={sending}
               onRequest={requestPasswordSetup}
             />
