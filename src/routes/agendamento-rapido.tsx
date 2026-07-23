@@ -62,7 +62,7 @@ function QuickBookingPage() {
       const cityName = cities.data?.find(c => c.slug === parsed.data.city_slug)?.name ?? parsed.data.city_slug;
       const emailInput = user?.email ?? (fd.get("email") as string) ?? null;
       const cleanEmail = emailInput ? sanitizeEmail(emailInput) : null;
-      const { error } = await supabase.from("bookings").insert({
+      const { data: inserted, error } = await supabase.from("bookings").insert({
         ...parsed.data,
         city: sanitizeText(cityName, { maxLength: 80, collapseWhitespace: true }),
         address: sanitizeText(parsed.data.address, { maxLength: 200, collapseWhitespace: true }),
@@ -72,8 +72,16 @@ function QuickBookingPage() {
         payment_status: "pending",
         client_id: user?.id ?? null,
         client_email: cleanEmail,
-      });
+      }).select("id").maybeSingle();
       if (error) throw error;
+      if (inserted?.id) {
+        try {
+          const { broadcastNewBookingPush } = await import("@/lib/push.functions");
+          await broadcastNewBookingPush({ data: { bookingId: inserted.id } });
+        } catch (pushErr) {
+          console.warn("[push] falha ao notificar diaristas", pushErr);
+        }
+      }
       toast.success("Solicitação enviada! Você receberá propostas em breve.");
       nav({ to: user ? "/bookings" : "/" });
     } catch (err: unknown) {
