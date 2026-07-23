@@ -30,10 +30,10 @@ export function useCategoriesQuery() {
   });
 }
 
-export function useCategorySpecialtiesQuery(categoryId: string | undefined) {
+export function useCategorySpecialtiesQuery(categoryId: number | undefined) {
   return useQuery({
     queryKey: ["cadastro-specialties", categoryId],
-    enabled: !!categoryId,
+    enabled: categoryId != null,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("category_specialties")
