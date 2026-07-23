@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/image-utils";
 
 export const Route = createFileRoute("/_authenticated/pro/profile")({
   component: ProfilePage,
@@ -69,16 +70,16 @@ function ProfilePage() {
 
   const upd = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
 
-  const uploadPhoto = async (file: File) => {
+  const uploadPhoto = async (input: File) => {
     if (!user) return;
-    if (file.size > 5 * 1024 * 1024) {
+    if (input.size > 10 * 1024 * 1024) {
       toast.error("Foto muito grande. Máximo 5 MB.");
       return;
     }
     setUploading(true);
     try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const file = await compressImage(input, { maxWidth: 1200, maxHeight: 1200, quality: 0.82 });
+      const path = `${user.id}/avatar-${Date.now()}.webp`;
       const { error: upErr } = await supabase.storage.from("professional-photos").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data: signed, error: sErr } = await supabase.storage.from("professional-photos").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);

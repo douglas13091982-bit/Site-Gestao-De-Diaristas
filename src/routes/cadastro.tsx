@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/image-utils";
 
 const searchSchema = z.object({
   tipo: fallback(z.string(), "").default(""),
@@ -238,9 +239,9 @@ function CadastroPage() {
           // Upload da foto (bucket privado -> signed URL 10 anos)
           let photoUrl: string | null = null;
           if (photoFile) {
-            const ext = photoFile.name.split(".").pop() || "jpg";
-            const path = `${userId}/profile.${ext}`;
-            const up = await supabase.storage.from("professional-photos").upload(path, photoFile, { upsert: true, contentType: photoFile.type });
+            const compressed = await compressImage(photoFile, { maxWidth: 1200, maxHeight: 1200, quality: 0.82 });
+            const path = `${userId}/profile.webp`;
+            const up = await supabase.storage.from("professional-photos").upload(path, compressed, { upsert: true, contentType: compressed.type });
             if (up.error) {
               toast.error("Falha ao enviar foto: " + up.error.message);
             } else {
