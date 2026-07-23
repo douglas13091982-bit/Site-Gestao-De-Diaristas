@@ -14,6 +14,7 @@ import {
   LogOut,
   Users as UsersIcon,
   Settings,
+  Bell,
 } from "lucide-react";
 
 type Profile = { full_name: string | null; profile_photo: string | null };

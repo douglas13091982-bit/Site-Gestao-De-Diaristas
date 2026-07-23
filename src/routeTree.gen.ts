@@ -26,6 +26,7 @@ import { Route as CategoriasSlugRouteImport } from './routes/categorias.$slug'
 import { Route as AgendamentoSucessoIdRouteImport } from './routes/agendamento-sucesso.$id'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -138,6 +139,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificacoesRoute =
+  AuthenticatedNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClienteRoute = AuthenticatedClienteRouteImport.update({
   id: '/cliente',
   path: '/cliente',
@@ -306,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/cliente': typeof AuthenticatedClienteRouteWithChildren
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
   '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
@@ -349,6 +357,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
   '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
@@ -396,6 +405,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/cliente': typeof AuthenticatedClienteRouteWithChildren
+  '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
   '/agendamento-sucesso/$id': typeof AgendamentoSucessoIdRoute
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookings'
     | '/cliente'
+    | '/notificacoes'
     | '/onboarding'
     | '/pro'
     | '/agendamento-sucesso/$id'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/seja-diarista'
     | '/bookings'
+    | '/notificacoes'
     | '/onboarding'
     | '/pro'
     | '/agendamento-sucesso/$id'
@@ -532,6 +544,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/cliente'
+    | '/_authenticated/notificacoes'
     | '/_authenticated/onboarding'
     | '/_authenticated/pro'
     | '/agendamento-sucesso/$id'
@@ -702,6 +715,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notificacoes': {
+      id: '/_authenticated/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cliente': {
@@ -983,6 +1003,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedClienteRoute: typeof AuthenticatedClienteRouteWithChildren
+  AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
 }
@@ -991,6 +1012,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedClienteRoute: AuthenticatedClienteRouteWithChildren,
+  AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
 }
