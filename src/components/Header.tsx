@@ -43,7 +43,7 @@ export function Header() {
           ) : (
             <>
               <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-primary">Entrar</Link>
-              <Link to="/auth" search={{ mode: "signup" } as never}>
+              <Link to="/cadastro">
                 <Button size="sm">Cadastrar</Button>
               </Link>
             </>
