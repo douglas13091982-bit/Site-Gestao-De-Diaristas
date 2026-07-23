@@ -297,8 +297,6 @@ function AgendamentoPage() {
         data: {
           professional_id: s.pro,
           package_id: selectedPkg.id,
-          duration_hours: Number(selectedPkg.duration_hours),
-          total_price: Number(selectedPkg.price),
           booking_date: date,
           start_time: time,
           property_type: s.type,
@@ -309,7 +307,6 @@ function AgendamentoPage() {
           city: cityName || null,
           city_slug: pro.data?.city_slug ?? s.city ?? null,
           notes: notes || null,
-          client_id: user?.id ?? null,
           client_name: user?.user_metadata?.full_name ?? guestName ?? null,
           client_email: clientEmail,
           client_phone: user ? (user.user_metadata?.phone ?? null) : (guestPhone || null),
