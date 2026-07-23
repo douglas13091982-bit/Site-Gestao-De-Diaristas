@@ -444,7 +444,7 @@ function AgendamentoPage() {
             </div>
 
             <div>
-              <Label className="text-sm">Selecione o Horário</Label>
+              <Label className="text-sm">Selecione o Horário de Início</Label>
               <div className="mt-2 grid grid-cols-4 sm:grid-cols-8 gap-2">
                 {times.map(t => {
                   const active = time === t;
