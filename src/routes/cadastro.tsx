@@ -184,10 +184,6 @@ function CadastroPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!tipo) return;
-    if (!accept) {
-      toast.error("Você precisa aceitar os Termos de Uso.");
-      return;
-    }
     if (tipo === "client" && !propertyType) {
       toast.error("Selecione o tipo de imóvel.");
       return;
@@ -681,30 +677,8 @@ function CadastroPage() {
                 </>
               )}
 
-              <label className="flex items-start gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={accept}
-                  onChange={(e) => setAccept(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-input accent-primary"
-                />
-                <span>
-                  Li e aceito os <a className="text-primary underline" href="/termos" target="_blank" rel="noreferrer">Termos de Uso</a> e a{" "}
-                  <a className="text-primary underline" href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.
-                </span>
-              </label>
-
               <Button type="submit" className="w-full" disabled={busy}>
                 {busy ? "Criando…" : "Criar Conta"}
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                <div className="relative flex justify-center"><span className="bg-card px-3 text-xs uppercase text-muted-foreground">ou</span></div>
-              </div>
-
-              <Button type="button" variant="outline" className="w-full" onClick={google}>
-                Continuar com Google
               </Button>
             </form>
           )}
