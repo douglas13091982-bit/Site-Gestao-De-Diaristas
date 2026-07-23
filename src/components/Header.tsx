@@ -18,13 +18,11 @@ export function Header() {
           {logoUrl ? (
             <img src={logoUrl} alt={siteName} className="h-8 md:h-9 w-auto object-contain" />
           ) : (
-            <>
-              <span className="inline-flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
-              </span>
-              <span className="text-foreground text-base md:text-lg">{brand}<span className="text-primary"> {sub}</span></span>
-            </>
+            <span className="inline-flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
+            </span>
           )}
+          <span className="text-foreground text-base md:text-lg">{brand}<span className="text-primary"> {sub}</span></span>
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>
