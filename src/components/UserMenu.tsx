@@ -17,7 +17,7 @@ import {
   Settings,
 } from "lucide-react";
 
-type Profile = { full_name: string | null; avatar_url: string | null };
+type Profile = { full_name: string | null; profile_photo: string | null };
 
 export function UserMenu() {
   const { user, roles, signOut } = useAuth();
@@ -29,10 +29,10 @@ export function UserMenu() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("full_name, avatar_url")
+      .select("full_name, profile_photo")
       .eq("id", user.id)
       .maybeSingle()
-      .then(({ data }) => setProfile(data as Profile));
+      .then(({ data }) => setProfile((data as Profile | null) ?? null));
   }, [user]);
 
   useEffect(() => {
@@ -68,8 +68,8 @@ export function UserMenu() {
         aria-expanded={open}
       >
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden">
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt={name} className="h-full w-full object-cover" />
+          {profile?.profile_photo ? (
+            <img src={profile.profile_photo} alt={name} className="h-full w-full object-cover" />
           ) : (
             <span className="text-sm font-semibold">{initial}</span>
           )}
