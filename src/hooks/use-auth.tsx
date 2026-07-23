@@ -20,23 +20,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    let mounted = true;
+
+    const applySession = async (s: Session | null) => {
+      if (!mounted) return;
       setSession(s);
-      if (s?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", s.user.id)
-          .then(({ data }) => setRoles((data ?? []).map((r) => r.role as Role)));
-      } else {
+
+      if (!s?.user) {
         setRoles([]);
+        setLoading(false);
+        return;
       }
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", s.user.id);
+
+      if (!mounted) return;
+      setRoles((data ?? []).map((r) => r.role as Role));
       setLoading(false);
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setLoading(true);
+      void applySession(s);
     });
-    return () => sub.subscription.unsubscribe();
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => applySession(data.session))
+      .catch(() => {
+        if (!mounted) return;
+        setSession(null);
+        setRoles([]);
+        setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const value: AuthCtx = {
