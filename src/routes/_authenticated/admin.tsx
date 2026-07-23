@@ -1,5 +1,5 @@
-import { createFileRoute, Link, Outlet, useRouterState, redirect } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, Outlet, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -68,6 +68,14 @@ const GROUPS: NavGroup[] = [
 function AdminLayout() {
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  };
   return (
     <div className="min-h-screen flex bg-slate-50">
       <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col sticky top-0 h-screen">
@@ -80,7 +88,7 @@ function AdminLayout() {
         </nav>
         <div className="border-t border-slate-800 px-4 py-3 text-xs">
           <div className="text-slate-400 mb-1.5 truncate">{user?.email}</div>
-          <button onClick={signOut} className="flex items-center gap-2 text-slate-300 hover:text-white">
+          <button onClick={handleSignOut} className="flex items-center gap-2 text-slate-300 hover:text-white">
             <LogOut className="h-4 w-4" /> Sair do Admin
           </button>
         </div>
