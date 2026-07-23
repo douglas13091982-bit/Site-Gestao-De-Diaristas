@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
               const match = /^booking:(\d+)$/.exec(ref);
               if (match && pay.status === "approved") {
                 const bookingId = Number(match[1]);
-                await supabaseAdmin
+                const { data: upd } = await supabaseAdmin
                   .from("bookings")
                   .update({
                     payment_status: "paid",
@@ -93,7 +93,17 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                     status: "pending",
                   })
                   .eq("id", bookingId)
-                  .neq("payment_status", "paid");
+                  .neq("payment_status", "paid")
+                  .select("id, professional_id")
+                  .maybeSingle();
+                if (upd?.professional_id) {
+                  try {
+                    const { notifyProfessionalBookingConfirmed } = await import("@/lib/push.functions");
+                    await notifyProfessionalBookingConfirmed({ data: { bookingId } });
+                  } catch (e) {
+                    console.warn("[push] falha ao notificar profissional (pix)", e);
+                  }
+                }
               }
             }
           }
