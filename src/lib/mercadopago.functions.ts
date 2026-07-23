@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const inputSchema = z.object({
   professional_id: z.string().uuid(),
-  package_id: z.number().int().optional().nullable(),
-  duration_hours: z.number().int().min(1).max(12),
-  total_price: z.number().positive(),
+  // Preço e duração são derivados no servidor a partir de pricing_packages.
+  package_id: z.number().int().positive(),
   booking_date: z.string(),
   start_time: z.string(),
   property_type: z.string().optional().nullable(),
@@ -16,7 +16,7 @@ const inputSchema = z.object({
   city: z.string().optional().nullable(),
   city_slug: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  client_id: z.string().uuid().optional().nullable(),
+  // client_id NUNCA é aceito do corpo — vem exclusivamente do bearer token.
   client_name: z.string().optional().nullable(),
   client_email: z.string().email(),
   client_phone: z.string().optional().nullable(),
@@ -34,6 +34,39 @@ export const createPayment = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // ---- Autorização opcional ----------------------------------------
+    // Se houver bearer válido, prendemos o booking ao usuário autenticado.
+    // Sem bearer, é guest checkout (client_id fica nulo). O corpo NUNCA
+    // pode escolher outro dono para o agendamento.
+    let authenticatedUserId: string | null = null;
+    try {
+      const req = getRequest();
+      const authHeader = req?.headers.get("authorization") ?? "";
+      if (authHeader.startsWith("Bearer ")) {
+        const token = authHeader.slice("Bearer ".length).trim();
+        if (token) {
+          const { data: claims } = await supabaseAdmin.auth.getClaims(token);
+          authenticatedUserId = claims?.claims?.sub ?? null;
+        }
+      }
+    } catch {
+      authenticatedUserId = null;
+    }
+
+    // ---- Preço/duração derivados no servidor -------------------------
+    const { data: pkg, error: pkgErr } = await supabaseAdmin
+      .from("pricing_packages")
+      .select("id, duration_hours, price, is_enabled")
+      .eq("id", data.package_id)
+      .maybeSingle();
+    if (pkgErr || !pkg) throw new Error("Pacote de preço não encontrado.");
+    if (pkg.is_enabled === false) throw new Error("Pacote de preço indisponível.");
+    const trustedPrice = Number(pkg.price);
+    const trustedDuration = Number(pkg.duration_hours);
+    if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
+      throw new Error("Pacote de preço inválido.");
+    }
 
     const { data: settingsRows, error: settingsErr } = await supabaseAdmin
       .from("app_settings")
@@ -63,7 +96,7 @@ export const createPayment = createServerFn({ method: "POST" })
     const { data: booking, error: bkErr } = await supabaseAdmin
       .from("bookings")
       .insert({
-        client_id: data.client_id ?? null,
+        client_id: authenticatedUserId,
         client_email: data.client_email,
         client_name: data.client_name ?? null,
         client_phone: data.client_phone ?? null,
@@ -73,7 +106,7 @@ export const createPayment = createServerFn({ method: "POST" })
         property_type: data.property_type ?? null,
         booking_date: data.booking_date,
         start_time: data.start_time,
-        duration_hours: data.duration_hours,
+        duration_hours: trustedDuration,
         rooms: data.rooms ?? null,
         bathrooms: data.bathrooms ?? null,
         address: data.address,
@@ -82,10 +115,10 @@ export const createPayment = createServerFn({ method: "POST" })
         city_slug: data.city_slug ?? null,
         notes: data.notes ?? null,
         status: "awaiting_payment",
-        total_price: data.total_price,
+        total_price: trustedPrice,
         payment_method: method,
         payment_status: "pending",
-        payment_amount: data.total_price,
+        payment_amount: trustedPrice,
       })
       .select("id, guest_token")
       .single();
@@ -104,7 +137,7 @@ export const createPayment = createServerFn({ method: "POST" })
       try {
       const idempotencyKey = `bk-${booking.id}-${Date.now()}`;
       const mpBody: Record<string, unknown> = {
-        transaction_amount: Number(Number(data.total_price).toFixed(2)),
+        transaction_amount: Number(trustedPrice.toFixed(2)),
         description: `Agendamento Gersepa #${booking.id}`,
         external_reference: `booking:${booking.id}`,
         payer: {
@@ -191,7 +224,7 @@ export const createPayment = createServerFn({ method: "POST" })
       const isProd = (s.ps_environment ?? "sandbox") === "production";
       const base = isProd ? "https://api.pagseguro.com" : "https://sandbox.api.pagseguro.com";
 
-      const cents = Math.round(Number(data.total_price) * 100);
+      const cents = Math.round(trustedPrice * 100);
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
       const payload = {
