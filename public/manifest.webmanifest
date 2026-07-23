@@ -1,20 +1,26 @@
 {
-  "name": "ROTA 66 — Entregador",
-  "short_name": "ROTA 66",
-  "description": "App do entregador ROTA 66 — gerencie suas entregas em tempo real.",
-  "start_url": "/entregador",
+  "name": "Gersepa Solutions — Diaristas em Joinville",
+  "short_name": "Gersepa",
+  "description": "Marketplace de diaristas premium em Joinville. Agende, pague com segurança e receba sua profissional em casa.",
+  "start_url": "/",
   "scope": "/",
-  "id": "/entregador",
+  "id": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#132b4f",
-  "theme_color": "#cc2229",
+  "background_color": "#f0faf5",
+  "theme_color": "#10b981",
   "lang": "pt-BR",
-  "categories": ["business", "productivity"],
+  "dir": "ltr",
+  "categories": ["business", "lifestyle", "productivity"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
     { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Agendar diarista", "short_name": "Agendar", "url": "/agendamento", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Meus agendamentos", "short_name": "Agenda", "url": "/cliente/agendamentos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Área da diarista", "short_name": "Pro", "url": "/pro", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
