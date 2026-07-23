@@ -214,8 +214,14 @@ function CadastroPage() {
     setBusy(true);
     try {
       // Validação de senha forte
-      if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-        toast.error("A senha deve ter no mínimo 8 caracteres, com letras e números.");
+      if (
+        password.length < 8 ||
+        !/[a-z]/.test(password) ||
+        !/[A-Z]/.test(password) ||
+        !/\d/.test(password) ||
+        !/[^A-Za-z0-9]/.test(password)
+      ) {
+        toast.error("A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.");
         setBusy(false);
         return;
       }
@@ -407,18 +413,24 @@ function CadastroPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
-                  placeholder="Mínimo 8 caracteres, com letras e números"
+                  placeholder="Mín. 8 caract., com A-Z, a-z, número e símbolo"
                   aria-describedby="password-help"
                 />
                 <ul id="password-help" className="text-xs text-muted-foreground space-y-0.5 mt-1">
                   <li className={password.length >= 8 ? "text-emerald-600" : ""}>
                     {password.length >= 8 ? "✓" : "•"} Pelo menos 8 caracteres
                   </li>
-                  <li className={/[A-Za-z]/.test(password) ? "text-emerald-600" : ""}>
-                    {/[A-Za-z]/.test(password) ? "✓" : "•"} Pelo menos uma letra (a–z)
+                  <li className={/[A-Z]/.test(password) ? "text-emerald-600" : ""}>
+                    {/[A-Z]/.test(password) ? "✓" : "•"} Uma letra maiúscula (A–Z)
+                  </li>
+                  <li className={/[a-z]/.test(password) ? "text-emerald-600" : ""}>
+                    {/[a-z]/.test(password) ? "✓" : "•"} Uma letra minúscula (a–z)
                   </li>
                   <li className={/\d/.test(password) ? "text-emerald-600" : ""}>
-                    {/\d/.test(password) ? "✓" : "•"} Pelo menos um número (0–9)
+                    {/\d/.test(password) ? "✓" : "•"} Um número (0–9)
+                  </li>
+                  <li className={/[^A-Za-z0-9]/.test(password) ? "text-emerald-600" : ""}>
+                    {/[^A-Za-z0-9]/.test(password) ? "✓" : "•"} Um caractere especial (!@#$%…)
                   </li>
                 </ul>
               </div>
