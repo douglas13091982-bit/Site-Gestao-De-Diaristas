@@ -3,17 +3,28 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sparkles, MapPin, ChevronDown } from "lucide-react";
 import { UserMenu } from "@/components/UserMenu";
+import { useBranding } from "@/hooks/use-branding";
 
 export function Header() {
   const { user } = useAuth();
+  const { logoUrl, siteName } = useBranding();
+  const [brand, sub] = siteName.includes(" ")
+    ? [siteName.split(" ")[0], siteName.split(" ").slice(1).join(" ")]
+    : [siteName, ""];
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto h-14 md:h-16 px-4 md:px-6 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2 font-bold shrink-0">
-          <span className="inline-flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
-          </span>
-          <span className="text-foreground text-base md:text-lg">Gersepa<span className="text-primary"> Solutions</span></span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="h-8 md:h-9 w-auto object-contain" />
+          ) : (
+            <>
+              <span className="inline-flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
+              </span>
+              <span className="text-foreground text-base md:text-lg">{brand}<span className="text-primary"> {sub}</span></span>
+            </>
+          )}
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>
