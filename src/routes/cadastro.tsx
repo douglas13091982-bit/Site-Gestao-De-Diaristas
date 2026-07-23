@@ -273,7 +273,7 @@ function CadastroPage() {
         }
       }
       toast.success("Conta criada com sucesso!");
-      nav({ to: tipo === "professional" ? "/onboarding" : "/dashboard" });
+      nav({ to: tipo === "professional" ? "/onboarding" : "/" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar conta");
     } finally {
