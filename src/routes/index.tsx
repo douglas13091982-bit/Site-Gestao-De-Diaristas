@@ -205,20 +205,20 @@ function ModeButton({
       onClick={onClick}
       className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
         active
-          ? "border-[var(--bc-teal-soft)] bg-white/10"
-          : "border-white/10 bg-white/[0.03] hover:border-white/30"
+          ? "border-[var(--bc-teal)] bg-[var(--bc-mist)]"
+          : "border-black/10 bg-white hover:border-[var(--bc-teal)]/40"
       }`}
     >
       <span
         className={`h-9 w-9 shrink-0 rounded-xl grid place-items-center transition-colors ${
-          active ? "bg-[var(--bc-teal-soft)] text-[var(--bc-navy)]" : "bg-white/10 text-[var(--bc-teal-soft)]"
+          active ? "bg-[var(--bc-teal)] text-white" : "bg-[var(--bc-mist)] text-[var(--bc-teal)]"
         }`}
       >
         {icon}
       </span>
       <span className="flex-1 min-w-0">
-        <span className="block font-semibold text-sm text-white">{title}</span>
-        <span className="block text-[11px] text-white/50 truncate">{desc}</span>
+        <span className="block font-semibold text-sm text-[var(--bc-navy)]">{title}</span>
+        <span className="block text-[11px] text-[var(--bc-navy-2)]/60 truncate">{desc}</span>
       </span>
     </button>
   );
