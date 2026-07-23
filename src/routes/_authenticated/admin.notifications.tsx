@@ -155,6 +155,14 @@ function AdminNotifications() {
     <div className="p-8">
       <AdminPageHeader title="Notificações Push" subtitle="Envie notificações in-app para clientes e diaristas da plataforma" />
 
+      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-slate-900">Receber notificações neste dispositivo</p>
+          <p className="text-xs text-slate-500">Necessário para testar o envio de push para você.</p>
+        </div>
+        <PushNotificationButton />
+      </div>
+
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-5">
           <Bell className="w-5 h-5 text-emerald-600" />
