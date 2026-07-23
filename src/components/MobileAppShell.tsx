@@ -15,10 +15,10 @@ export function MobileAppShell() {
   const [open, setOpen] = useState(false);
   const path = loc.pathname;
 
+  useEffect(() => { setOpen(false); }, [path]);
+
   const hiddenPrefixes = ["/pro", "/cliente", "/admin", "/auth", "/cadastro", "/onboarding", "/dashboard", "/bookings"];
   if (hiddenPrefixes.some((p) => path === p || path.startsWith(p + "/"))) return null;
-
-  useEffect(() => { setOpen(false); }, [path]);
 
   const tabs = [
     { to: "/", label: "Início", icon: Home, exact: true },
