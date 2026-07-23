@@ -325,6 +325,9 @@ function AgendamentoPage() {
       });
       if (paymentMethod === "card" && result.status === "approved") {
         toast.success("Pagamento aprovado! Agendamento confirmado.");
+      } else if (paymentMethod === "card" && result.status === "rejected") {
+        toast.error("Pagamento recusado. Verifique os dados do cartão ou tente outro.");
+        return;
       } else if (paymentMethod === "card") {
         toast.info(`Pagamento em análise (${result.status}). Você será notificado.`);
       } else {

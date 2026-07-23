@@ -101,7 +101,7 @@ export const createPayment = createServerFn({ method: "POST" })
         await failBooking(supabaseAdmin, booking.id);
         throw new Error("Mercado Pago não configurado. Peça ao administrador para preencher o Access Token.");
       }
-
+      try {
       const idempotencyKey = `bk-${booking.id}-${Date.now()}`;
       const mpBody: Record<string, unknown> = {
         transaction_amount: Number(Number(data.total_price).toFixed(2)),
@@ -174,6 +174,10 @@ export const createPayment = createServerFn({ method: "POST" })
         qrBase64: td.qr_code_base64 ?? null,
         ticketUrl: td.ticket_url ?? null,
       };
+      } catch (e) {
+        await failBooking(supabaseAdmin, booking.id);
+        throw e instanceof Error ? e : new Error("Falha ao processar pagamento Mercado Pago.");
+      }
     }
 
     // -------------------- PAGSEGURO (PIX) --------------------
@@ -183,6 +187,7 @@ export const createPayment = createServerFn({ method: "POST" })
         await failBooking(supabaseAdmin, booking.id);
         throw new Error("PagSeguro não configurado. Peça ao administrador para preencher o Token.");
       }
+      try {
       const isProd = (s.ps_environment ?? "sandbox") === "production";
       const base = isProd ? "https://api.pagseguro.com" : "https://sandbox.api.pagseguro.com";
 
@@ -244,6 +249,10 @@ export const createPayment = createServerFn({ method: "POST" })
         qrImageUrl: qrPng,
         ticketUrl: null,
       };
+      } catch (e) {
+        await failBooking(supabaseAdmin, booking.id);
+        throw e instanceof Error ? e : new Error("Falha ao processar pagamento PagSeguro.");
+      }
     }
 
     await failBooking(supabaseAdmin, booking.id);

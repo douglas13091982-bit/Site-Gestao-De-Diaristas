@@ -75,6 +75,8 @@ function AuthPage() {
           return;
         }
         toast.success("Conta criada! Complete seu perfil.");
+        navigate({ to: role === "professional" ? "/onboarding" : "/" });
+        return;
       } else {
         const r = await signInWithPassword(email, password, checkEmail);
         if (!r.ok && r.needsSetup) {

@@ -117,11 +117,8 @@ export function UserMenu() {
                 <MenuLink to="/pro/leads" onClick={close} icon={<CalendarCheck className="h-4 w-4" />}>
                   Próximos Serviços
                 </MenuLink>
-                <MenuLink to="/pro/history" onClick={close} icon={<History className="h-4 w-4" />}>
-                  Histórico
-                </MenuLink>
-                <MenuLink to="/pro/availability" onClick={close} icon={<CalendarDays className="h-4 w-4" />}>
-                  Disponibilidade
+                <MenuLink to="/pro/agenda" onClick={close} icon={<CalendarDays className="h-4 w-4" />}>
+                  Minha Agenda
                 </MenuLink>
                 <MenuLink to="/pro/profile" onClick={close} icon={<UserIcon className="h-4 w-4" />}>
                   Meu Perfil
