@@ -1,5 +1,25 @@
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+
+// Toggle simples (checkbox estilizado) — evita dependência extra de shadcn/switch.
+function DayToggle({
+  checked,
+  disabled,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (v: boolean) => void;
+}) {
+  return (
+    <input
+      type="checkbox"
+      checked={checked}
+      disabled={disabled}
+      onChange={(e) => onCheckedChange(e.target.checked)}
+      className="h-4 w-4 rounded border-input accent-primary"
+    />
+  );
+}
 
 export type DayAvailability = {
   on: boolean;
@@ -52,10 +72,10 @@ export function AvailabilityGrid({ value, onChange, disabled }: Props) {
             className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card/60 px-3 py-2"
           >
             <div className="flex min-w-[8rem] items-center gap-2">
-              <Switch
+              <DayToggle
                 checked={day.on}
                 disabled={disabled}
-                onCheckedChange={(v) => update(idx, { on: Boolean(v) })}
+                onCheckedChange={(v) => update(idx, { on: v })}
               />
               <span className="text-sm font-medium">{label}</span>
             </div>
