@@ -43,7 +43,9 @@
   --bc-navy-2: #123a2f;    /* mid green ink */
   --bc-teal: #10b981;      /* signature emerald */
   --bc-teal-soft: #6ee7b7; /* emerald luminance */
-  --bc-orange: #f97316;    /* accent orange */
+  --bc-sky: #3aa8d8;       /* signature sky blue */
+  --bc-sky-soft: #7dd3fc;  /* sky luminance */
+  --bc-orange: #f97316;    /* legacy accent (retained) */
   --bc-orange-soft: #fb923c;
   --bc-paper: #f0faf5;     /* mint cream paper */
   --bc-mist: #e6f6ee;      /* soft mint surface */
@@ -60,13 +62,13 @@
   --secondary-foreground: var(--bc-navy);
   --muted: #e6f6ee;
   --muted-foreground: #4b6b5c;
-  --accent: var(--bc-orange);
+  --accent: var(--bc-sky);
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #d3ecdd;
   --input: #d3ecdd;
-  --ring: var(--bc-orange);
+  --ring: var(--bc-teal);
 
   --font-display: 'Sora', 'Inter', system-ui, sans-serif;
   --font-body: 'Manrope', 'Inter', system-ui, sans-serif;
@@ -77,12 +79,14 @@
 
   --gradient-hero: linear-gradient(180deg, #ffffff 0%, var(--bc-paper) 100%);
   --gradient-quote: linear-gradient(135deg, var(--bc-navy) 0%, var(--bc-navy-2) 100%);
-  --gradient-cta: linear-gradient(135deg, var(--bc-orange) 0%, var(--bc-orange-soft) 100%);
+  --gradient-cta: linear-gradient(90deg, var(--bc-teal) 0%, var(--bc-sky) 100%);
+  --gradient-brand: linear-gradient(90deg, var(--bc-teal) 0%, var(--bc-sky) 100%);
 
   --shadow-card: 0 1px 2px rgb(12 35 64 / 0.04), 0 8px 30px -12px rgb(12 35 64 / 0.10);
   --shadow-elevated: 0 8px 24px -8px rgb(12 35 64 / 0.14), 0 32px 80px -32px rgb(12 35 64 / 0.25);
   --shadow-glow-teal: 0 12px 40px -12px rgb(42 138 134 / 0.45);
   --shadow-glow-orange: 0 12px 40px -12px rgb(239 123 42 / 0.45);
+  --shadow-glow-sky: 0 12px 40px -12px rgb(58 168 216 / 0.45);
 
   --dot-pattern: radial-gradient(circle, rgba(15,76,74,0.08) 1px, transparent 1px);
   --plus-pattern:
