@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X, Zap } from "lucide-react";
 import { sendPushToUsers } from "@/lib/push.functions";
+import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 type Audience = "all" | "professionals" | "clients" | "select";
 
@@ -153,6 +154,14 @@ function AdminNotifications() {
   return (
     <div className="p-8">
       <AdminPageHeader title="Notificações Push" subtitle="Envie notificações in-app para clientes e diaristas da plataforma" />
+
+      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-slate-900">Receber notificações neste dispositivo</p>
+          <p className="text-xs text-slate-500">Necessário para testar o envio de push para você.</p>
+        </div>
+        <PushNotificationButton />
+      </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
         <div className="flex items-center gap-2 mb-5">
