@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
+import { useServerFn } from "@tanstack/react-start";
+import { checkEmailRegistered, sendPasswordSetupEmail } from "@/lib/account.functions";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -42,6 +44,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [sending, setSending] = useState(false);
+  const checkEmail = useServerFn(checkEmailRegistered);
+  const sendSetup = useServerFn(sendPasswordSetupEmail);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: (search.redirect as "/") ?? "/" });
@@ -52,6 +58,14 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        // Se já existe conta com esse e-mail (ex: diarista importada), oferecer criação de senha
+        const check = await checkEmail({ data: { email } });
+        if (check.exists) {
+          setNeedsSetup(true);
+          setMode("signin");
+          toast.info("Este e-mail já está cadastrado. Crie sua senha para entrar.");
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
@@ -63,11 +77,45 @@ function AuthPage() {
         toast.success("Conta criada! Complete seu perfil.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          // Credenciais inválidas: verifica se é conta importada sem senha definida
+          const msg = error.message.toLowerCase();
+          if (msg.includes("invalid") || msg.includes("credentials")) {
+            const check = await checkEmail({ data: { email } });
+            if (check.exists) {
+              setNeedsSetup(true);
+              toast.info("Detectamos seu cadastro. Crie sua senha para acessar.");
+              return;
+            }
+          }
+          throw error;
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao autenticar");
     } finally { setBusy(false); }
+  }
+
+  async function requestPasswordSetup() {
+    if (!email) return toast.error("Informe seu e-mail primeiro");
+    setSending(true);
+    try {
+      const check = await checkEmail({ data: { email } });
+      if (!check.exists) {
+        toast.error("Não encontramos cadastro com este e-mail. Crie uma conta.");
+        setMode("signup");
+        return;
+      }
+      await sendSetup({
+        data: { email, redirectTo: `${window.location.origin}/reset-password` },
+      });
+      toast.success("Enviamos um link no seu e-mail para criar sua senha.");
+      setNeedsSetup(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao enviar e-mail");
+    } finally {
+      setSending(false);
+    }
   }
 
   async function google() {
@@ -121,6 +169,20 @@ function AuthPage() {
               {busy ? "..." : mode === "signin" ? "Entrar" : "Criar conta"}
             </Button>
           </form>
+
+          {mode === "signin" && (
+            <div className={`rounded-xl border p-4 text-sm space-y-2 ${needsSetup ? "border-primary bg-primary/5" : "border-border bg-muted/40"}`}>
+              <p className="font-medium">
+                {needsSetup ? "Primeiro acesso ou esqueceu a senha?" : "Já é cadastrada e não sabe a senha?"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                Enviaremos um link no seu e-mail para você criar uma nova senha e entrar.
+              </p>
+              <Button type="button" variant="outline" className="w-full" onClick={requestPasswordSetup} disabled={sending}>
+                {sending ? "Enviando..." : "Criar / redefinir senha"}
+              </Button>
+            </div>
+          )}
 
           <p className="text-center text-sm text-muted-foreground">
             {mode === "signin" ? "Não tem conta? " : "Já tem conta? "}
