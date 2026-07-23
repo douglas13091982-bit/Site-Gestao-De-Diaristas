@@ -76,7 +76,7 @@ export async function submitSignup(payload: SignupPayload) {
 
   if (payload.tipo === "client") {
     const f = payload.fields;
-    await supabase.from("profiles").update({
+    const { error: upErr } = await supabase.from("profiles").update({
       ...base,
       cpf: f.cpf,
       property_type: f.propertyType,
@@ -85,6 +85,7 @@ export async function submitSignup(payload: SignupPayload) {
       address_neighborhood: f.neighborhood,
       address_complement: f.complement || null,
     }).eq("id", userId);
+    if (upErr) throw new Error("Falha ao salvar perfil: " + upErr.message);
     return;
   }
 
@@ -94,7 +95,7 @@ export async function submitSignup(payload: SignupPayload) {
     throw e;
   });
 
-  await supabase.from("profiles").update({
+  const { error: upProErr } = await supabase.from("profiles").update({
     ...base,
     cpf: f.cpf,
     pix_key: f.pixKey,
@@ -106,6 +107,7 @@ export async function submitSignup(payload: SignupPayload) {
     bio: f.bio || null,
     profile_photo: photoUrl,
   }).eq("id", userId);
+  if (upProErr) throw new Error("Falha ao salvar perfil profissional: " + upProErr.message);
 
   const rows = availabilityRows(userId, payload.availability);
   if (rows.length > 0) {
