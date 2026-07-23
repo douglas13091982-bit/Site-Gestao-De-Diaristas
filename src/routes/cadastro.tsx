@@ -214,8 +214,14 @@ function CadastroPage() {
     setBusy(true);
     try {
       // Validação de senha forte
-      if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-        toast.error("A senha deve ter no mínimo 8 caracteres, com letras e números.");
+      if (
+        password.length < 8 ||
+        !/[a-z]/.test(password) ||
+        !/[A-Z]/.test(password) ||
+        !/\d/.test(password) ||
+        !/[^A-Za-z0-9]/.test(password)
+      ) {
+        toast.error("A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.");
         setBusy(false);
         return;
       }
