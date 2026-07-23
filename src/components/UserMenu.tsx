@@ -92,6 +92,11 @@ export function UserMenu() {
           </div>
 
           <div className="py-1 text-sm">
+            <MenuLink to="/notificacoes" onClick={close} icon={<Bell className="h-4 w-4" />}>
+              Notificações
+            </MenuLink>
+            <Divider />
+
             {isAdmin && (
               <>
                 <MenuLink to="/admin" onClick={close} icon={<ShieldCheck className="h-4 w-4" />} highlight>
