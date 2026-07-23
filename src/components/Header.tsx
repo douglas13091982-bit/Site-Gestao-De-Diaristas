@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, MapPin, ChevronDown } from "lucide-react";
 import { UserMenu } from "@/components/UserMenu";
 
 export function Header() {
@@ -17,13 +17,27 @@ export function Header() {
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>
-          <Link to="/cidades" className="hover:text-primary transition">Cidades</Link>
-          <Link to="/categorias" className="hover:text-primary transition">Categorias</Link>
           <Link to="/professionals" className="hover:text-primary transition">Diaristas</Link>
-          <Link to="/agendamento-rapido" className="hover:text-primary transition">Agendar</Link>
+          <a href="/#sobre" className="hover:text-primary transition">Sobre</a>
+          <a
+            href="https://wa.me/5547999999999"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-primary transition"
+          >
+            Contato
+          </a>
           <Link to="/seja-diarista" className="text-primary font-semibold hover:underline">Seja Diarista</Link>
         </nav>
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:border-primary/50 transition"
+          >
+            <MapPin className="h-3.5 w-3.5 text-primary" />
+            Joinville
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
           {user ? (
             <UserMenu />
           ) : (
