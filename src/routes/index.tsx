@@ -68,7 +68,7 @@ function HeroSection({ city }: { city: string }) {
 
   return (
     <section className="relative flex flex-col lg:flex-row min-h-[92vh] border-b border-[var(--bc-navy)]/5">
-      <div className="w-full lg:w-3/5 flex items-center px-6 sm:px-10 lg:px-24 py-16 lg:py-24 relative overflow-hidden bg-white">
+      <div className="w-full lg:w-3/5 flex items-center px-6 sm:px-10 lg:px-24 pt-10 pb-6 sm:py-16 lg:py-24 relative overflow-hidden bg-white">
         <div
           aria-hidden
           className="absolute top-0 left-0 w-72 h-72 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"
@@ -89,7 +89,7 @@ function HeroSection({ city }: { city: string }) {
         </div>
       </div>
 
-      <div className="w-full lg:w-2/5 relative flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-white">
+      <div className="w-full lg:w-2/5 relative flex items-center justify-center px-6 pt-0 pb-6 sm:p-10 lg:p-12 bg-white">
         <div className="relative w-full max-w-md bg-white border border-black/5 rounded-[28px] shadow-2xl bc-rise overflow-hidden">
           <div className="px-7 sm:px-9 lg:px-10 pt-7 pb-6 bg-[linear-gradient(90deg,#10b981_0%,#22c1a4_45%,#3aa8d8_100%)]">
             <h2 className="font-display text-3xl font-bold text-white mb-1.5">Agende agora</h2>
