@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { sanitizeText, sanitizeTextOrNull, sanitizeEmail } from "@/shared/lib/sanitize";
 
 const schema = z.object({
   city_slug: z.string().min(1),
@@ -59,14 +60,18 @@ function QuickBookingPage() {
     setLoading(true);
     try {
       const cityName = cities.data?.find(c => c.slug === parsed.data.city_slug)?.name ?? parsed.data.city_slug;
+      const emailInput = user?.email ?? (fd.get("email") as string) ?? null;
+      const cleanEmail = emailInput ? sanitizeEmail(emailInput) : null;
       const { error } = await supabase.from("bookings").insert({
         ...parsed.data,
-        city: cityName,
+        city: sanitizeText(cityName, { maxLength: 80, collapseWhitespace: true }),
+        address: sanitizeText(parsed.data.address, { maxLength: 200, collapseWhitespace: true }),
+        notes: sanitizeTextOrNull(parsed.data.notes, { maxLength: 500 }),
         booking_type: "quick",
         status: "pending",
         payment_status: "pending",
         client_id: user?.id ?? null,
-        client_email: user?.email ?? (fd.get("email") as string) ?? null,
+        client_email: cleanEmail,
       });
       if (error) throw error;
       toast.success("Solicitação enviada! Você receberá propostas em breve.");

@@ -10,6 +10,12 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/image-utils";
+import {
+  sanitizeText,
+  sanitizeTextOrNull,
+  sanitizeDigits,
+  sanitizeStringArray,
+} from "@/shared/lib/sanitize";
 
 export const Route = createFileRoute("/_authenticated/pro/profile")({
   component: ProfilePage,
@@ -56,11 +62,20 @@ function ProfilePage() {
       if (!user) return;
       const cityName = cities.data?.find((c) => c.slug === f.city_slug)?.name ?? null;
       const { error } = await supabase.from("profiles").update({
-        full_name: f.full_name, phone: f.phone, bio: f.bio, experience: f.experience,
-        specialties: f.specialties.split(",").map((s) => s.trim()).filter(Boolean),
+        full_name: sanitizeText(f.full_name, { maxLength: 120, collapseWhitespace: true }),
+        phone: sanitizeDigits(f.phone, 15),
+        bio: sanitizeTextOrNull(f.bio, { maxLength: 1000 }),
+        experience: sanitizeText(f.experience, { maxLength: 500 }),
+        specialties: sanitizeStringArray(
+          f.specialties.split(","),
+          { maxLength: 60, maxItems: 30 },
+        ),
         profile_photo: f.profile_photo || null,
-        city_slug: f.city_slug || null, city: cityName,
-        address: f.address, pix_key: f.pix_key || null, pix_key_type: f.pix_key_type,
+        city_slug: sanitizeTextOrNull(f.city_slug, { maxLength: 80 }),
+        city: sanitizeTextOrNull(cityName, { maxLength: 80, collapseWhitespace: true }),
+        address: sanitizeText(f.address, { maxLength: 200, collapseWhitespace: true }),
+        pix_key: sanitizeTextOrNull(f.pix_key, { maxLength: 120, collapseWhitespace: true }),
+        pix_key_type: sanitizeText(f.pix_key_type, { maxLength: 20 }),
         is_available: isAvailable,
       }).eq("id", user.id);
       if (error) throw error;
