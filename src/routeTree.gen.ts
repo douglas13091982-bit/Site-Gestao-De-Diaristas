@@ -18,7 +18,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgendamentoRapidoRouteImport } from './routes/agendamento-rapido'
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfessionalsIndexRouteImport } from './routes/professionals.index'
 import { Route as ProfessionalsIdRouteImport } from './routes/professionals.$id'
 import { Route as CidadesSlugRouteImport } from './routes/cidades.$slug'
@@ -96,11 +95,6 @@ const AgendamentoRoute = AgendamentoRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfessionalsIndexRoute = ProfessionalsIndexRouteImport.update({
@@ -294,7 +288,7 @@ const AuthenticatedAdminBookingsNewRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
@@ -339,7 +333,7 @@ export interface FileRoutesByFullPath {
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
@@ -383,7 +377,6 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
@@ -519,7 +512,6 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/pagseguro'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
     | '/agendamento'
     | '/agendamento-rapido'
@@ -566,7 +558,6 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AgendamentoRoute: typeof AgendamentoRoute
   AgendamentoRapidoRoute: typeof AgendamentoRapidoRoute
@@ -646,13 +637,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/professionals/': {
@@ -1022,7 +1006,6 @@ const CidadesRouteWithChildren =
   CidadesRoute._addFileChildren(CidadesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AgendamentoRoute: AgendamentoRoute,
   AgendamentoRapidoRoute: AgendamentoRapidoRoute,
