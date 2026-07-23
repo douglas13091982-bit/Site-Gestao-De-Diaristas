@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import { ProfessionalCard } from "@/components/ProfessionalCard";
 import {
   ShieldCheck, Star, ArrowRight, Zap, Users, Home, Building2,
   Store, Building, MessageCircle, BadgeCheck,
@@ -262,8 +263,8 @@ function FeaturedSection({ city, pros }: { city: string; pros: Pro[] }) {
         </div>
 
         {pros.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
-            {pros.slice(0, 4).map((p, i) => <ProCard key={p.id} p={p} index={i} />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {pros.slice(0, 4).map((p) => <ProfessionalCard key={p.id} p={p} />)}
           </div>
         ) : (
           <div className="text-center py-16 border border-dashed border-[var(--bc-navy)]/10 rounded-3xl text-[var(--bc-navy-2)]">
