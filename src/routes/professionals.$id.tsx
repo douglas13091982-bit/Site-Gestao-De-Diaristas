@@ -31,7 +31,7 @@ function ProfessionalPage() {
   });
   const reviews = useQuery({
     queryKey: ["pro-reviews", id],
-    queryFn: async () => (await supabase.from("reviews").select("*").eq("professional_id", id).order("created_at", { ascending: false }).limit(20)).data ?? [],
+    queryFn: async () => (await supabase.from("public_reviews" as never).select("*").eq("professional_id", id).order("created_at", { ascending: false }).limit(20)).data ?? [],
   });
 
   const p = profile.data;
