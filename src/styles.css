@@ -38,13 +38,15 @@
 :root {
   --radius: 1rem;
 
-  /* BabyClean — Ocean Deep editorial palette */
-  --bc-navy: #0c2340;      /* deepest ink */
-  --bc-navy-2: #1a4a6e;    /* mid navy */
-  --bc-teal: #2d8a9e;      /* signature teal */
-  --bc-teal-soft: #5cbdb9; /* accent luminance */
-  --bc-paper: #fdfdfc;     /* editorial paper */
-  --bc-mist: #f4f6f8;      /* subtle surface */
+  /* Gersepa — Teal & Orange palette */
+  --bc-navy: #0f4c4a;      /* deep teal ink */
+  --bc-navy-2: #1f6b68;    /* mid teal */
+  --bc-teal: #2a8a86;      /* signature teal */
+  --bc-teal-soft: #7fc7c3; /* teal luminance */
+  --bc-orange: #ef7b2a;    /* signature orange */
+  --bc-orange-soft: #f9a05c;
+  --bc-paper: #fff7ec;     /* warm cream paper */
+  --bc-mist: #fdecd6;      /* soft peach surface */
 
   --background: var(--bc-paper);
   --foreground: var(--bc-navy);
@@ -56,15 +58,15 @@
   --primary-foreground: #ffffff;
   --secondary: var(--bc-mist);
   --secondary-foreground: var(--bc-navy);
-  --muted: #eef2f5;
-  --muted-foreground: #56708a;
-  --accent: var(--bc-teal);
+  --muted: #fdecd6;
+  --muted-foreground: #6b5a48;
+  --accent: var(--bc-orange);
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e5eaef;
-  --input: #e5eaef;
-  --ring: var(--bc-teal);
+  --border: #f0d9b8;
+  --input: #f0d9b8;
+  --ring: var(--bc-orange);
 
   --font-display: 'Sora', 'Inter', system-ui, sans-serif;
   --font-body: 'Manrope', 'Inter', system-ui, sans-serif;
@@ -75,12 +77,14 @@
 
   --gradient-hero: linear-gradient(180deg, #ffffff 0%, var(--bc-paper) 100%);
   --gradient-quote: linear-gradient(135deg, var(--bc-navy) 0%, var(--bc-navy-2) 100%);
+  --gradient-cta: linear-gradient(135deg, var(--bc-orange) 0%, var(--bc-orange-soft) 100%);
 
   --shadow-card: 0 1px 2px rgb(12 35 64 / 0.04), 0 8px 30px -12px rgb(12 35 64 / 0.10);
   --shadow-elevated: 0 8px 24px -8px rgb(12 35 64 / 0.14), 0 32px 80px -32px rgb(12 35 64 / 0.25);
-  --shadow-glow-teal: 0 12px 40px -12px rgb(45 138 158 / 0.45);
+  --shadow-glow-teal: 0 12px 40px -12px rgb(42 138 134 / 0.45);
+  --shadow-glow-orange: 0 12px 40px -12px rgb(239 123 42 / 0.45);
 
-  --dot-pattern: radial-gradient(circle, rgba(12,35,64,0.06) 1px, transparent 1px);
+  --dot-pattern: radial-gradient(circle, rgba(15,76,74,0.08) 1px, transparent 1px);
   --plus-pattern:
     linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px) 0 0/24px 24px,
     linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px) 0 0/24px 24px;
