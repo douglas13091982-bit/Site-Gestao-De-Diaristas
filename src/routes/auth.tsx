@@ -12,7 +12,6 @@ import { toMessage } from "@/shared/lib/result";
 import { RoleTabs } from "@/features/auth/login/components/RoleTabs";
 import { PasswordSetupCard } from "@/features/auth/login/components/PasswordSetupCard";
 import {
-  checkEmailRegistered,
   sendPasswordSetupEmail,
   signInWithPassword,
   signUpAccount,
@@ -53,9 +52,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [needsSetup, setNeedsSetup] = useState(false);
   const [sending, setSending] = useState(false);
-  const checkEmail = useServerFn(checkEmailRegistered);
   const sendSetup = useServerFn(sendPasswordSetupEmail);
 
   useEffect(() => {
@@ -67,26 +64,20 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const r = await signUpAccount({ email, password, fullName, role }, checkEmail);
-        if (!r.ok && r.needsSetup) {
-          setNeedsSetup(true);
-          setMode("signin");
-          toast.info("Este e-mail já está cadastrado. Crie sua senha para entrar.");
-          return;
-        }
+        await signUpAccount({ email, password, fullName, role });
         toast.success("Conta criada! Complete seu perfil.");
         navigate({ to: role === "professional" ? "/onboarding" : "/" });
         return;
       } else {
-        const r = await signInWithPassword(email, password, checkEmail);
-        if (!r.ok && r.needsSetup) {
-          setNeedsSetup(true);
-          toast.info("Detectamos seu cadastro. Crie sua senha para acessar.");
-          return;
-        }
+        await signInWithPassword(email, password);
       }
     } catch (err) {
-      toast.error(toMessage(err, "Erro ao autenticar"));
+      // Mensagem genérica evita enumeração de contas.
+      toast.error(
+        mode === "signin"
+          ? "E-mail ou senha inválidos. Se esqueceu a senha, use 'Criar / redefinir senha'."
+          : toMessage(err, "Não foi possível criar a conta."),
+      );
     } finally {
       setBusy(false);
     }
@@ -96,14 +87,9 @@ function AuthPage() {
     if (!email) return toast.error("Informe seu e-mail primeiro");
     setSending(true);
     try {
-      const r = await requestPasswordSetupEmail(email, checkEmail, sendSetup);
-      if (!r.ok && r.notRegistered) {
-        toast.error("Não encontramos cadastro com este e-mail. Crie uma conta.");
-        setMode("signup");
-        return;
-      }
-      toast.success("Enviamos um link no seu e-mail para criar sua senha.");
-      setNeedsSetup(false);
+      await requestPasswordSetupEmail(email, sendSetup);
+      // Mensagem única, existindo ou não a conta (anti-enumeração).
+      toast.success("Se este e-mail estiver cadastrado, enviaremos um link para criar sua senha.");
     } catch (err) {
       toast.error(toMessage(err, "Erro ao enviar e-mail"));
     } finally {
@@ -147,7 +133,7 @@ function AuthPage() {
 
           {mode === "signin" && (
             <PasswordSetupCard
-              highlighted={needsSetup}
+              highlighted={false}
               sending={sending}
               onRequest={requestPasswordSetup}
             />

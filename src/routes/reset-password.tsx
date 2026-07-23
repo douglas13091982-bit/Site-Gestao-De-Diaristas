@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
+import { PasswordChecklist } from "@/shared/components/PasswordChecklist";
+import { evaluatePassword } from "@/shared/lib/password-policy";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -42,7 +44,11 @@ function ResetPasswordPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 6) return toast.error("A senha deve ter pelo menos 6 caracteres");
+    if (!evaluatePassword(password).allPassed) {
+      return toast.error(
+        "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.",
+      );
+    }
     if (password !== confirm) return toast.error("As senhas não coincidem");
     setBusy(true);
     try {
@@ -73,13 +79,18 @@ function ResetPasswordPage() {
           <form onSubmit={submit} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="password">Nova senha</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} disabled={!ready} />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={!ready} />
+              <PasswordChecklist value={password} className="mt-2" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="confirm">Confirmar senha</Label>
-              <Input id="confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} disabled={!ready} />
+              <Input id="confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={8} disabled={!ready} />
             </div>
-            <Button type="submit" className="w-full" disabled={busy || !ready}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={busy || !ready || !evaluatePassword(password).allPassed || password !== confirm}
+            >
               {busy ? "..." : "Salvar senha"}
             </Button>
           </form>
