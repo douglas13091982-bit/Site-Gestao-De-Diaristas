@@ -57,7 +57,7 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
  * (que já têm oferta pendente na tabela booking_offers).
  */
 export const broadcastNewBookingPush = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ bookingId: z.string().uuid() }).parse(d))
+  .inputValidator((d) => z.object({ bookingId: z.number().int().positive() }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { sendFcmMessage } = await import("./fcm.server");
