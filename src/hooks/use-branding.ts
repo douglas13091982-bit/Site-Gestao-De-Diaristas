@@ -19,7 +19,7 @@ export function useBranding() {
   const q = useQuery({
     queryKey: ["app-settings", "branding"],
     staleTime: 5 * 60 * 1000,
-    initialData: readCache,
+    placeholderData: readCache(),
     queryFn: async () => {
       const { data } = await supabase
         .from("app_settings")
