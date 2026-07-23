@@ -24,11 +24,9 @@ function ProfessionalPage() {
   const profile = useQuery({
     queryKey: ["pro", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles")
-        .select("id, full_name, profile_photo, bio, city, city_slug, phone, rating, total_reviews, total_bookings, is_verified, specialties, regions, experience")
-        .eq("id", id).maybeSingle();
+      const { data, error } = await supabase.rpc("get_public_professional", { _id: id });
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     },
   });
   const reviews = useQuery({
@@ -116,17 +114,9 @@ function ProfessionalPage() {
                 <Button size="lg" variant="outline" className="gap-2">
                   <MessageCircle className="h-4 w-4" /> Mensagem
                 </Button>
-                {p.phone ? (
-                  <a href={`tel:${p.phone}`}>
-                    <Button size="lg" variant="outline" className="w-full gap-2">
-                      <Phone className="h-4 w-4" /> Ligar
-                    </Button>
-                  </a>
-                ) : (
-                  <Button size="lg" variant="outline" className="gap-2" disabled>
-                    <Phone className="h-4 w-4" /> Ligar
-                  </Button>
-                )}
+                <Button size="lg" variant="outline" className="gap-2" disabled>
+                  <Phone className="h-4 w-4" /> Ligar após reservar
+                </Button>
               </div>
             </div>
 
