@@ -5,11 +5,20 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { useServerFn } from "@tanstack/react-start";
-import { checkEmailRegistered, sendPasswordSetupEmail } from "@/lib/account.functions";
+import { toMessage } from "@/shared/lib/result";
+import { RoleTabs } from "@/features/auth/login/components/RoleTabs";
+import { PasswordSetupCard } from "@/features/auth/login/components/PasswordSetupCard";
+import {
+  checkEmailRegistered,
+  sendPasswordSetupEmail,
+  signInWithPassword,
+  signUpAccount,
+  requestPasswordSetupEmail,
+  type LoginRole,
+} from "@/features/auth/login/service";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -39,7 +48,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
-  const [role, setRole] = useState<"client" | "professional">(search.role ?? "client");
+  const [role, setRole] = useState<LoginRole>(search.role ?? "client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -58,72 +67,45 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        // Se já existe conta com esse e-mail (ex: diarista importada), oferecer criação de senha
-        const check = await checkEmail({ data: { email } });
-        if (check.exists) {
+        const r = await signUpAccount({ email, password, fullName, role }, checkEmail);
+        if (!r.ok && r.needsSetup) {
           setNeedsSetup(true);
           setMode("signin");
           toast.info("Este e-mail já está cadastrado. Crie sua senha para entrar.");
           return;
         }
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/onboarding`,
-            data: { full_name: fullName, role },
-          },
-        });
-        if (error) throw error;
         toast.success("Conta criada! Complete seu perfil.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          // Credenciais inválidas: verifica se é conta importada sem senha definida
-          const msg = error.message.toLowerCase();
-          if (msg.includes("invalid") || msg.includes("credentials")) {
-            const check = await checkEmail({ data: { email } });
-            if (check.exists) {
-              setNeedsSetup(true);
-              toast.info("Detectamos seu cadastro. Crie sua senha para acessar.");
-              return;
-            }
-          }
-          throw error;
+        const r = await signInWithPassword(email, password, checkEmail);
+        if (!r.ok && r.needsSetup) {
+          setNeedsSetup(true);
+          toast.info("Detectamos seu cadastro. Crie sua senha para acessar.");
+          return;
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao autenticar");
-    } finally { setBusy(false); }
+      toast.error(toMessage(err, "Erro ao autenticar"));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function requestPasswordSetup() {
     if (!email) return toast.error("Informe seu e-mail primeiro");
     setSending(true);
     try {
-      const check = await checkEmail({ data: { email } });
-      if (!check.exists) {
+      const r = await requestPasswordSetupEmail(email, checkEmail, sendSetup);
+      if (!r.ok && r.notRegistered) {
         toast.error("Não encontramos cadastro com este e-mail. Crie uma conta.");
         setMode("signup");
         return;
       }
-      await sendSetup({
-        data: { email, redirectTo: `${window.location.origin}/reset-password` },
-      });
       toast.success("Enviamos um link no seu e-mail para criar sua senha.");
       setNeedsSetup(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao enviar e-mail");
+      toast.error(toMessage(err, "Erro ao enviar e-mail"));
     } finally {
       setSending(false);
-    }
-  }
-
-  async function google() {
-    try {
-      const { lovable } = await import("@/integrations/lovable");
-      await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro Google");
     }
   }
 
@@ -139,16 +121,7 @@ function AuthPage() {
             </p>
           </div>
 
-          {mode === "signup" && (
-            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
-              <button type="button" onClick={() => setRole("client")} className={`py-2.5 rounded-lg text-sm font-semibold transition ${role === "client" ? "bg-background shadow" : "text-muted-foreground"}`}>
-                Sou cliente
-              </button>
-              <button type="button" onClick={() => setRole("professional")} className={`py-2.5 rounded-lg text-sm font-semibold transition ${role === "professional" ? "bg-background shadow" : "text-muted-foreground"}`}>
-                Sou diarista
-              </button>
-            </div>
-          )}
+          {mode === "signup" && <RoleTabs value={role} onChange={setRole} />}
 
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
@@ -171,17 +144,11 @@ function AuthPage() {
           </form>
 
           {mode === "signin" && (
-            <div className={`rounded-xl border p-4 text-sm space-y-2 ${needsSetup ? "border-primary bg-primary/5" : "border-border bg-muted/40"}`}>
-              <p className="font-medium">
-                {needsSetup ? "Primeiro acesso ou esqueceu a senha?" : "Já é cadastrada e não sabe a senha?"}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                Enviaremos um link no seu e-mail para você criar uma nova senha e entrar.
-              </p>
-              <Button type="button" variant="outline" className="w-full" onClick={requestPasswordSetup} disabled={sending}>
-                {sending ? "Enviando..." : "Criar / redefinir senha"}
-              </Button>
-            </div>
+            <PasswordSetupCard
+              highlighted={needsSetup}
+              sending={sending}
+              onRequest={requestPasswordSetup}
+            />
           )}
 
           <p className="text-center text-sm text-muted-foreground">
