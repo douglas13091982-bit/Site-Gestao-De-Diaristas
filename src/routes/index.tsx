@@ -137,7 +137,7 @@ function HeroSection({ city }: { city: string }) {
                           : "border-black/10 bg-white text-[var(--bc-navy)]/70 hover:border-[var(--bc-teal)]/40 hover:text-[var(--bc-navy)]"
                       }`}
                     >
-                      <opt.icon className="h-4 w-4" />
+                      <opt.icon className="h-5 w-5 shrink-0" />
                       {opt.label}
                     </button>
                   );
