@@ -116,13 +116,8 @@ function HeroSection({ city }: { city: string }) {
         </div>
       </div>
 
-      <div className="w-full lg:w-2/5 relative flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-[var(--bc-navy)]">
-        <div aria-hidden className="absolute inset-0 opacity-30 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--bc-teal)] rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-0 w-72 h-72 bg-[var(--bc-navy-2)] rounded-full blur-[100px]" />
-        </div>
-
-        <div className="relative w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] p-7 sm:p-9 lg:p-10 shadow-2xl bc-rise">
+      <div className="w-full lg:w-2/5 relative flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-white">
+        <div className="relative w-full max-w-md bg-[var(--bc-navy)] border border-white/10 rounded-[28px] p-7 sm:p-9 lg:p-10 shadow-2xl bc-rise">
           <h2 className="font-display text-3xl font-bold text-white mb-1.5">Agende agora</h2>
           <p className="text-white/50 text-sm mb-8">Escolha o melhor formato para sua limpeza.</p>
 
