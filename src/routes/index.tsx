@@ -338,32 +338,33 @@ function WhySection() {
     { n: "03", title: "PAGAMENTO SEM FRICÇÃO", desc: "Agende, pague e gerencie tudo pelo app. Transparência total, sem surpresas." },
   ];
   return (
-    <section id="por-que" className="relative py-24 lg:py-32 px-6 sm:px-10 lg:px-24 bg-[var(--bc-navy)] text-white overflow-hidden">
-      <div aria-hidden className="absolute inset-0 opacity-40 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[var(--bc-teal)] rounded-full blur-[140px]" />
+    <section id="por-que" className="relative py-24 lg:py-32 px-6 sm:px-10 lg:px-24 text-white overflow-hidden" style={{ background: "linear-gradient(90deg, var(--bc-teal) 0%, var(--bc-sky) 100%)" }}>
+      <div aria-hidden className="absolute inset-0 opacity-30 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-white rounded-full blur-[140px]" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-[var(--bc-sky-soft)] rounded-full blur-[140px]" />
       </div>
 
       <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--bc-teal-soft)] mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/90 mb-4">
             O padrão BabyClean
           </p>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-12 lg:mb-16 leading-[0.92]">
             Por que a
             <br />
-            <span className="text-[var(--bc-teal-soft)]">BabyClean?</span>
+            <span className="text-white/95">BabyClean?</span>
           </h2>
           <div className="space-y-12 lg:space-y-14">
             {items.map((it) => (
               <div key={it.n} className="flex gap-6 lg:gap-8 group">
-                <span className="font-display text-3xl lg:text-4xl font-bold text-[var(--bc-teal)] opacity-40 group-hover:opacity-100 transition-opacity duration-500">
+                <span className="font-display text-3xl lg:text-4xl font-bold text-white opacity-50 group-hover:opacity-100 transition-opacity duration-500">
                   {it.n}
                 </span>
                 <div>
                   <h4 className="font-display text-lg lg:text-xl font-bold mb-3 tracking-[0.06em]">
                     {it.title}
                   </h4>
-                  <p className="text-white/55 leading-relaxed text-sm lg:text-base max-w-md">
+                  <p className="text-white/75 leading-relaxed text-sm lg:text-base max-w-md">
                     {it.desc}
                   </p>
                 </div>
@@ -373,17 +374,17 @@ function WhySection() {
         </div>
 
         <div className="relative">
-          <div className="aspect-square rounded-[40px] lg:rounded-[48px] overflow-hidden border border-white/10 bg-gradient-to-br from-[var(--bc-navy-2)] to-[var(--bc-navy)] grid place-items-center">
+          <div className="aspect-square rounded-[40px] lg:rounded-[48px] overflow-hidden border border-white/20 bg-white/10 backdrop-blur-sm grid place-items-center">
             <div className="p-12 text-center">
-              <ShieldCheck className="h-16 w-16 text-[var(--bc-teal-soft)] mx-auto mb-6 opacity-70" />
-              <p className="font-display text-2xl font-bold text-white/80 mb-2">Padrão hoteleiro 5★</p>
-              <p className="text-white/40 text-sm max-w-xs mx-auto">
+              <ShieldCheck className="h-16 w-16 text-white mx-auto mb-6 opacity-90" />
+              <p className="font-display text-2xl font-bold text-white mb-2">Padrão hoteleiro 5★</p>
+              <p className="text-white/70 text-sm max-w-xs mx-auto">
                 Metodologia baseada em checklists de hotelaria de luxo, adaptada ao seu lar.
               </p>
             </div>
           </div>
-          <div className="absolute -bottom-8 -left-4 sm:-bottom-10 sm:-left-10 bg-[var(--bc-teal-soft)] p-8 lg:p-12 rounded-2xl lg:rounded-3xl shadow-[var(--shadow-elevated)]">
-            <p className="font-display text-5xl lg:text-6xl font-extrabold text-[var(--bc-navy)] leading-none mb-2">
+          <div className="absolute -bottom-8 -left-4 sm:-bottom-10 sm:-left-10 bg-white p-8 lg:p-12 rounded-2xl lg:rounded-3xl shadow-[var(--shadow-elevated)]">
+            <p className="font-display text-5xl lg:text-6xl font-extrabold text-[var(--bc-teal)] leading-none mb-2">
               +15k
             </p>
             <p className="text-[var(--bc-navy)] font-bold text-[10px] uppercase tracking-[0.24em]">
