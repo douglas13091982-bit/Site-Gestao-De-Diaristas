@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Calendar } from "lucide-react";
+import { ProfessionalCard } from "@/components/ProfessionalCard";
 
 const search = z.object({
   city: z.string().optional(),
@@ -101,50 +101,7 @@ function ProfessionalsPage() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {q.data?.map((p) => (
-            <div key={p.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5 hover:shadow-md transition min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
-                {p.profile_photo ? (
-                  <img
-                    src={p.profile_photo}
-                    alt={p.full_name ?? "Diarista"}
-                    loading="lazy"
-                    className="h-14 w-14 shrink-0 rounded-full object-cover border border-border"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <div className="h-14 w-14 shrink-0 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
-                    {(p.full_name ?? "?")[0]}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold truncate">{p.full_name ?? "Diarista"}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{p.city ?? "—"}</span>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="flex items-center gap-1 text-sm font-semibold">
-                    <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {Number(p.rating ?? 0).toFixed(1)}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">{p.total_reviews ?? 0} avaliações</div>
-                </div>
-              </div>
-              {p.bio && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{p.bio}</p>}
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Link to="/professionals/$id" params={{ id: p.id }}>
-                  <Button variant="outline" className="w-full">Ver Perfil</Button>
-                </Link>
-                <Link
-                  to="/agendamento"
-                  search={{ pro: p.id, city: "joinville", dur: 4, type: "residential", rooms: 2, baths: 1 }}
-                >
-                  <Button className="w-full gap-1"><Calendar className="h-3.5 w-3.5" /> Agendar</Button>
-                </Link>
-              </div>
-            </div>
-          ))}
+          {q.data?.map((p) => <ProfessionalCard key={p.id} p={p} />)}
         </div>
       </div>
     </div>
