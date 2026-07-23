@@ -828,7 +828,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_reviews: {
+        Row: {
+          booking_id: number | null
+          comment: string | null
+          created_at: string | null
+          id: number | null
+          professional_id: string | null
+          rating: number | null
+        }
+        Insert: {
+          booking_id?: number | null
+          comment?: string | null
+          created_at?: string | null
+          id?: number | null
+          professional_id?: string | null
+          rating?: number | null
+        }
+        Update: {
+          booking_id?: number | null
+          comment?: string | null
+          created_at?: string | null
+          id?: number | null
+          professional_id?: string | null
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_public_professional: {
