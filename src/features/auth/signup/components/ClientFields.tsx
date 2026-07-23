@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Home, Building2, Store, Building } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import { ChipToggle } from "./ChipToggle";
 import { PROPERTY_TYPES, type ClientFieldsState } from "../types";
 
-const PROPERTY_ICONS: Record<string, JSX.Element> = {
+const PROPERTY_ICONS: Record<string, ReactNode> = {
   casa: <Home className="w-4 h-4" />,
   apartamento: <Building2 className="w-4 h-4" />,
   sala_comercial: <Store className="w-4 h-4" />,
