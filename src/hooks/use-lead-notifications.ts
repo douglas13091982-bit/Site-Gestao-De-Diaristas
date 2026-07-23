@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Options = { userId: string | undefined; onNewOffer: () => void };
 
 export function useLeadNotifications({ userId, onNewOffer }: Options) {
+  const cbRef = useRef(onNewOffer);
+  useEffect(() => { cbRef.current = onNewOffer; }, [onNewOffer]);
   useEffect(() => {
     if (!userId) return;
     const ch = supabase
@@ -13,7 +15,7 @@ export function useLeadNotifications({ userId, onNewOffer }: Options) {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "booking_offers", filter: `professional_id=eq.${userId}` },
         () => {
-          onNewOffer();
+          cbRef.current();
           toast.success("Novo pedido chegou! Corre para aceitar 🏃‍♀️", { duration: 6000 });
           if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
             try {
@@ -32,11 +34,11 @@ export function useLeadNotifications({ userId, onNewOffer }: Options) {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "booking_offers", filter: `professional_id=eq.${userId}` },
-        () => onNewOffer(),
+        () => cbRef.current(),
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [userId, onNewOffer]);
+  }, [userId]);
 }
 
 export function useNotificationPermission() {
