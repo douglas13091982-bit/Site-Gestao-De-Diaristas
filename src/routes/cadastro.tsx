@@ -207,6 +207,14 @@ function CadastroPage() {
                 />
               )}
 
+              {tipo === "client" && (
+                <ClientFields
+                  value={clientFields}
+                  onChange={patchClient}
+                  onCityFromCep={setCity}
+                />
+              )}
+
               <div className="space-y-1.5">
                 <Label htmlFor="password">Senha</Label>
                 <Input
@@ -221,14 +229,6 @@ function CadastroPage() {
                 />
                 <PasswordChecklist value={password} className="mt-1" />
               </div>
-
-              {tipo === "client" && (
-                <ClientFields
-                  value={clientFields}
-                  onChange={patchClient}
-                  onCityFromCep={setCity}
-                />
-              )}
 
               <Button type="submit" className="w-full" disabled={busy}>
                 {busy ? "Criando…" : "Criar Conta"}
