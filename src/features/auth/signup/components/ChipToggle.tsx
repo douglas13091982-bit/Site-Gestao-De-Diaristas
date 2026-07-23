@@ -15,8 +15,8 @@ export function ChipToggle({ active, onClick, children, size = "sm" }: Props) {
       onClick={onClick}
       className={`inline-flex items-center gap-2 rounded-full border transition ${sizing} ${
         active
-          ? "border-primary/40 bg-primary/20 text-primary hover:bg-primary/30"
-          : "border-border bg-muted/40 text-foreground/80 hover:bg-muted"
+          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+          : "border-primary/20 bg-primary/10 text-foreground/80 hover:bg-primary/20"
       }`}
     >
       {children}
