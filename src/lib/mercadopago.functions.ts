@@ -178,6 +178,7 @@ export const createPayment = createServerFn({ method: "POST" })
         transaction_amount: Number(trustedPrice.toFixed(2)),
         description: `Agendamento Gersepa #${booking.id}`,
         external_reference: `booking:${booking.id}`,
+        notification_url: "https://gersepas.lovable.app/api/public/webhooks/mercadopago",
         payer: {
           email: clean.client_email,
           first_name: firstName || "Cliente",
