@@ -81,6 +81,7 @@ function SettingsPage() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Settings>(DEFAULTS);
   const [showSecrets, setShowSecrets] = useState(false);
+  const runTest = useServerFn(testPaymentProvider);
 
   const q = useQuery({
     queryKey: ["admin-settings"],
@@ -316,6 +317,10 @@ function SettingsPage() {
               URL do Webhook: <code className="font-mono">/api/public/webhooks/mercadopago</code> — configure no painel do Mercado Pago para receber confirmações de pagamento.
             </div>
           </div>
+          <TestConnectionButton
+            label="Testar conexão com Mercado Pago"
+            onTest={() => runTest({ data: { provider: "mercadopago" } })}
+          />
         </section>
       )}
 
@@ -364,7 +369,77 @@ function SettingsPage() {
               URL de Notificação: <code className="font-mono">/api/public/webhooks/pagseguro</code> — configure em Integrações → Notificações no painel do PagSeguro.
             </div>
           </div>
+          <TestConnectionButton
+            label="Testar conexão com PagSeguro"
+            onTest={() => runTest({ data: { provider: "pagseguro" } })}
+          />
         </section>
+      )}
+    </div>
+  );
+}
+
+type TestResult =
+  | { ok: true; provider: string; environment: string; account: Record<string, unknown> }
+  | { ok: false; error: string };
+
+function TestConnectionButton({
+  label,
+  onTest,
+}: {
+  label: string;
+  onTest: () => Promise<TestResult>;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<TestResult | null>(null);
+
+  const run = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const r = await onTest();
+      setResult(r);
+      if (r.ok) toast.success("Conexão bem-sucedida!");
+      else toast.error(`Falha: ${r.error}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      setResult({ ok: false, error: msg });
+      toast.error(`Falha: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-3">
+      <button
+        type="button"
+        onClick={run}
+        disabled={loading}
+        className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-60"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
+        {label}
+      </button>
+      {result && result.ok && (
+        <div className="flex items-start gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900">
+          <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600" />
+          <div>
+            <div className="font-semibold">Conexão OK — ambiente: {result.environment}</div>
+            <pre className="mt-1 text-[11px] font-mono whitespace-pre-wrap break-all">
+              {JSON.stringify(result.account, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
+      {result && !result.ok && (
+        <div className="flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900">
+          <XCircle className="h-4 w-4 mt-0.5 text-rose-600" />
+          <div>
+            <div className="font-semibold">Falha na conexão</div>
+            <div className="mt-1 break-all">{result.error}</div>
+          </div>
+        </div>
       )}
     </div>
   );
