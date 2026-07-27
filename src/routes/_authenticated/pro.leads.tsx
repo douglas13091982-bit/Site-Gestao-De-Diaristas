@@ -122,13 +122,19 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
   };
   return (
     <li className="rounded-xl border bg-card p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-sm sm:text-base">{b?.service_type ?? "Serviço"} · {b?.property_type ?? "Residência"}</h3>
-            <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusColor[offer.status] ?? "bg-muted"}`}>{offer.status}</span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-semibold text-sm sm:text-base">{b?.service_type ?? "Serviço"} · {b?.property_type ?? "Residência"}</h3>
+        <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusColor[offer.status] ?? "bg-muted"}`}>{offer.status}</span>
+      </div>
+
+      {b?.total_price ? (
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-3 shadow-sm">
+          <span className="text-xs uppercase tracking-wide font-semibold opacity-90">Você recebe</span>
+          <span className="text-2xl sm:text-3xl font-extrabold whitespace-nowrap">R$ {payout.toFixed(2)}</span>
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap gap-2">
             <span className="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-sm sm:text-base font-bold text-emerald-800">
               📅 {b?.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "A combinar"}
             </span>
@@ -142,19 +148,9 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
                 ⏱ {b.duration_hours}h
               </span>
             )}
-          </div>
-          {b?.address && <p className="text-xs sm:text-sm mt-2 break-words text-muted-foreground">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
-          {b?.notes && <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words">"{b.notes}"</p>}
-        </div>
-        <div className="text-right shrink-0">
-          {b?.total_price ? (
-            <div>
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Você recebe</div>
-              <div className="font-extrabold text-2xl sm:text-3xl text-emerald-600 whitespace-nowrap leading-tight">R$ {payout.toFixed(2)}</div>
-            </div>
-          ) : null}
-        </div>
       </div>
+      {b?.address && <p className="text-xs sm:text-sm mt-2 break-words text-muted-foreground">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
+      {b?.notes && <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words">"{b.notes}"</p>}
       {offer.status === "accepted" && b && (
         <div className="mt-4 pt-4 border-t rounded-lg bg-emerald-50/50 -mx-1 px-3 py-3">
           <div className="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Contato do cliente</div>
