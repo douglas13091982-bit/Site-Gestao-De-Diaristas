@@ -829,6 +829,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: number
+          notes: string | null
+          pix_key: string
+          pix_key_type: string | null
+          processed_at: string | null
+          processed_by: string | null
+          professional_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: number
+          notes?: string | null
+          pix_key: string
+          pix_key_type?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          professional_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: number
+          notes?: string | null
+          pix_key?: string
+          pix_key_type?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          professional_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       public_reviews: {
