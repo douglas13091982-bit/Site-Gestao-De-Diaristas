@@ -16,7 +16,11 @@ function BookingsLayout() {
 function BookingsList() {
   const q = useQuery({
     queryKey: ["admin-bookings"],
-    queryFn: async () => (await supabase.from("bookings").select("id,client_email,booking_date,status,total_price,payment_status,city").order("created_at",{ascending:false}).limit(200)).data ?? [],
+    queryFn: async () => (await supabase
+      .from("bookings")
+      .select("id,client_email,booking_date,status,total_price,payment_status,city,professional_id,professional:profiles!bookings_professional_id_fkey(full_name,profile_photo)")
+      .order("created_at",{ascending:false})
+      .limit(200)).data ?? [],
   });
   return (
     <div className="p-8">
@@ -24,12 +28,28 @@ function BookingsList() {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
-            <tr><th className="text-left p-3">Cliente</th><th className="text-left p-3">Data</th><th className="text-left p-3">Cidade</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Status</th><th className="text-left p-3">Pagamento</th></tr>
+            <tr><th className="text-left p-3">Cliente</th><th className="text-left p-3">Diarista</th><th className="text-left p-3">Data</th><th className="text-left p-3">Cidade</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Status</th><th className="text-left p-3">Pagamento</th></tr>
           </thead>
           <tbody>
-            {(q.data ?? []).map(b => (
+            {(q.data ?? []).map((b: any) => (
               <tr key={b.id} className="border-t border-slate-100">
                 <td className="p-3 font-medium">{b.client_email ?? "—"}</td>
+                <td className="p-3">
+                  {b.professional?.full_name ? (
+                    <div className="flex items-center gap-2">
+                      {b.professional.profile_photo ? (
+                        <img src={b.professional.profile_photo} alt="" className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-semibold">
+                          {b.professional.full_name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-slate-700">{b.professional.full_name}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Aguardando</span>
+                  )}
+                </td>
                 <td className="p-3 text-slate-600">{b.booking_date ?? "—"}</td>
                 <td className="p-3 text-slate-600">{b.city ?? "—"}</td>
                 <td className="p-3 font-semibold">R$ {Number(b.total_price ?? 0).toFixed(2)}</td>
