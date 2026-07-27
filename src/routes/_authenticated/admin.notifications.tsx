@@ -103,8 +103,14 @@ function AdminNotifications() {
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Você precisa estar logado");
-      const testTitle = "🔔 Teste Gersepa";
-      const testBody = "Notificação de teste — " + new Date().toLocaleTimeString("pt-BR");
+      // Simula exatamente o formato de push enviado em novos pedidos:
+      // "Diarista • em Cidade • DD/MM às HH:MM • Você recebe R$ XX,XX"
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("pt-BR");
+      const timeStr = now.toTimeString().slice(0, 5);
+      const payoutStr = (150 * 0.8).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      const testTitle = "Novo pedido disponível! (teste)";
+      const testBody = `Diarista • em Joinville • ${dateStr} às ${timeStr} • Você recebe ${payoutStr}`;
       const { error } = await supabase.from("notifications").insert([{
         user_id: user.id, title: testTitle, body: testBody, link: "/notificacoes", is_read: false,
       }]);
