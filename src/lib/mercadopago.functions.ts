@@ -236,10 +236,15 @@ export const createPayment = createServerFn({ method: "POST" })
 
       if (approved) {
         try {
-          const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
-          await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+          if (isQuick) {
+            const { broadcastNewBookingPush } = await import("./push.functions");
+            await broadcastNewBookingPush({ data: { bookingId: booking.id as number } });
+          } else {
+            const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
+            await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+          }
         } catch (e) {
-          console.warn("[push] falha ao notificar profissional (card)", e);
+          console.warn("[push] falha ao notificar profissionais (card)", e);
         }
       }
 
