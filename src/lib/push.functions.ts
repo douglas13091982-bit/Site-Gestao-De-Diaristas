@@ -55,6 +55,69 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
   });
 
 /**
+ * Notifica TODOS os administradores quando uma nova solicitação de saque é criada.
+ * O trigger no banco já insere a linha em `notifications`; aqui enviamos o push (FCM).
+ */
+export const notifyAdminsWithdrawalRequest = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ withdrawalId: z.number().int().positive() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { sendFcmMessage } = await import("./fcm.server");
+
+    const { data: w } = await supabaseAdmin
+      .from("withdrawal_requests")
+      .select("id, amount, professional_id")
+      .eq("id", data.withdrawalId)
+      .maybeSingle();
+    if (!w) return { sent: 0, failed: 0, error: "withdrawal not found" };
+
+    const { data: pro } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", w.professional_id)
+      .maybeSingle();
+
+    const { data: admins } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+    const adminIds = Array.from(new Set((admins ?? []).map((a) => a.user_id).filter(Boolean))) as string[];
+    if (adminIds.length === 0) return { sent: 0, failed: 0 };
+
+    const amount = Number(w.amount ?? 0);
+    const valorStr = amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const title = "Nova solicitação de saque";
+    const body = `${pro?.full_name ?? "Diarista"} solicitou ${valorStr}`;
+    const link = "/admin/finance";
+
+    const { data: subs } = await supabaseAdmin
+      .from("push_subscriptions")
+      .select("endpoint")
+      .in("user_id", adminIds);
+    if (!subs || subs.length === 0) return { sent: 0, failed: 0 };
+
+    let sent = 0;
+    let failed = 0;
+    const stale: string[] = [];
+    await Promise.all(
+      subs.map(async (s) => {
+        const r = await sendFcmMessage({ token: s.endpoint, title, body, link });
+        if (r.ok) sent++;
+        else {
+          failed++;
+          if (r.error && /UNREGISTERED|INVALID_ARGUMENT|NOT_FOUND|404/i.test(r.error)) {
+            stale.push(s.endpoint);
+          }
+        }
+      }),
+    );
+    if (stale.length) {
+      await supabaseAdmin.from("push_subscriptions").delete().in("endpoint", stale);
+    }
+    return { sent, failed };
+  });
+
+/**
  * Notifica TODOS os administradores quando um agendamento é pago/concretizado.
  * - Cria linha em `notifications` (in-app) para cada admin
  * - Envia push (FCM) para todos os tokens dos admins
