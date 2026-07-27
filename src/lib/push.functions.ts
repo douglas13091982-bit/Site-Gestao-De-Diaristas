@@ -87,8 +87,23 @@ export const broadcastNewBookingPush = createServerFn({ method: "POST" })
 
     const dateStr = booking.booking_date ? new Date(booking.booking_date as string).toLocaleDateString("pt-BR") : "";
     const timeStr = typeof booking.start_time === "string" ? (booking.start_time as string).slice(0, 5) : "";
+    const { data: setting } = await supabaseAdmin
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "commission_percentage")
+      .maybeSingle();
+    const pct = Number(setting?.setting_value ?? 20) || 20;
+    const total = Number(booking.total_price ?? 0);
+    const payout = total * (1 - pct / 100);
+    const payoutStr = payout > 0 ? payout.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
     const title = "Novo pedido disponível!";
-    const body = `${booking.service_type ?? "Serviço"}${booking.city ? " em " + booking.city : ""}${dateStr ? " — " + dateStr : ""}${timeStr ? " às " + timeStr : ""}`;
+    const parts = [
+      booking.service_type ?? "Serviço",
+      booking.city ? `em ${booking.city}` : "",
+      dateStr && timeStr ? `${dateStr} às ${timeStr}` : dateStr || (timeStr ? `às ${timeStr}` : ""),
+      payoutStr ? `Você recebe ${payoutStr}` : "",
+    ].filter(Boolean);
+    const body = parts.join(" • ");
 
     let sent = 0;
     let failed = 0;
@@ -138,10 +153,23 @@ export const notifyProfessionalBookingConfirmed = createServerFn({ method: "POST
       ? new Date(booking.booking_date as string).toLocaleDateString("pt-BR")
       : "";
     const timeStr = typeof booking.start_time === "string" ? (booking.start_time as string).slice(0, 5) : "";
+    const { data: setting } = await supabaseAdmin
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "commission_percentage")
+      .maybeSingle();
+    const pct = Number(setting?.setting_value ?? 20) || 20;
+    const total = Number(booking.total_price ?? 0);
+    const payout = total * (1 - pct / 100);
+    const payoutStr = payout > 0 ? payout.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
     const title = "Novo agendamento confirmado!";
-    const body = `${booking.service_type ?? "Serviço"}${booking.city ? " em " + booking.city : ""}${
-      dateStr ? " — " + dateStr : ""
-    }${timeStr ? " às " + timeStr : ""}`;
+    const parts = [
+      booking.service_type ?? "Serviço",
+      booking.city ? `em ${booking.city}` : "",
+      dateStr && timeStr ? `${dateStr} às ${timeStr}` : dateStr || (timeStr ? `às ${timeStr}` : ""),
+      payoutStr ? `Você recebe ${payoutStr}` : "",
+    ].filter(Boolean);
+    const body = parts.join(" • ");
     const link = "/pro/agenda";
 
     // In-app
