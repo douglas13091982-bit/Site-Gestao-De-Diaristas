@@ -160,10 +160,7 @@ export function UserMenu() {
             )}
 
             <button
-              onClick={() => {
-                close();
-                signOut();
-              }}
+              onClick={handleSignOut}
               className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-destructive hover:bg-destructive/5"
             >
               <LogOut className="h-4 w-4" /> Sair
