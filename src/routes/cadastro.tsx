@@ -96,6 +96,7 @@ function CadastroPage() {
       photoFile,
       email,
       phone,
+      city,
     });
     if (validationError) {
       toast.error(validationError);
@@ -186,7 +187,7 @@ function CadastroPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Telefone / WhatsApp</Label>
-                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(47) 99999-9999" required={tipo === "professional"} />
+                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(47) 99999-9999" required />
                 </div>
               </div>
 
