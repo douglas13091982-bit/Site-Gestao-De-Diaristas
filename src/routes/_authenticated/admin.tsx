@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
+ LayoutDashboard, Users, Briefcase, Calendar, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
   ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet, KeyRound,
   Menu, X,
@@ -45,7 +45,6 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/professionals", label: "Profissionais", icon: Briefcase },
     { to: "/admin/bookings", label: "Agendamentos", icon: Calendar },
-    { to: "/admin/bookings/new", label: "Novo Agendamento", icon: Plus },
   ]},
   { label: "Financeiro", items: [
     { to: "/admin/packages", label: "Pacotes", icon: Package },
