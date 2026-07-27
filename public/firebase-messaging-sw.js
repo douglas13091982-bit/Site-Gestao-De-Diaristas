@@ -4,22 +4,21 @@
 importScripts("https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.4/firebase-messaging-compat.js");
 
-// A config é passada via query string na hora do register (SW não tem env).
-const params = new URLSearchParams(self.location.search);
+// Config Firebase Web (valores PÚBLICOS por design). Fixamos no SW porque
+// query strings não são garantidas ao re-executar o SW em background (TWA/Chrome).
 const firebaseConfig = {
-  apiKey: params.get("apiKey"),
-  authDomain: params.get("authDomain"),
-  projectId: params.get("projectId"),
-  storageBucket: params.get("storageBucket"),
-  messagingSenderId: params.get("messagingSenderId"),
-  appId: params.get("appId"),
+  apiKey: "AIzaSyD6zZib4Iplr3cZMGECzgtsjGoGSiZOAfU",
+  authDomain: "gersepa-diaristas.firebaseapp.com",
+  projectId: "gersepa-diaristas",
+  storageBucket: "gersepa-diaristas.firebasestorage.app",
+  messagingSenderId: "385971556121",
+  appId: "1:385971556121:web:d4455055300570e14dbf88",
 };
 
-if (firebaseConfig.apiKey) {
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
 
-  messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage((payload) => {
     const data = payload.data || {};
     const title = data.title || payload.notification?.title || "Gersepa Solutions";
     const image =
@@ -37,8 +36,7 @@ if (firebaseConfig.apiKey) {
       data: { url: data.link || payload.fcmOptions?.link || "/notificacoes" },
     };
     self.registration.showNotification(title, options);
-  });
-}
+});
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
