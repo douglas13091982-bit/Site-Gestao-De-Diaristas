@@ -138,7 +138,7 @@ function AppearancePage() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <AdminPageHeader title="Aparência" subtitle="Personalize identidade visual, contato e botões flutuantes" />
         <button

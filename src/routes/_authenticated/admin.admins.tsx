@@ -96,7 +96,7 @@ function AdminsPage() {
   const rows = q.data ?? [];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <AdminPageHeader title="Administradores" subtitle="Gerenciar quem pode acessar este painel" />
 
       <div className="bg-white rounded-xl border border-slate-200 p-5">
