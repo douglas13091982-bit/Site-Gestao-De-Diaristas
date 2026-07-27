@@ -168,7 +168,7 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
       )}
       {offer.status === "pending" && onAccept && onReject && (
         <div className="flex gap-2 mt-4 pt-4 border-t">
-          <Button onClick={onAccept} disabled={busy} className="flex-1 min-h-11">Aceitar lead</Button>
+          <Button onClick={onAccept} disabled={busy} className="flex-1 min-h-11">Aceitar</Button>
           <Button onClick={onReject} disabled={busy} variant="outline" className="flex-1 min-h-11">Recusar</Button>
         </div>
       )}
