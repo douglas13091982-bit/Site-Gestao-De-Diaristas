@@ -102,6 +102,29 @@ export const createPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pkgErr || !pkg) throw new Error("Pacote de preço não encontrado.");
     if (pkg.is_enabled === false) throw new Error("Pacote de preço indisponível.");
+    // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
+    try {
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      });
+      const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
+      const todayISO = `${p.year}-${p.month}-${p.day}`;
+      const nowMin = Number(p.hour) * 60 + Number(p.minute);
+      if (data.booking_date < todayISO) {
+        throw new Error("Data do agendamento no passado.");
+      }
+      if (data.booking_date === todayISO) {
+        const [h, m] = data.start_time.split(":").map(Number);
+        if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("Horário inválido.");
+        if (h * 60 + m < nowMin + 30) {
+          throw new Error("Horário no passado. Escolha um horário com pelo menos 30 minutos de antecedência.");
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error && /passado|Horário/.test(e.message)) throw e;
+    }
     const trustedPrice = Number(pkg.price);
     const trustedDuration = Number(pkg.duration_hours);
     if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
