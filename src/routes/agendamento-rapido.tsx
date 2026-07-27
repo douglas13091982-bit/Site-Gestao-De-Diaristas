@@ -55,6 +55,19 @@ function QuickBookingPage() {
   const [cardCpf, setCardCpf] = useState("");
   const [installments, setInstallments] = useState(1);
 
+  // Data/hora "agora" no fuso America/Sao_Paulo (evita agendar no passado).
+  const brNow = (() => {
+    try {
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      });
+      const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
+      return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
+    } catch { return { date: "", time: "" }; }
+  })();
+
   const cities = useQuery({
     queryKey: ["qb-cities"],
     queryFn: async () => (await supabase.from("available_cities").select("slug, name").eq("is_enabled", true).order("name")).data ?? [],
@@ -284,7 +297,7 @@ function QuickBookingPage() {
                 ))}
               </select>
             </div>
-            <div><Label>Data</Label><Input name="booking_date" type="date" defaultValue={formData?.booking_date ?? ""} required /></div>
+            <div><Label>Data</Label><Input name="booking_date" type="date" min={brNow.date} defaultValue={formData?.booking_date ?? ""} required /></div>
             <div><Label>Início</Label><Input name="start_time" type="time" defaultValue={formData?.start_time ?? "08:00"} required /></div>
             <div><Label>Quartos</Label><Input name="rooms" type="number" min={0} defaultValue={formData?.rooms ?? 2} required /></div>
             <div><Label>Banheiros</Label><Input name="bathrooms" type="number" min={0} defaultValue={formData?.bathrooms ?? 1} required /></div>
