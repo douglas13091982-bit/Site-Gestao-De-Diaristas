@@ -414,6 +414,48 @@ export type Database = {
           },
         ]
       }
+      password_reset_requests: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          handled_at: string | null
+          handled_by: string | null
+          id: number
+          is_professional: boolean
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: number
+          is_professional?: boolean
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: number
+          is_professional?: boolean
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pricing_packages: {
         Row: {
           created_at: string
