@@ -38,6 +38,7 @@ import { Route as AuthenticatedProCarteiraRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedClientePerfilRouteImport } from './routes/_authenticated/cliente.perfil'
 import { Route as AuthenticatedClienteAgendamentosRouteImport } from './routes/_authenticated/cliente.agendamentos'
+import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
 import { Route as AuthenticatedAdminWebhooksRouteImport } from './routes/_authenticated/admin.webhooks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
@@ -205,6 +206,12 @@ const AuthenticatedClienteAgendamentosRoute =
     path: '/agendamentos',
     getParentRoute: () => AuthenticatedClienteRoute,
   } as any)
+const AuthenticatedAdminWithdrawalsRoute =
+  AuthenticatedAdminWithdrawalsRouteImport.update({
+    id: '/withdrawals',
+    path: '/withdrawals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminWebhooksRoute =
   AuthenticatedAdminWebhooksRouteImport.update({
     id: '/webhooks',
@@ -342,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
@@ -387,6 +395,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
@@ -436,6 +445,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/webhooks': typeof AuthenticatedAdminWebhooksRoute
+  '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/_authenticated/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/_authenticated/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/webhooks'
+    | '/admin/withdrawals'
     | '/cliente/agendamentos'
     | '/cliente/perfil'
     | '/pro/agenda'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/webhooks'
+    | '/admin/withdrawals'
     | '/cliente/agendamentos'
     | '/cliente/perfil'
     | '/pro/agenda'
@@ -578,6 +590,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/webhooks'
+    | '/_authenticated/admin/withdrawals'
     | '/_authenticated/cliente/agendamentos'
     | '/_authenticated/cliente/perfil'
     | '/_authenticated/pro/agenda'
@@ -814,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClienteAgendamentosRouteImport
       parentRoute: typeof AuthenticatedClienteRoute
     }
+    '/_authenticated/admin/withdrawals': {
+      id: '/_authenticated/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/webhooks': {
       id: '/_authenticated/admin/webhooks'
       path: '/webhooks'
@@ -965,6 +985,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWebhooksRoute: typeof AuthenticatedAdminWebhooksRoute
+  AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -983,6 +1004,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminWebhooksRoute: AuthenticatedAdminWebhooksRoute,
+  AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
