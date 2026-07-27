@@ -12,12 +12,12 @@ const DISMISS_MS = 1000 * 60 * 60 * 24 * 3; // 3 dias
  */
 export function NotificationPrompt() {
   const { user } = useAuth();
-  const { status, busy, enable } = usePushNotifications();
+  const { status, busy, enable, inFrame } = usePushNotifications();
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    if (status !== "prompt" && status !== ("default" as typeof status)) return;
+    if (status !== "default") return;
     try {
       const ts = Number(localStorage.getItem(DISMISS_KEY) || 0);
       if (ts && Date.now() - ts < DISMISS_MS) return;
@@ -51,7 +51,9 @@ export function NotificationPrompt() {
       <div className="flex-1 min-w-0">
         <div className="font-bold text-foreground">Ativar notificações</div>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Receba alertas de novos agendamentos, confirmações e mensagens em tempo real.
+          {inFrame
+            ? "Para aparecer a permissão, abra o app fora da pré-visualização ou use o APK instalado."
+            : "Receba alertas de novos agendamentos, confirmações e mensagens em tempo real."}
         </p>
         <button
           onClick={activate}

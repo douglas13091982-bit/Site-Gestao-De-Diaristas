@@ -4,7 +4,41 @@ import { useAuth } from "@/hooks/use-auth";
 import { requestPushToken, onForegroundMessage } from "@/lib/firebase";
 import { toast } from "sonner";
 
-type Status = "unsupported" | "prompt" | "granted" | "denied";
+type Status = "unsupported" | NotificationPermission;
+
+function getPushStatus(): Status {
+  if (typeof window === "undefined") return "unsupported";
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return "unsupported";
+  return Notification.permission;
+}
+
+function isInsideFrame() {
+  try {
+    return typeof window !== "undefined" && window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+function showBlockedInstructions() {
+  toast.warning("Notificações bloqueadas neste dispositivo", {
+    description:
+      "O navegador/app está bloqueando o aviso. No Android: segure o ícone do app → Informações do app → Notificações → Permitir. No navegador: cadeado da URL → Configurações do site → Notificações → Perguntar/Permitir.",
+    duration: 12000,
+  });
+}
+
+function showFrameInstructions() {
+  toast.info("Abra o app fora da pré-visualização", {
+    description:
+      "O pedido de permissão de notificação não aparece dentro do preview. Abra o app em nova aba, ou pelo APK/TWA instalado, e toque em ativar novamente.",
+    duration: 10000,
+    action: {
+      label: "Abrir app",
+      onClick: () => window.open(window.location.href, "_blank", "noopener,noreferrer"),
+    },
+  });
+}
 
 /**
  * Gerencia notificações push (FCM):
@@ -14,16 +48,20 @@ type Status = "unsupported" | "prompt" | "granted" | "denied";
  */
 export function usePushNotifications() {
   const { user } = useAuth();
-  const [status, setStatus] = useState<Status>("prompt");
+  const [status, setStatus] = useState<Status>("default");
   const [busy, setBusy] = useState(false);
+  const inFrame = isInsideFrame();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-      setStatus("unsupported");
-      return;
-    }
-    setStatus(Notification.permission as Status);
+    setStatus(getPushStatus());
+
+    const refresh = () => setStatus(getPushStatus());
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -52,12 +90,23 @@ export function usePushNotifications() {
       toast.error("Seu navegador não suporta notificações push.");
       return;
     }
+    if (getPushStatus() === "denied") {
+      setStatus("denied");
+      showBlockedInstructions();
+      return;
+    }
+    if (isInsideFrame()) {
+      showFrameInstructions();
+      return;
+    }
     setBusy(true);
     try {
       const token = await requestPushToken();
       if (!token) {
-        setStatus(Notification.permission as Status);
-        toast.error("Permissão negada. Ative nas configurações do navegador.");
+        const next = getPushStatus();
+        setStatus(next);
+        if (next === "denied") showBlockedInstructions();
+        else toast.error("Não foi possível registrar este dispositivo para notificações.");
         return;
       }
       // Guarda o token FCM no campo endpoint; p256dh/auth são NOT NULL,
@@ -73,11 +122,14 @@ export function usePushNotifications() {
       toast.success("Notificações ativadas!");
     } catch (err) {
       console.error("[push] falha ao ativar", err);
-      toast.error("Não foi possível ativar as notificações.");
+      const next = getPushStatus();
+      setStatus(next);
+      if (next === "denied") showBlockedInstructions();
+      else toast.error("Não foi possível ativar as notificações. Abra o app fora do preview e tente novamente.");
     } finally {
       setBusy(false);
     }
   }, [user, status]);
 
-  return { status, busy, enable };
+  return { status, busy, enable, inFrame };
 }
