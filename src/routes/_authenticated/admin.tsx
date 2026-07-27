@@ -39,6 +39,37 @@ export const Route = createFileRoute("/_authenticated/admin")({
 type NavItem = { to: string; label: string; icon: typeof Users; exact?: boolean };
 type NavGroup = { label: string; items: NavItem[] };
 
+type BadgeCounts = Record<string, number>;
+
+function useAdminBadges(): BadgeCounts {
+  const { data } = useQuery({
+    queryKey: ["admin-badges"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const [bookings, withdrawals, resets] = await Promise.all([
+        supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("password_reset_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      ]);
+      return {
+        "/admin/bookings": bookings.count ?? 0,
+        "/admin/withdrawals": withdrawals.count ?? 0,
+        "/admin/password-resets": resets.count ?? 0,
+      } as BadgeCounts;
+    },
+  });
+  useEffect(() => {
+    const ch = supabase
+      .channel("admin-badges")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
+        void 0;
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+  return data ?? {};
+}
+
 const GROUPS: NavGroup[] = [
   { label: "Principal", items: [{ to: "/admin", label: "Visão Geral", icon: LayoutDashboard, exact: true }] },
   { label: "Gestão", items: [
@@ -73,6 +104,23 @@ function AdminLayout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const badges = useAdminBadges();
+  useEffect(() => {
+    const ch = supabase
+      .channel("admin-badges-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawal_requests" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "password_reset_requests" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [queryClient]);
+  const totalBadges = Object.values(badges).reduce((a, b) => a + b, 0);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
@@ -86,10 +134,15 @@ function AdminLayout() {
       <header className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-slate-100 px-4 py-3 border-b border-slate-800">
         <button
           onClick={() => setMobileOpen(true)}
-          className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-slate-800"
+          className="relative inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-slate-800"
           aria-label="Abrir menu"
         >
           <Menu className="h-5 w-5" />
+          {totalBadges > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center">
+              {totalBadges > 99 ? "99+" : totalBadges}
+            </span>
+          )}
         </button>
         <div className="text-center">
           <div className="text-sm font-bold leading-none">Gersepa</div>
@@ -127,7 +180,7 @@ function AdminLayout() {
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-2 text-[13px]">
-          {GROUPS.map((g) => <NavGroupBlock key={g.label} group={g} pathname={pathname} />)}
+          {GROUPS.map((g) => <NavGroupBlock key={g.label} group={g} pathname={pathname} badges={badges} />)}
         </nav>
         <div className="border-t border-slate-800 px-4 py-3 text-xs">
           <div className="text-slate-400 mb-1.5 truncate">{user?.email}</div>
@@ -141,14 +194,20 @@ function AdminLayout() {
   );
 }
 
-function NavGroupBlock({ group, pathname }: { group: NavGroup; pathname: string }) {
+function NavGroupBlock({ group, pathname, badges }: { group: NavGroup; pathname: string; badges: BadgeCounts }) {
   const [open, setOpen] = useState(true);
+  const groupTotal = group.items.reduce((s, it) => s + (badges[it.to] ?? 0), 0);
   return (
     <div>
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-300 hover:text-emerald-200">
         <span className="inline-flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           {group.label}
+          {groupTotal > 0 && (
+            <span className="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center normal-case tracking-normal">
+              {groupTotal > 99 ? "99+" : groupTotal}
+            </span>
+          )}
         </span>
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
       </button>
@@ -156,10 +215,17 @@ function NavGroupBlock({ group, pathname }: { group: NavGroup; pathname: string 
         <ul className="mt-0.5 space-y-0">
           {group.items.map((it) => {
             const active = it.exact ? pathname === it.to : pathname === it.to || pathname.startsWith(it.to + "/");
+            const count = badges[it.to] ?? 0;
             return (
               <li key={it.to}>
                 <Link to={it.to} className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${active ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}>
-                  <it.icon className="h-3.5 w-3.5" /> {it.label}
+                  <it.icon className="h-3.5 w-3.5" />
+                  <span className="flex-1">{it.label}</span>
+                  {count > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center">
+                      {count > 99 ? "99+" : count}
+                    </span>
+                  )}
                 </Link>
               </li>
             );
