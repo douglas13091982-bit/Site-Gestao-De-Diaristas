@@ -6,6 +6,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Briefcase, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/Header";
 import { PasswordChecklist } from "@/shared/components/PasswordChecklist";
