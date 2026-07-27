@@ -63,7 +63,8 @@ function AdminPackages() {
         }
       />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left px-4 py-3">Duração</th>
@@ -78,6 +79,7 @@ function AdminPackages() {
             {data?.map((p: any) => <PackageRow key={p.id} pkg={p} onSave={(row) => update.mutate(row)} onDelete={() => remove.mutate(p.id)} />)}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -101,7 +101,8 @@ function WebhooksPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-4 py-3">Data</th>
@@ -159,6 +160,7 @@ function WebhooksPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {selected && (

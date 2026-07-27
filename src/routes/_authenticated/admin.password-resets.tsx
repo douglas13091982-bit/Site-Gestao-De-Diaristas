@@ -139,7 +139,7 @@ function PasswordResetsPage() {
         ) : !q.data || q.data.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-sm">Sem pedidos {tab === "pending" ? "pendentes" : tab === "sent" ? "enviados" : "ignorados"}.</div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[720px]">
             <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
               <tr>
                 <th className="text-left px-4 py-2">Pessoa</th>

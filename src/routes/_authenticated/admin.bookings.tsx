@@ -26,7 +26,8 @@ function BookingsList() {
     <div className="p-4 md:p-8">
       <AdminPageHeader title="Agendamentos" subtitle="Todas as reservas da plataforma" />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[820px]">
           <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
             <tr><th className="text-left p-3">Cliente</th><th className="text-left p-3">Diarista</th><th className="text-left p-3">Data</th><th className="text-left p-3">Cidade</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Status</th><th className="text-left p-3">Pagamento</th></tr>
           </thead>
@@ -59,6 +60,7 @@ function BookingsList() {
             ))}
           </tbody>
         </table>
+        </div>
         {q.data?.length === 0 && <div className="p-6 text-center text-slate-500">Nenhum agendamento.</div>}
       </div>
     </div>
