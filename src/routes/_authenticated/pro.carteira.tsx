@@ -141,14 +141,26 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
       if (!Number.isFinite(value) || value <= 0) throw new Error("Informe um valor válido.");
       if (value > available) throw new Error("Valor maior que o saldo disponível.");
       if (!pixKey) throw new Error("Cadastre uma chave PIX no seu perfil antes de solicitar saque.");
-      const { error } = await supabase.from("withdrawal_requests").insert({
-        professional_id: user!.id,
-        amount: value,
-        pix_key: pixKey,
-        pix_key_type: pixKeyType,
-        status: "pending",
-      });
+      const { data: inserted, error } = await supabase
+        .from("withdrawal_requests")
+        .insert({
+          professional_id: user!.id,
+          amount: value,
+          pix_key: pixKey,
+          pix_key_type: pixKeyType,
+          status: "pending",
+        })
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      if (inserted?.id) {
+        try {
+          const { notifyAdminsWithdrawalRequest } = await import("@/lib/push.functions");
+          await notifyAdminsWithdrawalRequest({ data: { withdrawalId: inserted.id as number } });
+        } catch (e) {
+          console.warn("[withdrawal push] failed", e);
+        }
+      }
     },
     onSuccess: () => {
       toast.success("Solicitação de saque enviada. O administrador foi notificado.");
