@@ -70,7 +70,7 @@ function AuthPage() {
       if (mode === "signup") {
         await signUpAccount({ email, password, fullName, role });
         toast.success("Conta criada! Complete seu perfil.");
-        navigate({ to: role === "professional" ? "/onboarding" : "/" });
+        navigate({ to: role === "professional" ? "/pro" : "/" });
         return;
       } else {
         await signInWithPassword(email, password);

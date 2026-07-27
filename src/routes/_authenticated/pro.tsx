@@ -29,7 +29,7 @@ function ProLayout() {
         <main className="max-w-2xl mx-auto px-6 py-16 text-center">
           <h1 className="text-3xl font-bold">Torne-se uma diarista Gersepa</h1>
           <p className="text-muted-foreground mt-3">Complete o cadastro profissional para receber leads de clientes na sua cidade.</p>
-          <Link to="/onboarding" className="inline-flex mt-6 h-11 items-center justify-center rounded-md bg-primary px-6 text-primary-foreground font-medium">Iniciar cadastro</Link>
+          <Link to="/pro/profile" className="inline-flex mt-6 h-11 items-center justify-center rounded-md bg-primary px-6 text-primary-foreground font-medium">Completar perfil</Link>
         </main>
       </div>
     );
