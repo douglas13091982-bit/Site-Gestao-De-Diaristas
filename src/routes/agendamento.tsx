@@ -316,6 +316,7 @@ function AgendamentoPage() {
           card_payment_method_id: cardPaymentMethodId,
           card_issuer_id: null,
           payer_document: cardCpf ? cardCpf.replace(/\D/g, "") : null,
+          device_id: (typeof window !== "undefined" ? (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID : null) ?? null,
         },
       });
       if (paymentMethod === "card" && result.status === "approved") {

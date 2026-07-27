@@ -196,6 +196,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
         />
         {children}
         <Scripts />
+        {/* Mercado Pago Device ID — popula window.MP_DEVICE_SESSION_ID
+            para antifraude. Requerido pelo checklist de produção do MP. */}
+        <script src="https://www.mercadopago.com/v2/security.js" async />
       </body>
     </html>
   );

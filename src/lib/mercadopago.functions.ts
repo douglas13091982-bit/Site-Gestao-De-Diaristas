@@ -36,6 +36,8 @@ const inputSchema = z.object({
   card_payment_method_id: z.string().optional().nullable(), // ex: "visa", "master"
   card_issuer_id: z.string().optional().nullable(),
   payer_document: z.string().optional().nullable(), // CPF sem máscara
+  // Mercado Pago Device ID (window.MP_DEVICE_SESSION_ID) — antifraude.
+  device_id: z.string().optional().nullable(),
 });
 
 export const createPayment = createServerFn({ method: "POST" })
@@ -213,6 +215,7 @@ export const createPayment = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
           "X-Idempotency-Key": idempotencyKey,
+          ...(data.device_id ? { "X-meli-session-id": data.device_id } : {}),
         },
         body: JSON.stringify(mpBody),
       });
