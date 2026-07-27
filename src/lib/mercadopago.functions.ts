@@ -176,6 +176,13 @@ export const createPayment = createServerFn({ method: "POST" })
       }
       try {
       const idempotencyKey = `bk-${booking.id}-${Date.now()}`;
+      const itemTitle = isQuick ? "Agendamento rápido Gersepa" : "Agendamento Gersepa";
+      const itemDescription = [
+        clean.service_type ?? "Serviço de limpeza",
+        `${trustedDuration}h`,
+        clean.city ? `em ${clean.city}` : null,
+        `agendamento #${booking.id}`,
+      ].filter(Boolean).join(" — ");
       const mpBody: Record<string, unknown> = {
         transaction_amount: Number(trustedPrice.toFixed(2)),
         description: `Agendamento Gersepa #${booking.id}`,
@@ -186,6 +193,28 @@ export const createPayment = createServerFn({ method: "POST" })
           first_name: firstName || "Cliente",
           last_name: rest.join(" ") || "Gersepa",
           ...(cpfDigits.length === 11 ? { identification: { type: "CPF", number: cpfDigits } } : {}),
+        },
+        additional_info: {
+          items: [
+            {
+              id: String(booking.id),
+              title: itemTitle,
+              description: itemDescription,
+              category_id: "services",
+              quantity: 1,
+              unit_price: Number(trustedPrice.toFixed(2)),
+            },
+          ],
+          payer: {
+            first_name: firstName || "Cliente",
+            last_name: rest.join(" ") || "Gersepa",
+            ...(clean.client_phone && clean.client_phone.length >= 10
+              ? { phone: { area_code: clean.client_phone.slice(0, 2), number: clean.client_phone.slice(2) } }
+              : {}),
+            ...(clean.address
+              ? { address: { street_name: clean.address, zip_code: "" } }
+              : {}),
+          },
         },
       };
 
