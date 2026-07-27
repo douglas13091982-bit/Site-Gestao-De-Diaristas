@@ -60,11 +60,7 @@ export function Header() {
         </div>
         {/* Mobile: navegação principal fica na tab bar inferior. */}
         <div className="md:hidden">
-          {user ? (
-            <UserMenu />
-          ) : (
-            <Link to="/seja-diarista"><Button variant="outline" size="sm" className="h-8 px-3 text-xs">Seja diarista</Button></Link>
-          )}
+          {user ? <UserMenu /> : null}
         </div>
       </div>
     </header>
