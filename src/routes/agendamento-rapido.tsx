@@ -42,40 +42,6 @@ function QuickBookingPage() {
   const { user, loading: authLoading } = useAuth();
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-secondary/40">
-        <Header />
-        <div className="max-w-2xl mx-auto px-6 py-10 text-center text-muted-foreground">Carregando…</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-secondary/40">
-        <Header />
-        <div className="max-w-md mx-auto px-6 py-16">
-          <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-4 shadow-sm">
-            <h1 className="text-2xl font-bold">Entre para agendar</h1>
-            <p className="text-muted-foreground">
-              Para fazer um agendamento rápido você precisa ter uma conta com seu endereço completo. Faça login ou cadastre-se em segundos.
-            </p>
-            <div className="grid gap-2 pt-2">
-              <Link to="/auth" search={{ redirect: "/agendamento-rapido" } as never}>
-                <Button className="w-full">Entrar</Button>
-              </Link>
-              <Link to="/cadastro">
-                <Button variant="outline" className="w-full">Criar conta</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const cities = useQuery({
     queryKey: ["qb-cities"],
     queryFn: async () => (await supabase.from("available_cities").select("slug, name").eq("is_enabled", true).order("name")).data ?? [],
