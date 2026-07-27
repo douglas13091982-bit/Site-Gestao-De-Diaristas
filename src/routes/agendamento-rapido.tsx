@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { createPayment } from "@/lib/mercadopago.functions";
 import { QrCode, CreditCard as CreditCardIcon, ArrowLeft } from "lucide-react";
+import { MpSecureCardFields, type MpSecureCardFieldsHandle } from "@/components/MpSecureCardFields";
 
 const schema = z.object({
   city_slug: z.string().min(1),
@@ -49,11 +50,9 @@ function QuickBookingPage() {
   const [formData, setFormData] = useState<z.infer<typeof schema> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [cardHolder, setCardHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
   const [cardCpf, setCardCpf] = useState("");
   const [installments, setInstallments] = useState(1);
+  const mpFieldsRef = useRef<MpSecureCardFieldsHandle | null>(null);
 
   // Data/hora "agora" no fuso America/Sao_Paulo (evita agendar no passado).
   const brNow = (() => {
@@ -119,16 +118,6 @@ function QuickBookingPage() {
   }, [pixEnabled, cardEnabled, paymentMethod]);
 
   useEffect(() => {
-    if (step !== 2 || paymentMethod !== "card" || platform !== "mercadopago") return;
-    if (typeof window === "undefined") return;
-    if ((window as unknown as { MercadoPago?: unknown }).MercadoPago) return;
-    const s = document.createElement("script");
-    s.src = "https://sdk.mercadopago.com/js/v2";
-    s.async = true;
-    document.head.appendChild(s);
-  }, [step, paymentMethod, platform]);
-
-  useEffect(() => {
     const p = meProfile.data;
     if (!p) return;
     if (!cardHolder && p.full_name) setCardHolder(p.full_name);
@@ -167,35 +156,20 @@ function QuickBookingPage() {
         if (platform !== "mercadopago") throw new Error("Cartão disponível apenas via Mercado Pago no momento.");
         const publicKey = paySettings.data?.mpPublicKey;
         if (!publicKey) throw new Error("Cartão indisponível: peça ao administrador para preencher a Public Key.");
-        const digits = cardNumber.replace(/\D/g, "");
-        const [mmRaw, yyRaw] = cardExpiry.split("/");
-        const mm = (mmRaw || "").padStart(2, "0");
-        const yy = (yyRaw || "").slice(-2);
         const cpfDigits = cardCpf.replace(/\D/g, "");
-        if (digits.length < 13 || !mm || !yy || cardCvv.length < 3 || !cardHolder.trim() || cpfDigits.length !== 11) {
-          throw new Error("Preencha corretamente os dados do cartão e o CPF.");
+        if (!cardHolder.trim() || cpfDigits.length !== 11) {
+          throw new Error("Preencha o nome do titular e o CPF corretamente.");
         }
-        const MP = (window as unknown as { MercadoPago?: new (k: string) => unknown }).MercadoPago;
-        if (!MP) throw new Error("SDK do cartão ainda carregando. Aguarde e tente novamente.");
-        const mp = new MP(publicKey) as {
-          getPaymentMethods: (opts: { bin: string }) => Promise<{ results?: Array<{ id: string }> }>;
-          createCardToken: (opts: Record<string, string>) => Promise<{ id?: string }>;
-        };
-        try {
-          const methodsRes = await mp.getPaymentMethods({ bin: digits.slice(0, 8) });
-          cardPaymentMethodId = methodsRes?.results?.[0]?.id ?? null;
-        } catch { cardPaymentMethodId = null; }
-        const tokenRes = await mp.createCardToken({
-          cardNumber: digits,
+        if (!mpFieldsRef.current?.ready) {
+          throw new Error("Formulário do cartão ainda carregando. Aguarde alguns segundos.");
+        }
+        const tok = await mpFieldsRef.current.tokenize({
           cardholderName: cardHolder.trim(),
-          cardExpirationMonth: mm,
-          cardExpirationYear: yy,
-          securityCode: cardCvv,
           identificationType: "CPF",
           identificationNumber: cpfDigits,
         });
-        cardToken = tokenRes?.id ?? null;
-        if (!cardToken) throw new Error("Não foi possível validar o cartão.");
+        cardToken = tok.token;
+        cardPaymentMethodId = tok.paymentMethodId;
       }
 
       const result = await runCreatePayment({
@@ -345,17 +319,22 @@ function QuickBookingPage() {
             {paymentMethod === "card" && (
               <div className="space-y-3">
                 <div><Label>Nome no cartão</Label><Input value={cardHolder} onChange={e => setCardHolder(e.target.value)} placeholder="Como está impresso" /></div>
-                <div><Label>Número do cartão</Label><Input value={cardNumber} onChange={e => setCardNumber(e.target.value)} inputMode="numeric" placeholder="0000 0000 0000 0000" /></div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div><Label>Validade</Label><Input value={cardExpiry} onChange={e => setCardExpiry(e.target.value)} placeholder="MM/AA" /></div>
-                  <div><Label>CVV</Label><Input value={cardCvv} onChange={e => setCardCvv(e.target.value)} inputMode="numeric" placeholder="123" /></div>
+                {paySettings.data?.mpPublicKey ? (
+                  <MpSecureCardFields ref={mpFieldsRef} publicKey={paySettings.data.mpPublicKey} idPrefix="qb" />
+                ) : (
+                  <p className="text-xs text-destructive">Cartão indisponível: Public Key do Mercado Pago não configurada.</p>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>CPF do titular</Label><Input value={cardCpf} onChange={e => setCardCpf(e.target.value)} inputMode="numeric" placeholder="000.000.000-00" /></div>
                   <div><Label>Parcelas</Label>
-                    <select value={installments} onChange={e => setInstallments(Number(e.target.value))} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-2 text-sm">
+                    <select value={installments} onChange={e => setInstallments(Number(e.target.value))} className="mt-1 w-full h-11 rounded-md border border-input bg-background px-2 text-sm">
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}x</option>)}
                     </select>
                   </div>
                 </div>
-                <div><Label>CPF do titular</Label><Input value={cardCpf} onChange={e => setCardCpf(e.target.value)} inputMode="numeric" placeholder="000.000.000-00" /></div>
+                <p className="text-[11px] text-muted-foreground">
+                  Campos hospedados pelo Mercado Pago (PCI-DSS SAQ-A). O número do cartão nunca passa pelo nosso servidor.
+                </p>
               </div>
             )}
 

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon, QrCode, CreditCard as CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
+import { MpSecureCardFields, type MpSecureCardFieldsHandle } from "@/components/MpSecureCardFields";
 
 const searchSchema = z.object({
   pro: fallback(z.string(), "").default(""),
@@ -70,11 +71,9 @@ function AgendamentoPage() {
   // Método selecionado no passo 4
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [cardHolder, setCardHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState(""); // MM/AA
-  const [cardCvv, setCardCvv] = useState("");
   const [cardCpf, setCardCpf] = useState("");
   const [installments, setInstallments] = useState(1);
+  const mpFieldsRef = useRef<MpSecureCardFieldsHandle | null>(null);
 
   // Configurações públicas do gateway
   const paySettings = useQuery({
@@ -102,17 +101,6 @@ function AgendamentoPage() {
     if (paymentMethod === "pix" && !pixEnabled && cardEnabled) setPaymentMethod("card");
     if (paymentMethod === "card" && !cardEnabled && pixEnabled) setPaymentMethod("pix");
   }, [pixEnabled, cardEnabled]);
-
-  // Carrega SDK do Mercado Pago quando o usuário abre a aba Cartão
-  useEffect(() => {
-    if (step !== 4 || paymentMethod !== "card" || platform !== "mercadopago") return;
-    if (typeof window === "undefined") return;
-    if ((window as any).MercadoPago) return;
-    const s = document.createElement("script");
-    s.src = "https://sdk.mercadopago.com/js/v2";
-    s.async = true;
-    document.head.appendChild(s);
-  }, [step, paymentMethod, platform]);
 
   const meProfile = useQuery({
     enabled: !!user?.id,
@@ -282,33 +270,20 @@ function AgendamentoPage() {
         if (platform !== "mercadopago") throw new Error("Cartão disponível apenas via Mercado Pago no momento.");
         const publicKey = paySettings.data?.mpPublicKey;
         if (!publicKey) throw new Error("Cartão indisponível: peça ao administrador para preencher a Public Key do Mercado Pago.");
-        const digits = cardNumber.replace(/\D/g, "");
-        const [mmRaw, yyRaw] = cardExpiry.split("/");
-        const mm = (mmRaw || "").padStart(2, "0");
-        const yy = (yyRaw || "").slice(-2);
         const cpfDigits = cardCpf.replace(/\D/g, "");
-        if (digits.length < 13 || !mm || !yy || cardCvv.length < 3 || !cardHolder.trim() || cpfDigits.length !== 11) {
-          throw new Error("Preencha corretamente os dados do cartão e o CPF do titular.");
+        if (!cardHolder.trim() || cpfDigits.length !== 11) {
+          throw new Error("Preencha o nome do titular e o CPF corretamente.");
         }
-        const MP = (window as any).MercadoPago;
-        if (!MP) throw new Error("SDK do cartão ainda carregando. Aguarde alguns segundos e tente novamente.");
-        const mp = new MP(publicKey);
-        try {
-          const bin = digits.slice(0, 8);
-          const methodsRes = await mp.getPaymentMethods({ bin });
-          cardPaymentMethodId = methodsRes?.results?.[0]?.id ?? null;
-        } catch { cardPaymentMethodId = null; }
-        const tokenRes = await mp.createCardToken({
-          cardNumber: digits,
+        if (!mpFieldsRef.current?.ready) {
+          throw new Error("Formulário do cartão ainda carregando. Aguarde alguns segundos.");
+        }
+        const tok = await mpFieldsRef.current.tokenize({
           cardholderName: cardHolder.trim(),
-          cardExpirationMonth: mm,
-          cardExpirationYear: yy,
-          securityCode: cardCvv,
           identificationType: "CPF",
           identificationNumber: cpfDigits,
         });
-        cardToken = tokenRes?.id ?? null;
-        if (!cardToken) throw new Error("Não foi possível validar o cartão. Verifique os dados.");
+        cardToken = tok.token;
+        cardPaymentMethodId = tok.paymentMethodId;
       }
 
       const result = await runCreatePayment({
@@ -584,16 +559,6 @@ function AgendamentoPage() {
               {paymentMethod === "card" && (
                 <div className="space-y-3">
                   <div>
-                    <Label>Número do cartão</Label>
-                    <Input
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      inputMode="numeric"
-                      maxLength={23}
-                      placeholder="0000 0000 0000 0000"
-                    />
-                  </div>
-                  <div>
                     <Label>Nome impresso no cartão</Label>
                     <Input
                       value={cardHolder}
@@ -602,28 +567,11 @@ function AgendamentoPage() {
                       placeholder="NOME COMO NO CARTÃO"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Validade (MM/AA)</Label>
-                      <Input
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        inputMode="numeric"
-                        maxLength={5}
-                        placeholder="12/28"
-                      />
-                    </div>
-                    <div>
-                      <Label>CVV</Label>
-                      <Input
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                        inputMode="numeric"
-                        maxLength={4}
-                        placeholder="123"
-                      />
-                    </div>
-                  </div>
+                  {paySettings.data?.mpPublicKey ? (
+                    <MpSecureCardFields ref={mpFieldsRef} publicKey={paySettings.data.mpPublicKey} idPrefix="ag" />
+                  ) : (
+                    <p className="text-xs text-destructive">Cartão indisponível: Public Key do Mercado Pago não configurada.</p>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>CPF do titular</Label>
@@ -639,7 +587,7 @@ function AgendamentoPage() {
                       <select
                         value={installments}
                         onChange={(e) => setInstallments(Number(e.target.value))}
-                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        className="w-full h-11 rounded-md border border-input bg-background px-3 text-sm"
                       >
                         {[1, 2, 3, 4, 5, 6].map((n) => (
                           <option key={n} value={n}>
@@ -650,7 +598,7 @@ function AgendamentoPage() {
                     </div>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Seus dados são enviados diretamente ao Mercado Pago com criptografia — nós nunca armazenamos o número do cartão.
+                    Campos hospedados pelo Mercado Pago (PCI-DSS SAQ-A). O número do cartão nunca passa pelo nosso servidor.
                   </p>
                 </div>
               )}
@@ -714,15 +662,4 @@ function formatDate(iso: string) {
   if (!iso) return "—";
   const d = new Date(`${iso}T00:00:00`);
   return `${DAYS_SHORT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`;
-}
-
-function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 19);
-  return digits.replace(/(.{4})/g, "$1 ").trim();
-}
-
-function formatExpiry(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  if (digits.length < 3) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
