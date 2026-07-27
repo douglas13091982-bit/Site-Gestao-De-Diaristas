@@ -51,6 +51,10 @@ function QuickBookingPage() {
     queryKey: ["qb-cats"],
     queryFn: async () => (await supabase.from("profession_categories").select("slug, name").eq("is_enabled", true).order("display_order")).data ?? [],
   });
+  const packages = useQuery({
+    queryKey: ["qb-packages"],
+    queryFn: async () => (await supabase.from("pricing_packages").select("id, duration_hours, price, start_time").eq("is_enabled", true).order("display_order")).data ?? [],
+  });
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -118,7 +122,14 @@ function QuickBookingPage() {
               </select>
             </div>
             <div><Label>Duração (horas)</Label>
-              <Input name="duration_hours" type="number" min={1} max={12} defaultValue={4} required />
+              <select name="duration_hours" required className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">Selecione um plano…</option>
+                {packages.data?.map(p => (
+                  <option key={p.id} value={p.duration_hours}>
+                    {p.duration_hours}h — R$ {Number(p.price).toFixed(2).replace(".", ",")}
+                  </option>
+                ))}
+              </select>
             </div>
             <div><Label>Data</Label><Input name="booking_date" type="date" required /></div>
             <div><Label>Início</Label><Input name="start_time" type="time" defaultValue="08:00" required /></div>
