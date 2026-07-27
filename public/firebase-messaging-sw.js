@@ -20,19 +20,21 @@ if (firebaseConfig.apiKey) {
   const messaging = firebase.messaging();
 
   messaging.onBackgroundMessage((payload) => {
-    const title = payload.notification?.title || "Gersepa Solutions";
+    const data = payload.data || {};
+    const title = data.title || payload.notification?.title || "Gersepa Solutions";
     const image =
+      data.image ||
       payload.notification?.image ||
-      payload.data?.image ||
       payload.fcmOptions?.image ||
       undefined;
     const options = {
-      body: payload.notification?.body || "Você tem uma nova notificação.",
+      body: data.body || payload.notification?.body || "Você tem uma nova notificação.",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
       image,
-      tag: payload.data?.tag || "gersepa-push",
-      data: { url: payload.data?.link || payload.fcmOptions?.link || "/notificacoes" },
+      tag: data.tag || "gersepa-push",
+      renotify: false,
+      data: { url: data.link || payload.fcmOptions?.link || "/notificacoes" },
     };
     self.registration.showNotification(title, options);
   });

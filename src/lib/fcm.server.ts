@@ -94,21 +94,13 @@ export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean
   const message = {
     message: {
       token: payload.token,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-        ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
-      },
       webpush: {
         fcm_options: payload.link ? { link: payload.link } : undefined,
-        notification: {
-          icon: "/icons/icon-192.png",
-          badge: "/icons/icon-192.png",
-          ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
-        },
       },
       data: {
         ...(payload.data ?? {}),
+        title: payload.title,
+        body: payload.body,
         ...(payload.link ? { link: payload.link } : {}),
         ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
       },
