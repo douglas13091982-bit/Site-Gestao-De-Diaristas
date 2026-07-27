@@ -931,6 +931,7 @@ export type Database = {
           total_reviews: number
         }[]
       }
+      recalc_professional_rating: { Args: { _pro: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "professional" | "client"
