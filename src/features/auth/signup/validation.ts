@@ -33,6 +33,8 @@ export function validateProfessional(
 ): ValidationError | null {
   if (!f.category || f.regions.length === 0)
     return "Selecione a categoria e ao menos uma região atendida.";
+  if (onlyDigits(f.cpf).length !== 11) return "Informe um CPF válido (11 dígitos).";
+  if (!f.pixKey || f.pixKey.trim().length < 4) return "Informe uma chave PIX válida para recebimentos.";
   if (!photoFile) return "Envie uma foto de perfil.";
   const anyOn = Array.from(availability.values()).some((d) => d.on);
   if (!anyOn) return "Selecione ao menos um dia de disponibilidade.";
