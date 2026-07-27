@@ -16,6 +16,7 @@ const search = z.object({
   category: z.string().optional(),
   minRating: z.coerce.number().min(0).max(5).optional(),
   sort: z.string().optional(),
+  specialties: z.string().optional(), // comma-separated
 });
 
 export const Route = createFileRoute("/professionals/")({
@@ -35,6 +36,7 @@ function ProfessionalsPage() {
   const s = Route.useSearch();
   const nav = Route.useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const selectedSpecs = (s.specialties ?? "").split(",").map((x: string) => x.trim()).filter(Boolean);
 
   const q = useQuery({
     queryKey: ["pros", s.city ?? "", s.name ?? "", s.category ?? "", s.minRating ?? 0, s.sort ?? "best"],
@@ -48,6 +50,11 @@ function ProfessionalsPage() {
       if (error) throw error;
       let rows = data ?? [];
       if (s.minRating) rows = rows.filter((r: { rating: number | null }) => (r.rating ?? 0) >= s.minRating!);
+      if (selectedSpecs.length) {
+        rows = rows.filter((r: { specialties?: string[] | null }) =>
+          (r.specialties ?? []).some((sp) => selectedSpecs.includes(sp)),
+        );
+      }
       if (s.sort === "reviews") rows = [...rows].sort((a, b) => (b.total_reviews ?? 0) - (a.total_reviews ?? 0));
       else if (s.sort === "bookings") rows = [...rows].sort((a, b) => (b.total_bookings ?? 0) - (a.total_bookings ?? 0));
       return rows;
@@ -64,8 +71,23 @@ function ProfessionalsPage() {
     queryFn: async () => (await supabase.from("available_cities").select("slug, name, state").eq("is_enabled", true).order("display_order")).data ?? [],
   });
 
+  const specialties = useQuery({
+    queryKey: ["specialties-filter", s.category ?? ""],
+    queryFn: async () => {
+      let q = supabase
+        .from("category_specialties")
+        .select("name, category_id, profession_categories!inner(slug)")
+        .eq("is_enabled", true)
+        .order("display_order");
+      if (s.category) q = q.eq("profession_categories.slug", s.category);
+      const { data } = await q;
+      const names = Array.from(new Set((data ?? []).map((r: { name: string }) => r.name)));
+      return names;
+    },
+  });
+
   const activeCount =
-    (s.city ? 1 : 0) + (s.category ? 1 : 0) + (s.minRating ? 1 : 0);
+    (s.city ? 1 : 0) + (s.category ? 1 : 0) + (s.minRating ? 1 : 0) + (selectedSpecs.length ? 1 : 0);
   const cityName = cities.data?.find((c) => c.slug === s.city)?.name;
   const catName = cats.data?.find((c) => c.slug === s.category)?.name;
 
@@ -156,6 +178,23 @@ function ProfessionalsPage() {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
+            {selectedSpecs.map((sp: string) => (
+              <button
+                key={sp}
+                onClick={() =>
+                  nav({
+                    search: (prev: typeof s) => {
+                      const next = selectedSpecs.filter((x: string) => x !== sp);
+                      return { ...prev, specialties: next.length ? next.join(",") : undefined };
+                    },
+                  })
+                }
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/15"
+              >
+                {sp}
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ))}
           </div>
         )}
 
@@ -195,12 +234,14 @@ function ProfessionalsPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
+                const specs = fd.getAll("spec").map(String).filter(Boolean);
                 nav({
                   search: (prev: typeof s) => ({
                     ...prev,
                     city: (fd.get("city") as string) || undefined,
                     category: (fd.get("category") as string) || undefined,
                     minRating: fd.get("minRating") ? Number(fd.get("minRating")) : undefined,
+                    specialties: specs.length ? specs.join(",") : undefined,
                   }),
                 });
                 setFiltersOpen(false);
@@ -249,6 +290,28 @@ function ProfessionalsPage() {
                   ))}
                 </div>
               </div>
+
+              {specialties.data && specialties.data.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Especialidades</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {specialties.data.map((name) => (
+                      <label key={name} className="cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="spec"
+                          value={name}
+                          defaultChecked={selectedSpecs.includes(name)}
+                          className="peer sr-only"
+                        />
+                        <div className="h-9 px-3 flex items-center rounded-full border border-input bg-background text-sm peer-checked:bg-primary peer-checked:text-primary-foreground peer-checked:border-primary transition-colors">
+                          {name}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-3">
                 <Button type="button" variant="outline" className="flex-1" onClick={() => { clearAll(); setFiltersOpen(false); }}>
