@@ -140,6 +140,17 @@ function QuickBookingPage() {
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse(Object.fromEntries(fd));
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Preencha os campos"); return; }
+    // Bloqueia data/hora no passado (fuso America/Sao_Paulo, buffer 1h).
+    if (parsed.data.booking_date < brNow.date) {
+      toast.error("Escolha uma data futura."); return;
+    }
+    if (parsed.data.booking_date === brNow.date) {
+      const [h, m] = parsed.data.start_time.split(":").map(Number);
+      const [nh, nm] = brNow.time.split(":").map(Number);
+      if (h * 60 + m < nh * 60 + nm + 60) {
+        toast.error("Escolha um horário com pelo menos 1h de antecedência."); return;
+      }
+    }
     setFormData(parsed.data);
     setStep(2);
   }
