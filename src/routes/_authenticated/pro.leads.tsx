@@ -128,19 +128,29 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
             <h3 className="font-semibold text-sm sm:text-base">{b?.service_type ?? "Serviço"} · {b?.property_type ?? "Residência"}</h3>
             <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusColor[offer.status] ?? "bg-muted"}`}>{offer.status}</span>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            {b?.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "Data a combinar"}
-            {b?.start_time ? ` às ${b.start_time}` : ""}
-            {b?.duration_hours ? ` · ${b.duration_hours}h` : ""}
-          </p>
-          {b?.address && <p className="text-xs sm:text-sm mt-1 break-words">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-sm sm:text-base font-bold text-emerald-800">
+              📅 {b?.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "A combinar"}
+            </span>
+            {b?.start_time && (
+              <span className="inline-flex items-center rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-1 text-sm sm:text-base font-bold text-sky-800">
+                🕒 {b.start_time.slice(0,5)}
+              </span>
+            )}
+            {b?.duration_hours && (
+              <span className="inline-flex items-center rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-sm sm:text-base font-bold text-amber-800">
+                ⏱ {b.duration_hours}h
+              </span>
+            )}
+          </div>
+          {b?.address && <p className="text-xs sm:text-sm mt-2 break-words text-muted-foreground">{b.address}{b.city ? ` — ${b.city}` : ""}</p>}
           {b?.notes && <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words">"{b.notes}"</p>}
         </div>
         <div className="text-right shrink-0">
           {b?.total_price ? (
             <div>
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Você recebe</div>
-              <div className="font-bold text-base sm:text-lg text-emerald-600 whitespace-nowrap">R$ {payout.toFixed(2)}</div>
+              <div className="font-extrabold text-2xl sm:text-3xl text-emerald-600 whitespace-nowrap leading-tight">R$ {payout.toFixed(2)}</div>
             </div>
           ) : null}
         </div>
