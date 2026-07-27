@@ -217,15 +217,33 @@ function AgendamentoPage() {
 
   const times = useMemo(() => {
     const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
+    let slots: string[];
     if (!selectedAvailability?.is_available) {
-      return Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+      slots = Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
+    } else {
+      const start = timeToMinutes(selectedAvailability.start_time);
+      const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
+      slots = [];
+      for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
+      if (!slots.length) slots = [selectedAvailability.start_time.slice(0, 5)];
     }
-    const start = timeToMinutes(selectedAvailability.start_time);
-    const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
-    const slots: string[] = [];
-    for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
-    return slots.length ? slots : [selectedAvailability.start_time.slice(0, 5)];
-  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours]);
+    // Se a data escolhida é hoje (fuso America/Sao_Paulo), esconde horários
+    // já passados e exige pelo menos 1h de antecedência.
+    try {
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      });
+      const parts = Object.fromEntries(fmt.formatToParts(new Date()).map(p => [p.type, p.value]));
+      const todayISO = `${parts.year}-${parts.month}-${parts.day}`;
+      if (date === todayISO) {
+        const nowMin = Number(parts.hour) * 60 + Number(parts.minute) + 60; // buffer 1h
+        slots = slots.filter(t => timeToMinutes(t) >= nowMin);
+      }
+    } catch { /* noop */ }
+    return slots;
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date]);
 
   useEffect(() => {
     if (date && selectedDay?.blocked) {
