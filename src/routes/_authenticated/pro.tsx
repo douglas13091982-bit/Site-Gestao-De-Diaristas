@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PushNotificationButton } from "@/components/PushNotificationButton";
+import { Briefcase, Calendar, Wallet, User } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   head: () => ({ meta: [{ title: "Área da diarista — Gersepa Solutions" }, { name: "description", content: "Painel da diarista." }] }),
@@ -35,10 +36,10 @@ function ProLayout() {
   }
 
   const tabs = [
-    { to: "/pro/leads", label: "Serviços" },
-    { to: "/pro/agenda", label: "Agenda" },
-    { to: "/pro/carteira", label: "Carteira" },
-    { to: "/pro/profile", label: "Meu perfil" },
+    { to: "/pro/leads", label: "Serviços", icon: Briefcase },
+    { to: "/pro/agenda", label: "Agenda", icon: Calendar },
+    { to: "/pro/carteira", label: "Carteira", icon: Wallet },
+    { to: "/pro/profile", label: "Meu perfil", icon: User },
   ];
 
   return (
@@ -72,8 +73,10 @@ function ProLayout() {
         <nav className="mt-4 sm:mt-6 hidden md:flex gap-1 border-b">
           {tabs.map((t) => {
             const active = loc.pathname.startsWith(t.to);
+            const Icon = t.icon;
             return (
-              <Link key={t.to} to={t.to} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+              <Link key={t.to} to={t.to} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px inline-flex items-center gap-2 ${active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+                <Icon className="h-4 w-4" />
                 {t.label}
               </Link>
             );
@@ -85,8 +88,10 @@ function ProLayout() {
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {tabs.map((t) => {
           const active = loc.pathname.startsWith(t.to);
+          const Icon = t.icon;
           return (
-            <Link key={t.to} to={t.to} className={`flex items-center justify-center py-3 text-xs font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+            <Link key={t.to} to={t.to} className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <Icon className={`h-5 w-5 ${active ? "scale-110" : ""}`} />
               {t.label}
             </Link>
           );
