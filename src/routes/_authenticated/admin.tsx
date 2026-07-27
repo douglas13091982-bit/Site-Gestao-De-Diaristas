@@ -45,7 +45,6 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/professionals", label: "Profissionais", icon: Briefcase },
     { to: "/admin/bookings", label: "Agendamentos", icon: Calendar },
-    { to: "/admin/bookings/new", label: "Novo Agendamento", icon: Plus },
   ]},
   { label: "Financeiro", items: [
     { to: "/admin/packages", label: "Pacotes", icon: Package },
