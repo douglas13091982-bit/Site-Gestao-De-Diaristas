@@ -117,8 +117,24 @@ function AgendaPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    {b.status !== "in_progress" && <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>}
-                    <Button size="sm" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "completed" })}>Concluir</Button>
+                    {b.status !== "in_progress" && b.status !== "awaiting_client_confirmation" && (
+                      <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>
+                    )}
+                    {b.status !== "awaiting_client_confirmation" ? (
+                      <Button
+                        size="sm"
+                        className="flex-1 sm:flex-none min-h-10"
+                        onClick={() => {
+                          if (confirm("Marcar como concluído? O cliente precisará confirmar antes do pagamento ser liberado.")) {
+                            updateStatus.mutate({ id: b.id, status: "awaiting_client_confirmation" });
+                          }
+                        }}
+                      >
+                        Concluir
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-md self-center">Aguardando cliente confirmar</span>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
