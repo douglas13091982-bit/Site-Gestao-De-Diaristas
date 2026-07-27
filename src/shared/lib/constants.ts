@@ -11,6 +11,7 @@ export const BOOKING_STATUS = {
   pending: "pending",
   confirmed: "confirmed",
   inProgress: "in_progress",
+  awaitingClientConfirmation: "awaiting_client_confirmation",
   completed: "completed",
   cancelled: "cancelled",
 } as const;
@@ -41,6 +42,7 @@ export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
   pending: "Aguardando",
   confirmed: "Confirmado",
   in_progress: "Em andamento",
+  awaiting_client_confirmation: "Aguardando confirmação do cliente",
   completed: "Concluído",
   cancelled: "Cancelado",
 };

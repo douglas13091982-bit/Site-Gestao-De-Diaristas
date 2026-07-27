@@ -15,6 +15,7 @@ const STATUS: Record<string, { label: string; color: string }> = {
   pending:     { label: "Aguardando", color: "bg-amber-100 text-amber-700" },
   confirmed:   { label: "Confirmado", color: "bg-emerald-100 text-emerald-700" },
   in_progress: { label: "Em andamento", color: "bg-blue-100 text-blue-700" },
+  awaiting_client_confirmation: { label: "Confirme a conclusão", color: "bg-amber-100 text-amber-800" },
   completed:   { label: "Concluído", color: "bg-slate-200 text-slate-700" },
   cancelled:   { label: "Cancelado", color: "bg-red-100 text-red-700" },
 };
@@ -73,6 +74,7 @@ function ClienteAgendamentos() {
         {q.data?.map((b) => {
           const s = STATUS[b.status] ?? { label: b.status, color: "bg-slate-100 text-slate-700" };
           const contactUnlocked = b.professional && (b.status === "confirmed" || b.status === "in_progress" || b.status === "completed");
+          const needsConfirm = b.status === "awaiting_client_confirmation";
           return (
             <li key={b.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
@@ -118,6 +120,25 @@ function ClienteAgendamentos() {
               {b.status === "pending" && b.payment_status === "pending" && (
                 <div className="mt-3">
                   <Link to="/agendamento-sucesso/$id" params={{ id: String(b.id) }} search={{ t: b.guest_token ?? "" }} className="text-xs font-semibold text-primary">Concluir pagamento →</Link>
+                </div>
+              )}
+
+              {needsConfirm && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2">A diarista marcou o serviço como concluído. Confirme para liberar o pagamento a ela.</p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm("Confirmar que o serviço foi concluído? O pagamento será liberado para a diarista.")) return;
+                      const { error } = await supabase.from("bookings").update({ status: "completed" }).eq("id", b.id);
+                      if (error) return toast.error("Erro ao confirmar: " + error.message);
+                      toast.success("Serviço confirmado. Obrigado!");
+                      qc.invalidateQueries({ queryKey: ["cliente-bookings"] });
+                    }}
+                    className="h-9 px-4 rounded-md bg-emerald-600 text-white text-xs font-semibold"
+                  >
+                    Confirmar conclusão
+                  </button>
                 </div>
               )}
 
