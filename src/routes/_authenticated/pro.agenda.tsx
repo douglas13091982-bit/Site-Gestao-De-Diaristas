@@ -82,6 +82,9 @@ function AgendaPage() {
       if (vars.status === "cancelled") {
         toast.warning("Serviço cancelado. Você ficará suspensa por alguns dias sem receber novas propostas.");
       }
+      if (vars.status === "awaiting_client_confirmation") {
+        toast.success("Serviço marcado como concluído. Aguardando confirmação do cliente para liberar o pagamento.");
+      }
     },
   });
 
