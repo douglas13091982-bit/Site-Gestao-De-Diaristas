@@ -94,7 +94,22 @@ export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean
   const message = {
     message: {
       token: payload.token,
+      android: {
+        priority: "HIGH" as const,
+        ttl: "86400s",
+      },
+      apns: {
+        headers: {
+          "apns-priority": "10",
+          "apns-push-type": "background",
+        },
+        payload: { aps: { "content-available": 1 } },
+      },
       webpush: {
+        headers: {
+          Urgency: "high",
+          TTL: "86400",
+        },
         fcm_options: payload.link ? { link: payload.link } : undefined,
       },
       data: {
