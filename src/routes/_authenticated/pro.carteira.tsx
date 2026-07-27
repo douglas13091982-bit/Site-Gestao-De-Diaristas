@@ -213,12 +213,6 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`text-[11px] font-semibold px-2 py-1 rounded-full ${s.cls}`}>{s.label}</span>;
 }
 
-const sum = (list: Row[]) => list.reduce((acc, r) => acc + computePayoutSafe(r.total_price), 0);
-function computePayoutSafe(v: number | null) {
-  // fallback if pct not available; wallet sums use pct via closure above.
-  return computePayout(v, 20);
-}
-
 function Card({ title, hint, value, tone }: { title: string; hint: string; value: number; tone: "amber" | "emerald" | "sky" }) {
   const tones = {
     amber: "from-amber-500 to-amber-600",
