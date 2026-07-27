@@ -9,7 +9,9 @@ import {
 } from "@/shared/lib/sanitize";
 
 const inputSchema = z.object({
-  professional_id: z.string().uuid(),
+  professional_id: z.string().uuid().nullable().optional(),
+  booking_type: z.enum(["direct", "quick"]).default("direct"),
+  service_type: z.string().optional().nullable(),
   // Preço e duração são derivados no servidor a partir de pricing_packages.
   package_id: z.number().int().positive(),
   booking_date: z.string(),
@@ -17,7 +19,7 @@ const inputSchema = z.object({
   property_type: z.string().optional().nullable(),
   rooms: z.number().int().nullable().optional(),
   bathrooms: z.number().int().nullable().optional(),
-  address: z.string().min(3),
+  address: z.string().min(3).optional().nullable(),
   address_complement: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
   city_slug: z.string().optional().nullable(),
@@ -45,19 +47,30 @@ export const createPayment = createServerFn({ method: "POST" })
     // Remove HTML/scripts/caracteres de controle e aplica limites de
     // tamanho antes de qualquer uso (DB, Mercado Pago, PagSeguro).
     const clean = {
-      address: sanitizeText(data.address, { maxLength: 200, collapseWhitespace: true }),
+      address: sanitizeTextOrNull(data.address, { maxLength: 200, collapseWhitespace: true }),
       address_complement: sanitizeTextOrNull(data.address_complement, { maxLength: 120 }),
       city: sanitizeTextOrNull(data.city, { maxLength: 80, collapseWhitespace: true }),
       city_slug: sanitizeTextOrNull(data.city_slug, { maxLength: 80 }),
       notes: sanitizeTextOrNull(data.notes, { maxLength: 500 }),
       property_type: sanitizeTextOrNull(data.property_type, { maxLength: 40 }),
+      service_type: sanitizeTextOrNull(data.service_type, { maxLength: 60 }),
       client_name: sanitizeTextOrNull(data.client_name, { maxLength: 80, collapseWhitespace: true }),
       client_email: sanitizeEmail(data.client_email),
       client_phone: sanitizeDigits(data.client_phone, 15) || null,
       payer_document: sanitizeDigits(data.payer_document, 14),
     };
-    if (!clean.address || clean.address.length < 3) {
-      throw new Error("Endereço inválido.");
+    const isQuick = data.booking_type === "quick";
+    if (!isQuick) {
+      if (!clean.address || clean.address.length < 3) {
+        throw new Error("Endereço inválido.");
+      }
+      if (!data.professional_id) {
+        throw new Error("Profissional obrigatório para agendamento direto.");
+      }
+    } else {
+      if (!clean.city_slug) {
+        throw new Error("Cidade é obrigatória para agendamento rápido.");
+      }
     }
 
     // ---- Autorização opcional ----------------------------------------
@@ -125,16 +138,16 @@ export const createPayment = createServerFn({ method: "POST" })
         client_email: clean.client_email,
         client_name: clean.client_name,
         client_phone: clean.client_phone,
-        professional_id: data.professional_id,
-        booking_type: "direct",
-        service_type: "diarista",
+        professional_id: isQuick ? null : data.professional_id!,
+        booking_type: isQuick ? "quick" : "direct",
+        service_type: clean.service_type ?? "diarista",
         property_type: clean.property_type,
         booking_date: data.booking_date,
         start_time: data.start_time,
         duration_hours: trustedDuration,
         rooms: data.rooms ?? null,
         bathrooms: data.bathrooms ?? null,
-        address: clean.address,
+        address: clean.address ?? null,
         address_complement: clean.address_complement,
         city: clean.city,
         city_slug: clean.city_slug,
@@ -223,10 +236,15 @@ export const createPayment = createServerFn({ method: "POST" })
 
       if (approved) {
         try {
-          const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
-          await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+          if (isQuick) {
+            const { broadcastNewBookingPush } = await import("./push.functions");
+            await broadcastNewBookingPush({ data: { bookingId: booking.id as number } });
+          } else {
+            const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
+            await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+          }
         } catch (e) {
-          console.warn("[push] falha ao notificar profissional (card)", e);
+          console.warn("[push] falha ao notificar profissionais (card)", e);
         }
       }
 
