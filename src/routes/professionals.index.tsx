@@ -36,7 +36,7 @@ function ProfessionalsPage() {
   const s = Route.useSearch();
   const nav = Route.useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const selectedSpecs = (s.specialties ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const selectedSpecs = (s.specialties ?? "").split(",").map((x: string) => x.trim()).filter(Boolean);
 
   const q = useQuery({
     queryKey: ["pros", s.city ?? "", s.name ?? "", s.category ?? "", s.minRating ?? 0, s.sort ?? "best"],
@@ -184,7 +184,7 @@ function ProfessionalsPage() {
                 onClick={() =>
                   nav({
                     search: (prev: typeof s) => {
-                      const next = selectedSpecs.filter((x) => x !== sp);
+                      const next = selectedSpecs.filter((x: string) => x !== sp);
                       return { ...prev, specialties: next.length ? next.join(",") : undefined };
                     },
                   })
