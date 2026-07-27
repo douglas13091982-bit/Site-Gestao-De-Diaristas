@@ -49,7 +49,6 @@ function ProfilePage() {
         specialties: (profile.data.specialties ?? []).join(", "),
         profile_photo: profile.data.profile_photo ?? "",
         city_slug: profile.data.city_slug ?? "",
-        address: profile.data.address ?? "",
         pix_key: profile.data.pix_key ?? "",
         pix_key_type: profile.data.pix_key_type ?? "cpf",
       });
@@ -73,7 +72,6 @@ function ProfilePage() {
         profile_photo: f.profile_photo || null,
         city_slug: sanitizeTextOrNull(f.city_slug, { maxLength: 80 }),
         city: sanitizeTextOrNull(cityName, { maxLength: 80, collapseWhitespace: true }),
-        address: sanitizeText(f.address, { maxLength: 200, collapseWhitespace: true }),
         pix_key: sanitizeTextOrNull(f.pix_key, { maxLength: 120, collapseWhitespace: true }),
         pix_key_type: sanitizeText(f.pix_key_type, { maxLength: 20 }),
         is_available: isAvailable,
@@ -169,7 +167,10 @@ function ProfilePage() {
           </select>
         </Row>
         <Row label="Especialidades (separadas por vírgula)"><Input value={f.specialties ?? ""} onChange={upd("specialties")} /></Row>
-        <Row label="Endereço"><Input value={f.address ?? ""} onChange={upd("address")} /></Row>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 space-y-1">
+          <div className="text-sm font-semibold text-emerald-800">Dados para recebimento</div>
+          <p className="text-xs text-emerald-700/80">Informe sua chave PIX para receber os pagamentos dos serviços realizados.</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Row label="Tipo chave PIX">
             <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={f.pix_key_type ?? "cpf"} onChange={upd("pix_key_type")}>
