@@ -21,7 +21,6 @@ const schema = z.object({
   duration_hours: z.coerce.number().min(1).max(12),
   rooms: z.coerce.number().min(0).max(20),
   bathrooms: z.coerce.number().min(0).max(20),
-  address: z.string().min(3).max(200),
   notes: z.string().max(500).optional(),
 });
 
