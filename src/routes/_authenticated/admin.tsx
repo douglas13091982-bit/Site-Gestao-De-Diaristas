@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
+ LayoutDashboard, Users, Briefcase, Calendar, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
   ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet, KeyRound,
   Menu, X,

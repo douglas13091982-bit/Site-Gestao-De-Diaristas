@@ -56,7 +56,6 @@ import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/public/webhooks/pagseguro'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
-import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 
 const SejaDiaristaRoute = SejaDiaristaRouteImport.update({
   id: '/seja-diarista',
@@ -314,12 +313,6 @@ const ApiPublicWebhooksMercadopagoRoute =
     path: '/api/public/webhooks/mercadopago',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedAdminBookingsNewRoute =
-  AuthenticatedAdminBookingsNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedAdminBookingsRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -345,7 +338,7 @@ export interface FileRoutesByFullPath {
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
-  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -366,7 +359,6 @@ export interface FileRoutesByFullPath {
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/cliente/': typeof AuthenticatedClienteIndexRoute
-  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
@@ -392,7 +384,7 @@ export interface FileRoutesByTo {
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
-  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -413,7 +405,6 @@ export interface FileRoutesByTo {
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/cliente': typeof AuthenticatedClienteIndexRoute
-  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
@@ -443,7 +434,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/_authenticated/admin/blocked': typeof AuthenticatedAdminBlockedRoute
-  '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -464,7 +455,6 @@ export interface FileRoutesById {
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/cliente/': typeof AuthenticatedClienteIndexRoute
-  '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
   '/api/public/webhooks/pagseguro': typeof ApiPublicWebhooksPagseguroRoute
 }
@@ -515,7 +505,6 @@ export interface FileRouteTypes {
     | '/pro/profile'
     | '/admin/'
     | '/cliente/'
-    | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
   fileRoutesByTo: FileRoutesByTo
@@ -562,7 +551,6 @@ export interface FileRouteTypes {
     | '/pro/profile'
     | '/admin'
     | '/cliente'
-    | '/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
   id:
@@ -612,7 +600,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
     | '/_authenticated/cliente/'
-    | '/_authenticated/admin/bookings/new'
     | '/api/public/webhooks/mercadopago'
     | '/api/public/webhooks/pagseguro'
   fileRoutesById: FileRoutesById
@@ -966,35 +953,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMercadopagoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/bookings/new': {
-      id: '/_authenticated/admin/bookings/new'
-      path: '/new'
-      fullPath: '/admin/bookings/new'
-      preLoaderRoute: typeof AuthenticatedAdminBookingsNewRouteImport
-      parentRoute: typeof AuthenticatedAdminBookingsRoute
-    }
   }
 }
-
-interface AuthenticatedAdminBookingsRouteChildren {
-  AuthenticatedAdminBookingsNewRoute: typeof AuthenticatedAdminBookingsNewRoute
-}
-
-const AuthenticatedAdminBookingsRouteChildren: AuthenticatedAdminBookingsRouteChildren =
-  {
-    AuthenticatedAdminBookingsNewRoute: AuthenticatedAdminBookingsNewRoute,
-  }
-
-const AuthenticatedAdminBookingsRouteWithChildren =
-  AuthenticatedAdminBookingsRoute._addFileChildren(
-    AuthenticatedAdminBookingsRouteChildren,
-  )
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
   AuthenticatedAdminAppearanceRoute: typeof AuthenticatedAdminAppearanceRoute
   AuthenticatedAdminBlockedRoute: typeof AuthenticatedAdminBlockedRoute
-  AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
+  AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
@@ -1014,7 +980,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
   AuthenticatedAdminAppearanceRoute: AuthenticatedAdminAppearanceRoute,
   AuthenticatedAdminBlockedRoute: AuthenticatedAdminBlockedRoute,
-  AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
+  AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
