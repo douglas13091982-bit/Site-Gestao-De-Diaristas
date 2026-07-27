@@ -44,7 +44,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, roles } = useAuth();
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
@@ -57,8 +57,11 @@ function AuthPage() {
   const sendSetup = useServerFn(sendPasswordSetupEmail);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: (search.redirect as "/") ?? "/" });
-  }, [user, loading, navigate, search.redirect]);
+    if (loading || !user) return;
+    const isPro = roles.includes("professional");
+    const target = search.redirect ?? (isPro ? "/pro" : "/");
+    navigate({ to: target as "/" });
+  }, [user, loading, roles, navigate, search.redirect]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
