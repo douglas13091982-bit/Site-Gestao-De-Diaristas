@@ -196,7 +196,7 @@ function ProfessionalsPage() {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
                 nav({
-                  search: (prev) => ({
+                  search: (prev: typeof s) => ({
                     ...prev,
                     city: (fd.get("city") as string) || undefined,
                     category: (fd.get("category") as string) || undefined,
