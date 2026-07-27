@@ -134,7 +134,6 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
   const { user } = useAuth();
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
-  const [notes, setNotes] = useState("");
 
   const create = useMutation({
     mutationFn: async () => {
@@ -147,14 +146,13 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
         amount: value,
         pix_key: pixKey,
         pix_key_type: pixKeyType,
-        notes: notes || null,
         status: "pending",
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Solicitação de saque enviada. O administrador foi notificado.");
-      setAmount(""); setNotes("");
+      setAmount("");
       qc.invalidateQueries({ queryKey: ["pro-withdrawals", user?.id] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -170,10 +168,8 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
         </div>
       </div>
       {!pixKey && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2 mb-3">Cadastre sua chave PIX no perfil para poder solicitar saque.</p>}
-      <div className="grid gap-2 sm:grid-cols-[1fr,2fr,auto]">
+      <div className="grid gap-2 sm:grid-cols-[1fr,auto]">
         <input type="text" inputMode="decimal" placeholder="Valor (R$)" value={amount} onChange={(e) => setAmount(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm" disabled={!pixKey || create.isPending} />
-        <input type="text" placeholder="Observação (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)}
           className="rounded-lg border px-3 py-2 text-sm" disabled={!pixKey || create.isPending} />
         <button onClick={() => create.mutate()} disabled={!pixKey || create.isPending || !amount}
           className="rounded-lg bg-emerald-600 text-white text-sm font-semibold px-4 py-2 hover:bg-emerald-700 disabled:opacity-50">
