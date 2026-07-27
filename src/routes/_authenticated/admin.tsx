@@ -102,8 +102,11 @@ function NavGroupBlock({ group, pathname }: { group: NavGroup; pathname: string 
   const [open, setOpen] = useState(true);
   return (
     <div>
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200">
-        <span>{group.label}</span>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-300 hover:text-emerald-200">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          {group.label}
+        </span>
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
       </button>
       {open && (
