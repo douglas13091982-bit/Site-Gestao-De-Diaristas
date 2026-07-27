@@ -50,7 +50,7 @@ describe("signUpAccount", () => {
       email: args.email,
       password: args.password,
       options: expect.objectContaining({
-        emailRedirectTo: "https://app.test/onboarding",
+        emailRedirectTo: "https://app.test/dashboard",
         data: expect.objectContaining({ full_name: "Ana", role: "client" }),
       }),
     }));
