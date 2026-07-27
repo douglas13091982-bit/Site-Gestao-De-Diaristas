@@ -27,7 +27,7 @@ function ClienteAgendamentos() {
     queryKey: ["cliente-bookings", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("bookings")
-        .select("id, service_type, city, address, booking_date, start_time, duration_hours, status, total_price, professional_id, payment_status")
+        .select("id, service_type, city, address, booking_date, start_time, duration_hours, status, total_price, professional_id, payment_status, guest_token")
         .or(`client_id.eq.${user!.id},client_email.eq.${user!.email}`)
         .order("booking_date", { ascending: false }).limit(100);
       const rows = data ?? [];
@@ -117,7 +117,7 @@ function ClienteAgendamentos() {
 
               {b.status === "pending" && b.payment_status === "pending" && (
                 <div className="mt-3">
-                  <Link to="/agendamento-sucesso/$id" params={{ id: b.id }} className="text-xs font-semibold text-primary">Concluir pagamento →</Link>
+                  <Link to="/agendamento-sucesso/$id" params={{ id: String(b.id) }} search={{ t: b.guest_token ?? "" }} className="text-xs font-semibold text-primary">Concluir pagamento →</Link>
                 </div>
               )}
 

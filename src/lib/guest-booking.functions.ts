@@ -52,7 +52,6 @@ export const getGuestBooking = createServerFn({ method: "POST" })
 
     if (error) throw new Error("Agendamento não encontrado.");
     if (!booking) throw new Error("Agendamento não encontrado.");
-    if (booking.client_id) throw new Error("Este agendamento é de um cliente cadastrado.");
     if (!booking.guest_token || booking.guest_token !== data.token) {
       throw new Error("Token inválido.");
     }
