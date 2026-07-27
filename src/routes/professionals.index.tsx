@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { Search, SlidersHorizontal, X, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, X, MapPin, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,23 @@ function ProfessionalsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const selectedSpecs = (s.specialties ?? "").split(",").map((x: string) => x.trim()).filter(Boolean);
 
+  // Draft state for the filters modal (controlled while open)
+  const [draft, setDraft] = useState({
+    city: s.city ?? "",
+    category: s.category ?? "",
+    minRating: s.minRating ? String(s.minRating) : "",
+    specs: selectedSpecs,
+  });
+  const openFilters = () => {
+    setDraft({
+      city: s.city ?? "",
+      category: s.category ?? "",
+      minRating: s.minRating ? String(s.minRating) : "",
+      specs: selectedSpecs,
+    });
+    setFiltersOpen(true);
+  };
+
   const q = useQuery({
     queryKey: ["pros", s.city ?? "", s.name ?? "", s.category ?? "", s.minRating ?? 0, s.sort ?? "best"],
     queryFn: async () => {
@@ -72,14 +89,15 @@ function ProfessionalsPage() {
   });
 
   const specialties = useQuery({
-    queryKey: ["specialties-filter", s.category ?? ""],
+    queryKey: ["specialties-filter", filtersOpen ? draft.category : (s.category ?? "")],
     queryFn: async () => {
       let q = supabase
         .from("category_specialties")
         .select("name, category_id, profession_categories!inner(slug)")
         .eq("is_enabled", true)
         .order("display_order");
-      if (s.category) q = q.eq("profession_categories.slug", s.category);
+      const catSlug = filtersOpen ? draft.category : s.category;
+      if (catSlug) q = q.eq("profession_categories.slug", catSlug);
       const { data } = await q;
       const names = Array.from(new Set((data ?? []).map((r: { name: string }) => r.name)));
       return names;
@@ -117,7 +135,7 @@ function ProfessionalsPage() {
           </div>
           <button
             type="button"
-            onClick={() => setFiltersOpen(true)}
+            onClick={openFilters}
             className="relative flex items-center gap-2 h-12 px-5 rounded-xl bg-card border border-border shadow-sm hover:bg-accent transition-colors"
           >
             <SlidersHorizontal className="h-5 w-5" />
@@ -230,94 +248,143 @@ function ProfessionalsPage() {
             </div>
 
             <form
-              className="p-5 space-y-5"
+              className="p-5 space-y-6 pb-28"
               onSubmit={(e) => {
                 e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const specs = fd.getAll("spec").map(String).filter(Boolean);
                 nav({
                   search: (prev: typeof s) => ({
                     ...prev,
-                    city: (fd.get("city") as string) || undefined,
-                    category: (fd.get("category") as string) || undefined,
-                    minRating: fd.get("minRating") ? Number(fd.get("minRating")) : undefined,
-                    specialties: specs.length ? specs.join(",") : undefined,
+                    city: draft.city || undefined,
+                    category: draft.category || undefined,
+                    minRating: draft.minRating ? Number(draft.minRating) : undefined,
+                    specialties: draft.specs.length ? draft.specs.join(",") : undefined,
                   }),
                 });
                 setFiltersOpen(false);
               }}
             >
-              <div className="space-y-2">
-                <Label htmlFor="f-city">Cidade</Label>
-                <select id="f-city" name="city" defaultValue={s.city ?? ""} className="w-full h-11 rounded-lg border border-input bg-background px-3 text-sm">
+              {/* Categoria — radio list */}
+              <section className="space-y-3">
+                <h3 className="text-base font-bold">Categoria</h3>
+                <div className="space-y-2">
+                  {[{ slug: "", name: "Todas as categorias", icon: null }, ...(cats.data ?? [])].map((c) => {
+                    const active = draft.category === c.slug;
+                    return (
+                      <label key={c.slug || "all"} className="flex items-center gap-3 cursor-pointer py-1.5">
+                        <input
+                          type="radio"
+                          name="d-cat"
+                          checked={active}
+                          onChange={() => setDraft((d) => ({ ...d, category: c.slug, specs: [] }))}
+                          className="sr-only peer"
+                        />
+                        <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? "border-primary" : "border-muted-foreground/40"}`}>
+                          {active && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                        </span>
+                        {c.slug ? <Sparkles className="h-4 w-4 text-muted-foreground" /> : null}
+                        <span className="text-[15px]">{c.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Cidade */}
+              <section className="space-y-2">
+                <h3 className="text-base font-bold">Cidade</h3>
+                <select
+                  value={draft.city}
+                  onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value }))}
+                  className="w-full h-12 rounded-xl border-2 border-primary/40 bg-primary/5 px-4 text-[15px] font-medium"
+                >
                   <option value="">Todas as cidades</option>
                   {cities.data?.map((c) => (
                     <option key={c.slug} value={c.slug}>{c.name}{c.state ? ` - ${c.state}` : ""}</option>
                   ))}
                 </select>
-              </div>
+              </section>
 
-              <div className="space-y-2">
-                <Label htmlFor="f-cat">Categoria</Label>
-                <select id="f-cat" name="category" defaultValue={s.category ?? ""} className="w-full h-11 rounded-lg border border-input bg-background px-3 text-sm">
-                  <option value="">Todas</option>
-                  {cats.data?.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nota mínima</Label>
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { v: "", l: "Todas" },
-                    { v: "3", l: "3+" },
-                    { v: "4", l: "4+" },
-                    { v: "4.5", l: "4,5+" },
-                    { v: "5", l: "5" },
-                  ].map((opt) => (
-                    <label key={opt.v} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="minRating"
-                        value={opt.v}
-                        defaultChecked={(s.minRating ? String(s.minRating) : "") === opt.v}
-                        className="peer sr-only"
-                      />
-                      <div className="h-11 flex items-center justify-center rounded-lg border border-input bg-background text-sm font-medium peer-checked:bg-primary peer-checked:text-primary-foreground peer-checked:border-primary transition-colors">
-                        {opt.l}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
+              {/* Especialidades — checkbox list */}
               {specialties.data && specialties.data.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Especialidades</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {specialties.data.map((name) => (
-                      <label key={name} className="cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="spec"
-                          value={name}
-                          defaultChecked={selectedSpecs.includes(name)}
-                          className="peer sr-only"
-                        />
-                        <div className="h-9 px-3 flex items-center rounded-full border border-input bg-background text-sm peer-checked:bg-primary peer-checked:text-primary-foreground peer-checked:border-primary transition-colors">
-                          {name}
-                        </div>
-                      </label>
-                    ))}
+                <section className="space-y-3">
+                  <h3 className="text-base font-bold">Especialidades</h3>
+                  <div className="space-y-1">
+                    {specialties.data.map((name) => {
+                      const checked = draft.specs.includes(name);
+                      return (
+                        <label key={name} className="flex items-center gap-3 cursor-pointer py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) =>
+                              setDraft((d) => ({
+                                ...d,
+                                specs: e.target.checked ? [...d.specs, name] : d.specs.filter((x: string) => x !== name),
+                              }))
+                            }
+                            className="sr-only peer"
+                          />
+                          <span className={`h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 ${checked ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
+                            {checked && (
+                              <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 20 20" fill="none">
+                                <path d="M5 10l3 3 7-7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-[15px]">{name}</span>
+                        </label>
+                      );
+                    })}
                   </div>
-                </div>
+                </section>
               )}
 
-              <div className="flex gap-3 pt-3">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => { clearAll(); setFiltersOpen(false); }}>
-                  Limpar tudo
-                </Button>
-                <Button type="submit" className="flex-1">Aplicar</Button>
+              {/* Avaliação mínima — radio list */}
+              <section className="space-y-3">
+                <h3 className="text-base font-bold">Avaliação Mínima</h3>
+                <div className="space-y-2">
+                  {[
+                    { v: "", l: "Todos", stars: 0 },
+                    { v: "4", l: "4+ estrelas", stars: 1 },
+                    { v: "4.5", l: "4.5+ estrelas", stars: 1 },
+                    { v: "4.8", l: "4.8+ estrelas", stars: 1 },
+                  ].map((opt) => {
+                    const active = draft.minRating === opt.v;
+                    return (
+                      <label key={opt.v || "all"} className="flex items-center gap-3 cursor-pointer py-1.5">
+                        <input
+                          type="radio"
+                          name="d-rating"
+                          checked={active}
+                          onChange={() => setDraft((d) => ({ ...d, minRating: opt.v }))}
+                          className="sr-only peer"
+                        />
+                        <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? "border-primary" : "border-muted-foreground/40"}`}>
+                          {active && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                        </span>
+                        {opt.stars > 0 && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
+                        <span className="text-[15px]">{opt.l}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Sticky footer buttons */}
+              <div className="sticky bottom-0 left-0 right-0 -mx-5 -mb-5 px-5 py-4 bg-card border-t border-border flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDraft({ city: "", category: "", minRating: "", specs: [] })}
+                  className="flex-1 h-12 rounded-xl border-2 border-border font-semibold hover:bg-accent"
+                >
+                  Limpar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+                >
+                  Ver resultados
+                </button>
               </div>
             </form>
           </div>
