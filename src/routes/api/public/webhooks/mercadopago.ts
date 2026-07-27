@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                   })
                   .eq("id", bookingId)
                   .neq("payment_status", "paid")
-                  .select("id, professional_id")
+                  .select("id, professional_id, booking_type")
                   .maybeSingle();
                 if (upd?.professional_id) {
                   try {
@@ -102,6 +102,13 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                     await notifyProfessionalBookingConfirmed({ data: { bookingId } });
                   } catch (e) {
                     console.warn("[push] falha ao notificar profissional (pix)", e);
+                  }
+                } else if (upd && upd.booking_type === "quick") {
+                  try {
+                    const { broadcastNewBookingPush } = await import("@/lib/push.functions");
+                    await broadcastNewBookingPush({ data: { bookingId } });
+                  } catch (e) {
+                    console.warn("[push] falha ao broadcast quick booking (pix)", e);
                   }
                 }
               }
