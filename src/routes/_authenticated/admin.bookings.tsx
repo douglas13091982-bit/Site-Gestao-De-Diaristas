@@ -23,7 +23,7 @@ function BookingsList() {
       .limit(200)).data ?? [],
   });
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Agendamentos" subtitle="Todas as reservas da plataforma" />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">

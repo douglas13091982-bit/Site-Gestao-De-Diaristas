@@ -44,7 +44,7 @@ function AdminBlocked() {
   });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Emails Bloqueados" subtitle="Impedir cadastro de emails específicos na plataforma" />
 
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">

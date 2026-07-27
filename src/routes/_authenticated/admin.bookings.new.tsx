@@ -82,7 +82,7 @@ function NewBooking() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Novo Agendamento Manual" subtitle="Criar agendamento para clientes que solicitam via WhatsApp" />
       <form onSubmit={submit} className="bg-white rounded-xl border border-slate-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">

@@ -25,7 +25,7 @@ function AdminOverview() {
   const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Visão Geral" subtitle="Métricas e estatísticas da plataforma" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Usuários" value={d?.totalUsers ?? "—"} icon={Users} color="bg-blue-500" />

@@ -11,7 +11,7 @@ function FinancePage() {
   const d = s.data;
   const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Receita & Comissão" subtitle="Resumo financeiro da plataforma" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard label="Receita Bruta" value={fmt(d?.revenue ?? 0)} icon={DollarSign} color="bg-orange-500" />
