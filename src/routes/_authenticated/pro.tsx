@@ -37,6 +37,7 @@ function ProLayout() {
   const tabs = [
     { to: "/pro/leads", label: "Serviços" },
     { to: "/pro/agenda", label: "Agenda" },
+    { to: "/pro/carteira", label: "Carteira" },
     { to: "/pro/profile", label: "Meu perfil" },
   ];
 
@@ -81,7 +82,7 @@ function ProLayout() {
         <div className="mt-4 sm:mt-6"><Outlet /></div>
       </main>
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {tabs.map((t) => {
           const active = loc.pathname.startsWith(t.to);
           return (
