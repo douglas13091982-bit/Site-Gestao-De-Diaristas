@@ -6,8 +6,9 @@ import {
   LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
   ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet, KeyRound,
+  Menu, X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Painel Admin — Gersepa Solutions" }] }),
@@ -72,6 +73,8 @@ function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -79,13 +82,52 @@ function AdminLayout() {
     navigate({ to: "/auth", replace: true });
   };
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <aside className="w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col sticky top-0 h-screen">
-        <div className="px-5 py-3 border-b border-slate-800">
-          <div className="text-base font-bold">Gersepa</div>
-          <div className="text-[11px] text-slate-400">Painel Admin</div>
+    <div className="min-h-screen md:flex bg-slate-50">
+      {/* Mobile top bar */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-slate-100 px-4 py-3 border-b border-slate-800">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-slate-800"
+          aria-label="Abrir menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="text-center">
+          <div className="text-sm font-bold leading-none">Gersepa</div>
+          <div className="text-[10px] text-slate-400">Painel Admin</div>
         </div>
-        <nav className="flex-1 overflow-hidden px-2 py-2 space-y-2 text-[13px]">
+        <div className="h-9 w-9" />
+      </header>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <button
+          aria-label="Fechar menu"
+          onClick={() => setMobileOpen(false)}
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+        />
+      )}
+
+      <aside
+        className={`bg-slate-900 text-slate-100 flex flex-col
+          fixed z-50 top-0 left-0 h-screen w-72 max-w-[85vw] transform transition-transform duration-200
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+          md:static md:translate-x-0 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:max-w-none`}
+      >
+        <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <div className="text-base font-bold">Gersepa</div>
+            <div className="text-[11px] text-slate-400">Painel Admin</div>
+          </div>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-slate-800"
+            aria-label="Fechar menu"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-2 text-[13px]">
           {GROUPS.map((g) => <NavGroupBlock key={g.label} group={g} pathname={pathname} />)}
         </nav>
         <div className="border-t border-slate-800 px-4 py-3 text-xs">
