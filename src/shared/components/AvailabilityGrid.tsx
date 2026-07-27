@@ -69,31 +69,33 @@ export function AvailabilityGrid({ value, onChange, disabled }: Props) {
         return (
           <div
             key={idx}
-            className="flex items-center gap-2 rounded-lg border border-border bg-card/60 px-2 py-2"
+            className="flex flex-wrap items-center gap-x-2 gap-y-2 rounded-lg border border-border bg-card/60 px-2 py-2 sm:flex-nowrap"
           >
-            <div className="flex flex-1 min-w-0 items-center gap-2">
+            <label className="flex min-w-[110px] flex-1 items-center gap-2 cursor-pointer">
               <DayToggle
                 checked={day.on}
                 disabled={disabled}
                 onCheckedChange={(v) => update(idx, { on: v })}
               />
-              <span className="text-sm font-medium truncate">{label}</span>
+              <span className="text-sm font-medium">{label}</span>
+            </label>
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              <Input
+                type="time"
+                className="w-[92px] px-2 text-sm shrink-0"
+                value={day.start}
+                disabled={disabled || !day.on}
+                onChange={(e) => update(idx, { start: e.target.value })}
+              />
+              <span className="text-xs text-muted-foreground shrink-0">até</span>
+              <Input
+                type="time"
+                className="w-[92px] px-2 text-sm shrink-0"
+                value={day.end}
+                disabled={disabled || !day.on}
+                onChange={(e) => update(idx, { end: e.target.value })}
+              />
             </div>
-            <Input
-              type="time"
-              className="w-[92px] px-2 text-sm shrink-0"
-              value={day.start}
-              disabled={disabled || !day.on}
-              onChange={(e) => update(idx, { start: e.target.value })}
-            />
-            <span className="text-xs text-muted-foreground shrink-0">até</span>
-            <Input
-              type="time"
-              className="w-[92px] px-2 text-sm shrink-0"
-              value={day.end}
-              disabled={disabled || !day.on}
-              onChange={(e) => update(idx, { end: e.target.value })}
-            />
           </div>
         );
       })}
