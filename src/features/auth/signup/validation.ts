@@ -23,6 +23,10 @@ export function validatePassword(password: string): ValidationError | null {
 export function validateClient(f: ClientFieldsState): ValidationError | null {
   if (!f.propertyType) return "Selecione o tipo de imóvel.";
   if (onlyDigits(f.cpf).length !== 11) return "Informe um CPF válido (11 dígitos).";
+  if (onlyDigits(f.cep).length !== 8) return "Informe um CEP válido (8 dígitos).";
+  if (!f.address?.trim()) return "Informe o endereço (rua/avenida).";
+  if (!f.addressNumber?.trim()) return "Informe o número do endereço.";
+  if (!f.neighborhood?.trim()) return "Informe o bairro.";
   return null;
 }
 
@@ -60,10 +64,16 @@ export function validateSignup(args: {
   photoFile: File | null;
   email?: string;
   phone?: string;
+  city?: string;
 }): ValidationError | null {
   if (args.tipo === "client") {
     const e = validateClient(args.clientFields);
     if (e) return e;
+    if (!args.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(args.email.trim()))
+      return "Informe um e-mail válido.";
+    if (onlyDigits(args.phone ?? "").length < 10)
+      return "Informe um telefone válido com DDD.";
+    if (!args.city?.trim()) return "Selecione sua cidade.";
   } else {
     const e = validateProfessional(args.professionalFields, args.availability, args.photoFile, { email: args.email, phone: args.phone });
     if (e) return e;
