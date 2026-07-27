@@ -21,7 +21,6 @@ const schema = z.object({
   duration_hours: z.coerce.number().min(1).max(12),
   rooms: z.coerce.number().min(0).max(20),
   bathrooms: z.coerce.number().min(0).max(20),
-  address: z.string().min(3).max(200),
   notes: z.string().max(500).optional(),
 });
 
@@ -69,7 +68,6 @@ function QuickBookingPage() {
       const { data: inserted, error } = await supabase.from("bookings").insert({
         ...parsed.data,
         city: sanitizeText(cityName, { maxLength: 80, collapseWhitespace: true }),
-        address: sanitizeText(parsed.data.address, { maxLength: 200, collapseWhitespace: true }),
         notes: sanitizeTextOrNull(parsed.data.notes, { maxLength: 500 }),
         booking_type: "quick",
         status: "pending",
@@ -136,7 +134,6 @@ function QuickBookingPage() {
             <div><Label>Quartos</Label><Input name="rooms" type="number" min={0} defaultValue={2} required /></div>
             <div><Label>Banheiros</Label><Input name="bathrooms" type="number" min={0} defaultValue={1} required /></div>
           </div>
-          <div><Label>Endereço</Label><Input name="address" required maxLength={200} /></div>
           <div><Label>Observações</Label><Textarea name="notes" rows={3} maxLength={500} /></div>
           {!user && (<div><Label>Seu email para contato</Label><Input name="email" type="email" required maxLength={255} /></div>)}
           <Button type="submit" className="w-full" disabled={loading}>{loading ? "Enviando…" : "Solicitar agora"}</Button>
