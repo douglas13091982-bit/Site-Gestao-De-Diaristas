@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import {
@@ -26,6 +27,13 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const city = "Joinville";
+  const { roles, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && roles.includes("professional")) {
+      navigate({ to: "/pro" });
+    }
+  }, [loading, roles, navigate]);
   const featured = useQuery({
     queryKey: ["featured-pros"],
     queryFn: async () => {
