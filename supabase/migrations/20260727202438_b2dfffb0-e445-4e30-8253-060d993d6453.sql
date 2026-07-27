@@ -1,0 +1,1 @@
+ALTER TYPE public.booking_status ADD VALUE IF NOT EXISTS 'awaiting_client_confirmation' AFTER 'in_progress';
