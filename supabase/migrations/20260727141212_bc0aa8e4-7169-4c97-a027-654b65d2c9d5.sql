@@ -1,0 +1,1 @@
+UPDATE public.bookings SET payment_status='paid', status='pending', paid_at=COALESCE(paid_at, now()) WHERE id=12 AND payment_status<>'paid';
