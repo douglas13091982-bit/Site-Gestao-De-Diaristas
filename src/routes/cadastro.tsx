@@ -217,9 +217,8 @@ function CadastroPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="password">Senha</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
