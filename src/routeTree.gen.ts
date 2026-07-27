@@ -34,6 +34,7 @@ import { Route as AuthenticatedClienteIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProProfileRouteImport } from './routes/_authenticated/pro.profile'
 import { Route as AuthenticatedProLeadsRouteImport } from './routes/_authenticated/pro.leads'
+import { Route as AuthenticatedProCarteiraRouteImport } from './routes/_authenticated/pro.carteira'
 import { Route as AuthenticatedProAgendaRouteImport } from './routes/_authenticated/pro.agenda'
 import { Route as AuthenticatedClientePerfilRouteImport } from './routes/_authenticated/cliente.perfil'
 import { Route as AuthenticatedClienteAgendamentosRouteImport } from './routes/_authenticated/cliente.agendamentos'
@@ -181,6 +182,12 @@ const AuthenticatedProLeadsRoute = AuthenticatedProLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProCarteiraRoute =
+  AuthenticatedProCarteiraRouteImport.update({
+    id: '/carteira',
+    path: '/carteira',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 const AuthenticatedProAgendaRoute = AuthenticatedProAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -338,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/carteira': typeof AuthenticatedProCarteiraRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -382,6 +390,7 @@ export interface FileRoutesByTo {
   '/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/pro/carteira': typeof AuthenticatedProCarteiraRoute
   '/pro/leads': typeof AuthenticatedProLeadsRoute
   '/pro/profile': typeof AuthenticatedProProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -430,6 +439,7 @@ export interface FileRoutesById {
   '/_authenticated/cliente/agendamentos': typeof AuthenticatedClienteAgendamentosRoute
   '/_authenticated/cliente/perfil': typeof AuthenticatedClientePerfilRoute
   '/_authenticated/pro/agenda': typeof AuthenticatedProAgendaRoute
+  '/_authenticated/pro/carteira': typeof AuthenticatedProCarteiraRoute
   '/_authenticated/pro/leads': typeof AuthenticatedProLeadsRoute
   '/_authenticated/pro/profile': typeof AuthenticatedProProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
     | '/cliente/agendamentos'
     | '/cliente/perfil'
     | '/pro/agenda'
+    | '/pro/carteira'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin/'
@@ -522,6 +533,7 @@ export interface FileRouteTypes {
     | '/cliente/agendamentos'
     | '/cliente/perfil'
     | '/pro/agenda'
+    | '/pro/carteira'
     | '/pro/leads'
     | '/pro/profile'
     | '/admin'
@@ -569,6 +581,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cliente/agendamentos'
     | '/_authenticated/cliente/perfil'
     | '/_authenticated/pro/agenda'
+    | '/_authenticated/pro/carteira'
     | '/_authenticated/pro/leads'
     | '/_authenticated/pro/profile'
     | '/_authenticated/admin/'
@@ -771,6 +784,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/pro/leads'
       preLoaderRoute: typeof AuthenticatedProLeadsRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/carteira': {
+      id: '/_authenticated/pro/carteira'
+      path: '/carteira'
+      fullPath: '/pro/carteira'
+      preLoaderRoute: typeof AuthenticatedProCarteiraRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/agenda': {
@@ -986,12 +1006,14 @@ const AuthenticatedClienteRouteWithChildren =
 
 interface AuthenticatedProRouteChildren {
   AuthenticatedProAgendaRoute: typeof AuthenticatedProAgendaRoute
+  AuthenticatedProCarteiraRoute: typeof AuthenticatedProCarteiraRoute
   AuthenticatedProLeadsRoute: typeof AuthenticatedProLeadsRoute
   AuthenticatedProProfileRoute: typeof AuthenticatedProProfileRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProAgendaRoute: AuthenticatedProAgendaRoute,
+  AuthenticatedProCarteiraRoute: AuthenticatedProCarteiraRoute,
   AuthenticatedProLeadsRoute: AuthenticatedProLeadsRoute,
   AuthenticatedProProfileRoute: AuthenticatedProProfileRoute,
 }
