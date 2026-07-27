@@ -58,15 +58,6 @@ function useAdminBadges(): BadgeCounts {
       } as BadgeCounts;
     },
   });
-  useEffect(() => {
-    const ch = supabase
-      .channel("admin-badges")
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
-        void 0;
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, []);
   return data ?? {};
 }
 
