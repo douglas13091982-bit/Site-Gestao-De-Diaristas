@@ -246,6 +246,12 @@ export const createPayment = createServerFn({ method: "POST" })
         } catch (e) {
           console.warn("[push] falha ao notificar profissionais (card)", e);
         }
+        try {
+          const { notifyAdminsBookingPaid } = await import("./push.functions");
+          await notifyAdminsBookingPaid({ data: { bookingId: booking.id as number } });
+        } catch (e) {
+          console.warn("[push] falha ao notificar admins (card)", e);
+        }
       }
 
       return {
