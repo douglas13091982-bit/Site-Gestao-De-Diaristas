@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard, Users, Briefcase, Calendar, Plus, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
-  ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet,
+  ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet, KeyRound,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
@@ -56,6 +56,7 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/categories", label: "Categorias", icon: Tag },
     { to: "/admin/cities", label: "Cidades", icon: MapPin },
     { to: "/admin/notifications", label: "Notificações Push", icon: Bell },
+    { to: "/admin/password-resets", label: "Redefinir Senha", icon: KeyRound },
     { to: "/admin/blocked", label: "Bloqueados", icon: Ban },
   ]},
   { label: "Sistema", items: [
