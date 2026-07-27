@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "./admin";
-import { Star, Search, Eye, Ban, Trash2, Pencil, CheckCircle2 } from "lucide-react";
+import { Star, Search, Eye, Ban, Trash2, Pencil, CheckCircle2, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
 export const Route = createFileRoute("/_authenticated/admin/professionals")({
   component: ProsPage,
@@ -28,6 +29,7 @@ type Pro = {
 function ProsPage() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const pct = useCommissionPct();
 
   const list = useQuery({
     queryKey: ["admin-pros"],
@@ -50,6 +52,38 @@ function ProsPage() {
       (p.city ?? "").toLowerCase().includes(term)
     );
   }, [list.data, q]);
+
+  const balances = useQuery({
+    queryKey: ["admin-pros-balances", pct],
+    queryFn: async () => {
+      const [bk, wd] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("professional_id,total_price,status,payment_status")
+          .eq("status", "completed")
+          .eq("payment_status", "paid"),
+        supabase
+          .from("withdrawal_requests")
+          .select("professional_id,amount,status"),
+      ]);
+      if (bk.error) throw bk.error;
+      if (wd.error) throw wd.error;
+      const map = new Map<string, number>();
+      for (const r of bk.data ?? []) {
+        if (!r.professional_id) continue;
+        map.set(r.professional_id, (map.get(r.professional_id) ?? 0) + computePayout(r.total_price, pct));
+      }
+      for (const w of wd.data ?? []) {
+        if (!w.professional_id) continue;
+        if (w.status === "paid" || w.status === "pending" || w.status === "approved") {
+          map.set(w.professional_id, (map.get(w.professional_id) ?? 0) - Number(w.amount));
+        }
+      }
+      return map;
+    },
+  });
+
+  const balanceOf = (id: string) => Math.max(0, balances.data?.get(id) ?? 0);
 
   const toggleVerified = useMutation({
     mutationFn: async (p: Pro) => {
@@ -105,14 +139,15 @@ function ProsPage() {
         <div className="overflow-x-auto">
           <table className="w-full table-fixed text-xs min-w-[880px]">
             <colgroup>
-              <col className="w-[16%]" />
+              <col className="w-[15%]" />
+              <col className="w-[9%]" />
+              <col className="w-[7%]" />
+              <col className="w-[6%]" />
+              <col className="w-[10%]" />
+              <col className="w-[14%]" />
               <col className="w-[10%]" />
               <col className="w-[8%]" />
-              <col className="w-[7%]" />
-              <col className="w-[11%]" />
-              <col className="w-[16%]" />
-              <col className="w-[9%]" />
-              <col className="w-[23%]" />
+              <col className="w-[21%]" />
             </colgroup>
             <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
               <tr>
@@ -122,13 +157,14 @@ function ProsPage() {
                 <th className="text-left p-2 font-medium">Limp.</th>
                 <th className="text-left p-2 font-medium">Telefone</th>
                 <th className="text-left p-2 font-medium">Chave PIX</th>
+                <th className="text-left p-2 font-medium">Saldo</th>
                 <th className="text-left p-2 font-medium">Verif.</th>
                 <th className="text-left p-2 font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
               {list.isLoading && (
-                <tr><td colSpan={8} className="p-6 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={9} className="p-6 text-center text-slate-500">Carregando...</td></tr>
               )}
               {!list.isLoading && filtered.map(p => (
                 <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/50">
@@ -147,6 +183,12 @@ function ProsPage() {
                       <span className="truncate">{p.pix_key ?? "—"}</span>
                       <Pencil className="h-3 w-3 shrink-0" />
                     </button>
+                  </td>
+                  <td className="p-2">
+                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                      <Wallet className="h-3.5 w-3.5" />
+                      {balances.isLoading ? "…" : `R$ ${balanceOf(p.id).toFixed(2)}`}
+                    </span>
                   </td>
                   <td className="p-2">
                     <button
