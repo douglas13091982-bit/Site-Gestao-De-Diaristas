@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { Search, SlidersHorizontal, X, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, X, MapPin, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,23 @@ function ProfessionalsPage() {
   const nav = Route.useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const selectedSpecs = (s.specialties ?? "").split(",").map((x: string) => x.trim()).filter(Boolean);
+
+  // Draft state for the filters modal (controlled while open)
+  const [draft, setDraft] = useState({
+    city: s.city ?? "",
+    category: s.category ?? "",
+    minRating: s.minRating ? String(s.minRating) : "",
+    specs: selectedSpecs,
+  });
+  const openFilters = () => {
+    setDraft({
+      city: s.city ?? "",
+      category: s.category ?? "",
+      minRating: s.minRating ? String(s.minRating) : "",
+      specs: selectedSpecs,
+    });
+    setFiltersOpen(true);
+  };
 
   const q = useQuery({
     queryKey: ["pros", s.city ?? "", s.name ?? "", s.category ?? "", s.minRating ?? 0, s.sort ?? "best"],
