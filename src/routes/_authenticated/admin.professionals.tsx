@@ -102,8 +102,8 @@ function ProsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div>
-          <table className="w-full table-fixed text-xs">
+        <div className="overflow-x-auto">
+          <table className="w-full table-fixed text-xs min-w-[880px]">
             <colgroup>
               <col className="w-[16%]" />
               <col className="w-[10%]" />

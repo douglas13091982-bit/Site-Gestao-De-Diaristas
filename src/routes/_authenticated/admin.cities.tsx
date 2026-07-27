@@ -55,7 +55,8 @@ function AdminCities() {
         <Button onClick={() => add.mutate()} disabled={add.isPending}>Adicionar</Button>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
             <tr><th className="text-left px-4 py-2">Cidade</th><th className="text-left px-4 py-2">UF</th><th className="text-left px-4 py-2">Slug</th><th className="text-left px-4 py-2">Status</th><th></th></tr>
           </thead>
@@ -73,6 +74,7 @@ function AdminCities() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -117,7 +117,8 @@ function UsersPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
             <tr>
               <th className="text-left p-3">Usuário</th>
@@ -165,6 +166,7 @@ function UsersPage() {
             })}
           </tbody>
         </table>
+        </div>
         {q.isLoading && <div className="p-6 text-center text-slate-500">Carregando…</div>}
         {!q.isLoading && rows.length === 0 && (
           <div className="p-6 text-center text-slate-500">
