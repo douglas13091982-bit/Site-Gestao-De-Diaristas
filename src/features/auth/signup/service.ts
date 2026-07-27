@@ -36,6 +36,16 @@ type ProfessionalPayload = CommonProfile & {
 
 export type SignupPayload = ClientPayload | ProfessionalPayload;
 
+function detectPixKeyType(raw: string): string {
+  const v = (raw || "").trim();
+  if (!v) return "random";
+  if (v.includes("@")) return "email";
+  const digits = v.replace(/\D/g, "");
+  if (digits.length === 11 && digits === v.replace(/[.\-\s]/g, "")) return "cpf";
+  if (digits.length >= 10 && digits.length <= 13) return "phone";
+  return "random";
+}
+
 async function uploadProfessionalPhoto(userId: string, file: File): Promise<string | null> {
   const compressed = await compressImage(file, {
     maxWidth: 1200,
@@ -112,7 +122,7 @@ export async function submitSignup(payload: SignupPayload) {
     ...base,
     cpf: sanitizeDigits(f.cpf, 11),
     pix_key: sanitizeText(f.pixKey, { maxLength: 120, collapseWhitespace: true }),
-    pix_key_type: sanitizeText(f.pixKeyType, { maxLength: 20 }),
+    pix_key_type: detectPixKeyType(f.pixKey),
     profession_category: sanitizeText(f.category, { maxLength: 60 }),
     specialties: sanitizeStringArray(f.specialties, { maxLength: 60, maxItems: 30 }),
     regions: sanitizeStringArray(f.regions, { maxLength: 60, maxItems: 30 }).join(","),

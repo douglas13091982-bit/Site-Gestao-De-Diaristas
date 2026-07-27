@@ -16,7 +16,10 @@ import {
 } from "@/shared/components/AvailabilityGrid";
 import { TipoCard } from "@/features/auth/signup/components/TipoCard";
 import { ClientFields } from "@/features/auth/signup/components/ClientFields";
-import { ProfessionalFields } from "@/features/auth/signup/components/ProfessionalFields";
+import {
+  ProfessionalFieldsTop,
+  ProfessionalFieldsBottom,
+} from "@/features/auth/signup/components/ProfessionalFields";
 import {
   emptyClientFields,
   emptyProfessionalFields,
@@ -164,13 +167,20 @@ function CadastroPage() {
             <form onSubmit={submit} className="space-y-4 pt-2 border-t border-border">
               <div className="space-y-1.5">
                 <Label htmlFor="name">Nome completo</Label>
-                <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome completo" required />
               </div>
+
+              {tipo === "professional" && (
+                <ProfessionalFieldsTop
+                  value={professionalFields}
+                  onChange={patchProfessional}
+                />
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Telefone / WhatsApp</Label>
@@ -197,7 +207,7 @@ function CadastroPage() {
               </div>
 
               {tipo === "professional" && (
-                <ProfessionalFields
+                <ProfessionalFieldsBottom
                   value={professionalFields}
                   onChange={patchProfessional}
                   photoFile={photoFile}
