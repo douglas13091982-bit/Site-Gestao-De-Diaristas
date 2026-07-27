@@ -141,7 +141,6 @@ function LeadCard({ offer, pct, onAccept, onReject, busy }: { offer: OfferRow; p
             <div>
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Você recebe</div>
               <div className="font-bold text-base sm:text-lg text-emerald-600 whitespace-nowrap">R$ {payout.toFixed(2)}</div>
-              <div className="text-[10px] text-muted-foreground whitespace-nowrap">líquido (comissão {pct}%)</div>
             </div>
           ) : null}
         </div>
