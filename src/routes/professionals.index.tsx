@@ -89,14 +89,15 @@ function ProfessionalsPage() {
   });
 
   const specialties = useQuery({
-    queryKey: ["specialties-filter", s.category ?? ""],
+    queryKey: ["specialties-filter", filtersOpen ? draft.category : (s.category ?? "")],
     queryFn: async () => {
       let q = supabase
         .from("category_specialties")
         .select("name, category_id, profession_categories!inner(slug)")
         .eq("is_enabled", true)
         .order("display_order");
-      if (s.category) q = q.eq("profession_categories.slug", s.category);
+      const catSlug = filtersOpen ? draft.category : s.category;
+      if (catSlug) q = q.eq("profession_categories.slug", catSlug);
       const { data } = await q;
       const names = Array.from(new Set((data ?? []).map((r: { name: string }) => r.name)));
       return names;
@@ -134,7 +135,7 @@ function ProfessionalsPage() {
           </div>
           <button
             type="button"
-            onClick={() => setFiltersOpen(true)}
+            onClick={openFilters}
             className="relative flex items-center gap-2 h-12 px-5 rounded-xl bg-card border border-border shadow-sm hover:bg-accent transition-colors"
           >
             <SlidersHorizontal className="h-5 w-5" />
