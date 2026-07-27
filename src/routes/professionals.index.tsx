@@ -319,7 +319,7 @@ function ProfessionalsPage() {
                             onChange={(e) =>
                               setDraft((d) => ({
                                 ...d,
-                                specs: e.target.checked ? [...d.specs, name] : d.specs.filter((x) => x !== name),
+                                specs: e.target.checked ? [...d.specs, name] : d.specs.filter((x: string) => x !== name),
                               }))
                             }
                             className="sr-only peer"
