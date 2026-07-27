@@ -88,7 +88,7 @@ function ProsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Profissionais" subtitle="Gerenciar profissionais cadastrados" />
 
       <div className="mb-4 relative">

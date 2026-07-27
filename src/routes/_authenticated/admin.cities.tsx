@@ -47,7 +47,7 @@ function AdminCities() {
   });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Cidades atendidas" subtitle="Gerencie as cidades exibidas publicamente." />
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 grid sm:grid-cols-[1fr_120px_auto] gap-3">
         <Input placeholder="Nome da cidade" value={name} onChange={e => setName(e.target.value)} maxLength={80} />

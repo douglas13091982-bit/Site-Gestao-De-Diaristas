@@ -97,7 +97,7 @@ function UsersPage() {
   }, [source, search]);
 
   return (
-    <div className="p-8 space-y-4">
+    <div className="p-4 md:p-8 space-y-4">
       <AdminPageHeader title="Usuários" subtitle="Clientes e profissionais cadastrados na plataforma" />
 
       <div className="flex flex-wrap items-center gap-3">

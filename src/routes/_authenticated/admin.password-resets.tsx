@@ -110,7 +110,7 @@ function PasswordResetsPage() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <AdminPageHeader
         title="Redefinições de senha"
         subtitle="Pedidos feitos pela tela de login. Envie o link por WhatsApp para a diarista / cliente."
@@ -133,7 +133,7 @@ function PasswordResetsPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         {q.isLoading ? (
           <div className="p-8 text-center text-slate-500 text-sm">Carregando…</div>
         ) : !q.data || q.data.length === 0 ? (

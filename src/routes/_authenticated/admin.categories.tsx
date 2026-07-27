@@ -81,7 +81,7 @@ function AdminCategories() {
   const activeCount = cats.filter((c) => c.is_enabled).length;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Categorias de Profissões" subtitle="Crie, ative ou desative categorias de profissionais na plataforma" />
 
       {/* New category form */}

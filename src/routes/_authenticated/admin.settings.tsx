@@ -133,7 +133,7 @@ function SettingsPage() {
       : "O cliente pagará via QR Code PIX. O agendamento precisa ser confirmado manualmente após o pagamento.";
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <AdminPageHeader
           title="Configurações"

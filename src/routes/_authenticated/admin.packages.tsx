@@ -52,7 +52,7 @@ function AdminPackages() {
   });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader
         title="Pacotes de Preço"
         subtitle="Gerenciar pacotes de duração e preços dos serviços"

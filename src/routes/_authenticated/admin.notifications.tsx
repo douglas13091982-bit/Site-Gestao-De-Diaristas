@@ -158,7 +158,7 @@ function AdminNotifications() {
   const totalAll = users.data?.length ?? 0;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <AdminPageHeader title="Notificações Push" subtitle="Envie notificações in-app para clientes e diaristas da plataforma" />
 
       <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-3">

@@ -52,7 +52,7 @@ function WebhooksPage() {
   const copy = (v: string) => { navigator.clipboard.writeText(v); toast.success("URL copiada"); };
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <AdminPageHeader
           title="Webhooks"
