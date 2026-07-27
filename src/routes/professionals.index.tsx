@@ -87,7 +87,7 @@ function ProfessionalsPage() {
                 const value = e.target.value;
                 clearTimeout((window as unknown as { __proSearchT?: number }).__proSearchT);
                 (window as unknown as { __proSearchT?: number }).__proSearchT = window.setTimeout(() => {
-                  nav({ search: (prev) => ({ ...prev, name: value || undefined }) });
+                  nav({ search: (prev: typeof s) => ({ ...prev, name: value || undefined }) });
                 }, 300);
               }}
               className="pl-10 h-12 rounded-xl bg-card shadow-sm"
@@ -116,7 +116,7 @@ function ProfessionalsPage() {
           </div>
           <select
             value={s.sort ?? "best"}
-            onChange={(e) => nav({ search: (prev) => ({ ...prev, sort: e.target.value === "best" ? undefined : e.target.value }) })}
+            onChange={(e) => nav({ search: (prev: typeof s) => ({ ...prev, sort: e.target.value === "best" ? undefined : e.target.value }) })}
             className="h-10 rounded-full border border-border bg-card px-4 text-sm font-medium shadow-sm"
           >
             <option value="best">Melhor avaliados</option>
@@ -130,7 +130,7 @@ function ProfessionalsPage() {
           <div className="flex flex-wrap gap-2 mb-6">
             {cityName && (
               <button
-                onClick={() => nav({ search: (prev) => ({ ...prev, city: undefined }) })}
+                onClick={() => nav({ search: (prev: typeof s) => ({ ...prev, city: undefined }) })}
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/15"
               >
                 <MapPin className="h-3.5 w-3.5" />
@@ -140,7 +140,7 @@ function ProfessionalsPage() {
             )}
             {catName && (
               <button
-                onClick={() => nav({ search: (prev) => ({ ...prev, category: undefined }) })}
+                onClick={() => nav({ search: (prev: typeof s) => ({ ...prev, category: undefined }) })}
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/15"
               >
                 {catName}
@@ -149,7 +149,7 @@ function ProfessionalsPage() {
             )}
             {s.minRating && (
               <button
-                onClick={() => nav({ search: (prev) => ({ ...prev, minRating: undefined }) })}
+                onClick={() => nav({ search: (prev: typeof s) => ({ ...prev, minRating: undefined }) })}
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/15"
               >
                 {s.minRating}+ estrelas
