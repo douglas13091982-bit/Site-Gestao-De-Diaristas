@@ -178,7 +178,7 @@ function ProfessionalsPage() {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
-            {selectedSpecs.map((sp) => (
+            {selectedSpecs.map((sp: string) => (
               <button
                 key={sp}
                 onClick={() =>
