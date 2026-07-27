@@ -111,6 +111,14 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                     console.warn("[push] falha ao broadcast quick booking (pix)", e);
                   }
                 }
+                if (upd) {
+                  try {
+                    const { notifyAdminsBookingPaid } = await import("@/lib/push.functions");
+                    await notifyAdminsBookingPaid({ data: { bookingId } });
+                  } catch (e) {
+                    console.warn("[push] falha ao notificar admins (pix)", e);
+                  }
+                }
               }
             }
           }
