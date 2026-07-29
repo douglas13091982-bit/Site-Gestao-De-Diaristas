@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import {
   ShieldCheck, Star, ArrowRight, Zap, Users, Home, Building2,
-  Store, Building, MessageCircle, BadgeCheck,
+  Store, Building, BadgeCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
