@@ -272,7 +272,42 @@ function DiagnosticoPush() {
             >
               <Vibrate className="w-4 h-4 mr-2" /> Testar vibração
             </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const reg =
+                    (await navigator.serviceWorker?.getRegistration("/firebase-messaging-sw.js")) ||
+                    (await navigator.serviceWorker?.ready);
+                  if (!reg) {
+                    toast.error("Service worker não encontrado neste dispositivo.");
+                    return;
+                  }
+                  await reg.showNotification("Gersepa Solutions", {
+                    body: "Teste de notificação com vibração.",
+                    icon: "/icons/icon-192.png",
+                    badge: "/icons/badge-96-v3.png",
+                    tag: "gersepa-push",
+                    renotify: true,
+                    silent: false,
+                    vibrate: [300, 120, 300, 120, 400],
+                    data: { url: "/diagnostico-push" },
+                  } as NotificationOptions);
+                  toast.success("Notificação exibida. Vibrou? Se não, o canal de notificação do Android está sem vibração.");
+                } catch (e) {
+                  toast.error("Não foi possível exibir a notificação de teste.");
+                }
+              }}
+            >
+              <Vibrate className="w-4 h-4 mr-2" /> Testar notificação + vibração
+            </Button>
           </div>
+          <p className="text-xs text-slate-500">
+            Se “Testar vibração” funciona mas “Testar notificação + vibração” (ou o push real) não vibra, o problema é o
+            <b> canal de notificação do Android</b>, que ignora o padrão enviado pelo site. Corrija em: Configurações → Apps →
+            Gersepa → Notificações → (canal padrão) → <b>Vibração: ativada</b> e Importância <b>Alta</b>. No modo silencioso/
+            “Não perturbe” a vibração também é bloqueada.
+          </p>
           <p className="text-xs text-slate-500">
             Use “Registrar este dispositivo novamente” se a permissão já estiver concedida mas o token não aparecer salvo,
             ou se você ativou as notificações em outra conta neste mesmo celular.
