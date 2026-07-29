@@ -28,5 +28,7 @@
     { "src": "/screenshots/mobile-pros.png", "sizes": "412x915", "type": "image/png", "form_factor": "narrow", "label": "Buscar diaristas" },
     { "src": "/screenshots/desktop-home.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Página inicial no desktop" },
     { "src": "/screenshots/desktop-pros.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Buscar diaristas no desktop" }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }
