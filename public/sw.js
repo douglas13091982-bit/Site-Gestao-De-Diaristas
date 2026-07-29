@@ -2,7 +2,7 @@
 // para instalabilidade (beforeinstallprompt) + suporte offline básico com
 // página de fallback, background sync e periodic sync.
 
-const CACHE = "gersepa-runtime-v3";
+const CACHE = "gersepa-runtime-v4";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/manifest.webmanifest"];
 
@@ -83,6 +83,7 @@ self.addEventListener("push", (event) => {
       vibrate: [300, 120, 300, 120, 400],
       renotify: true,
       silent: false,
+      requireInteraction: true,
       tag: data.tag || "gersepa-push",
       data: { url: data.url || "/" },
     })
