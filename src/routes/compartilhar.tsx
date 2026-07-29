@@ -2,7 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { Share2, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
+function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
+  return <div className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>;
+}
 
 const searchSchema = z.object({
   title: z.string().optional(),
