@@ -87,6 +87,12 @@ self.addEventListener("push", (event) => {
       data: { url: data.url || "/" },
     })
   );
+  // Fallback: alguns Android/TWA ignoram `vibrate` da notificação.
+  try {
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      list.forEach((c) => c.postMessage({ type: "gersepa-vibrate", pattern: [300, 120, 300, 120, 400] }));
+    });
+  } catch (e) { /* noop */ }
 });
 
 self.addEventListener("notificationclick", (event) => {
