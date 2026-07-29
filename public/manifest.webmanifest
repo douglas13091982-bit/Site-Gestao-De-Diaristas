@@ -11,6 +11,12 @@
   "launch_handler": {
     "client_mode": ["navigate-existing", "auto"]
   },
+  "protocol_handlers": [
+    {
+      "protocol": "web+gersepa",
+      "url": "/handler?type=%s"
+    }
+  ],
   "background_color": "#f0faf5",
   "theme_color": "#10b981",
   "lang": "pt-BR",
