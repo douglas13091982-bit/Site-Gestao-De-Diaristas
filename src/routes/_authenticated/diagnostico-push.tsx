@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { sendPushToUsers } from "@/lib/push.functions";
-import { CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw, Send, Smartphone } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw, Send, Smartphone, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/diagnostico-push")({
@@ -235,10 +235,24 @@ function DiagnosticoPush() {
             >
               {push.status === "granted" ? "Notificações ativas" : "Ativar notificações"}
             </Button>
+            <Button
+              onClick={async () => {
+                const ok = await push.registerDevice();
+                if (ok) await runChecks();
+              }}
+              disabled={push.busy || busy}
+              variant="secondary"
+            >
+              <RotateCw className={`w-4 h-4 mr-2 ${push.busy ? "animate-spin" : ""}`} /> Registrar este dispositivo novamente
+            </Button>
             <Button onClick={sendSelfTest} disabled={!canTest} variant="outline">
               <Send className="w-4 h-4 mr-2" /> Enviar teste para meu celular
             </Button>
           </div>
+          <p className="text-xs text-slate-500">
+            Use “Registrar este dispositivo novamente” se a permissão já estiver concedida mas o token não aparecer salvo,
+            ou se você ativou as notificações em outra conta neste mesmo celular.
+          </p>
           {tokenRow && (
             <p className="text-xs text-slate-500">
               Último token atualizado em {new Date(tokenRow.updated_at).toLocaleString("pt-BR")}.

@@ -131,5 +131,56 @@ export function usePushNotifications() {
     }
   }, [user, status]);
 
-  return { status, busy, enable, inFrame };
+  /**
+   * Força a geração e o salvamento do token FCM para a conta logada,
+   * mesmo quando a permissão do Android já está concedida.
+   */
+  const registerDevice = useCallback(async () => {
+    if (!user) {
+      toast.error("Faça login para registrar este dispositivo.");
+      return false;
+    }
+    if (getPushStatus() === "unsupported") {
+      toast.error("Seu navegador não suporta notificações push.");
+      return false;
+    }
+    if (getPushStatus() === "denied") {
+      setStatus("denied");
+      showBlockedInstructions();
+      return false;
+    }
+    if (isInsideFrame()) {
+      showFrameInstructions();
+      return false;
+    }
+    setBusy(true);
+    try {
+      const token = await requestPushToken();
+      if (!token) {
+        const next = getPushStatus();
+        setStatus(next);
+        if (next === "denied") showBlockedInstructions();
+        else toast.error("Não foi possível gerar o token deste dispositivo.");
+        return false;
+      }
+      const { error } = await supabase
+        .from("push_subscriptions")
+        .upsert(
+          { user_id: user.id, endpoint: token, p256dh: "fcm", auth: "fcm" },
+          { onConflict: "endpoint" },
+        );
+      if (error) throw error;
+      setStatus("granted");
+      toast.success("Dispositivo registrado para esta conta!");
+      return true;
+    } catch (err) {
+      console.error("[push] falha ao registrar dispositivo", err);
+      toast.error("Não foi possível registrar este dispositivo. Tente novamente fora do preview.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [user]);
+
+  return { status, busy, enable, registerDevice, inFrame };
 }
