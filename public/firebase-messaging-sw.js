@@ -34,6 +34,7 @@ messaging.onBackgroundMessage((payload) => {
       tag: data.tag || "gersepa-push",
       renotify: true,
       silent: false,
+      requireInteraction: true,
       vibrate: [300, 120, 300, 120, 400],
       data: { url: data.link || payload.fcmOptions?.link || "/notificacoes" },
     };
