@@ -29,7 +29,7 @@ messaging.onBackgroundMessage((payload) => {
     const options = {
       body: data.body || payload.notification?.body || "Você tem uma nova notificação.",
       icon: "/icons/icon-192.png",
-      badge: "/icons/badge-96.png",
+      badge: "/icons/badge-96-v3.png",
       image,
       tag: data.tag || "gersepa-push",
       renotify: true,
