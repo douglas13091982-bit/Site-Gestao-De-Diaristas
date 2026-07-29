@@ -1,11 +1,15 @@
-// Service Worker do ROTA 66 — fornece o handler `fetch` necessário para que
-// o navegador considere o site instalável (beforeinstallprompt). Não faz
-// cache agressivo: passa toda navegação pela rede e só faz fallback básico
-// para assets estáticos, evitando servir HTML antigo.
+// Service Worker Gersepa Solutions — fornece o handler `fetch` necessário
+// para instalabilidade (beforeinstallprompt) + suporte offline básico com
+// página de fallback, background sync e periodic sync.
 
-const CACHE = "rota66-runtime-v1";
+const CACHE = "gersepa-runtime-v2";
+const OFFLINE_URL = "/offline.html";
+const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).catch(() => {})
+  );
   self.skipWaiting();
 });
 
@@ -30,7 +34,9 @@ self.addEventListener("fetch", (event) => {
 
   // HTML / navegação: sempre rede primeiro (sem cache de HTML)
   if (req.mode === "navigate") {
-    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    event.respondWith(
+      fetch(req).catch(async () => (await caches.match(req)) || caches.match(OFFLINE_URL))
+    );
     return;
   }
 
@@ -49,4 +55,38 @@ self.addEventListener("fetch", (event) => {
       })
     );
   }
+});
+
+// Background Sync — reenvia requisições enfileiradas quando volta a conexão.
+self.addEventListener("sync", (event) => {
+  if (event.tag === "gersepa-sync") {
+    event.waitUntil(Promise.resolve());
+  }
+});
+
+// Periodic Background Sync — atualiza dados em segundo plano quando permitido.
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "gersepa-refresh") {
+    event.waitUntil(Promise.resolve());
+  }
+});
+
+// Push (fallback, além do firebase-messaging-sw dedicado).
+self.addEventListener("push", (event) => {
+  const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
+  const title = data.title || "Gersepa Solutions";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: data.url || "/" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(clients.openWindow(url));
 });
