@@ -17,6 +17,16 @@
       "url": "/handler?type=%s"
     }
   ],
+  "share_target": {
+    "action": "/compartilhar",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "background_color": "#f0faf5",
   "theme_color": "#10b981",
   "lang": "pt-BR",
