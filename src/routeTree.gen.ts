@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SejaDiaristaRouteImport } from './routes/seja-diarista'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as HandlerRouteImport } from './routes/handler'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CadastroRouteImport } from './routes/cadastro'
@@ -67,6 +68,11 @@ const SejaDiaristaRoute = SejaDiaristaRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HandlerRoute = HandlerRouteImport.update({
+  id: '/handler',
+  path: '/handler',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CidadesRoute = CidadesRouteImport.update({
@@ -336,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/handler': typeof HandlerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -386,6 +393,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/handler': typeof HandlerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
+  '/handler': typeof HandlerRoute
   '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -488,6 +497,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/handler'
     | '/reset-password'
     | '/seja-diarista'
     | '/admin'
@@ -538,6 +548,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/handler'
     | '/reset-password'
     | '/seja-diarista'
     | '/bookings'
@@ -587,6 +598,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/categorias'
     | '/cidades'
+    | '/handler'
     | '/reset-password'
     | '/seja-diarista'
     | '/_authenticated/admin'
@@ -639,6 +651,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
+  HandlerRoute: typeof HandlerRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SejaDiaristaRoute: typeof SejaDiaristaRoute
   AgendamentoSucessoIdRoute: typeof AgendamentoSucessoIdRoute
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/handler': {
+      id: '/handler'
+      path: '/handler'
+      fullPath: '/handler'
+      preLoaderRoute: typeof HandlerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cidades': {
@@ -1127,6 +1147,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,
+  HandlerRoute: HandlerRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SejaDiaristaRoute: SejaDiaristaRoute,
   AgendamentoSucessoIdRoute: AgendamentoSucessoIdRoute,
@@ -1138,13 +1159,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
