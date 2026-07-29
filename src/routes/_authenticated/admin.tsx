@@ -47,7 +47,11 @@ function useAdminBadges(): BadgeCounts {
     refetchInterval: 30_000,
     queryFn: async () => {
       const [bookings, withdrawals, resets] = await Promise.all([
-        supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("payment_status", "paid")
+          .in("status", ["pending", "confirmed", "in_progress", "awaiting_client_confirmation"]),
         supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("password_reset_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
