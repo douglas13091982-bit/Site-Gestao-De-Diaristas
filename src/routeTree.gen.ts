@@ -53,6 +53,7 @@ import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
 import { Route as AuthenticatedAdminBlockedRouteImport } from './routes/_authenticated/admin.blocked'
 import { Route as AuthenticatedAdminAppearanceRouteImport } from './routes/_authenticated/admin.appearance'
+import { Route as AuthenticatedAdminAppReleaseRouteImport } from './routes/_authenticated/admin.app-release'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as ApiPublicWebhooksPagseguroRouteImport } from './routes/api/public/webhooks/pagseguro'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
@@ -295,6 +296,12 @@ const AuthenticatedAdminAppearanceRoute =
     path: '/appearance',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAppReleaseRoute =
+  AuthenticatedAdminAppReleaseRouteImport.update({
+    id: '/app-release',
+    path: '/app-release',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAdminsRoute =
   AuthenticatedAdminAdminsRouteImport.update({
     id: '/admins',
@@ -336,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/professionals/': typeof ProfessionalsIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/app-release': typeof AuthenticatedAdminAppReleaseRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -382,6 +390,7 @@ export interface FileRoutesByTo {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/professionals': typeof ProfessionalsIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/app-release': typeof AuthenticatedAdminAppReleaseRoute
   '/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -432,6 +441,7 @@ export interface FileRoutesById {
   '/professionals/$id': typeof ProfessionalsIdRoute
   '/professionals/': typeof ProfessionalsIndexRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/_authenticated/admin/app-release': typeof AuthenticatedAdminAppReleaseRoute
   '/_authenticated/admin/appearance': typeof AuthenticatedAdminAppearanceRoute
   '/_authenticated/admin/blocked': typeof AuthenticatedAdminBlockedRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/professionals/'
     | '/admin/admins'
+    | '/admin/app-release'
     | '/admin/appearance'
     | '/admin/blocked'
     | '/admin/bookings'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/professionals'
     | '/admin/admins'
+    | '/admin/app-release'
     | '/admin/appearance'
     | '/admin/blocked'
     | '/admin/bookings'
@@ -577,6 +589,7 @@ export interface FileRouteTypes {
     | '/professionals/$id'
     | '/professionals/'
     | '/_authenticated/admin/admins'
+    | '/_authenticated/admin/app-release'
     | '/_authenticated/admin/appearance'
     | '/_authenticated/admin/blocked'
     | '/_authenticated/admin/bookings'
@@ -932,6 +945,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAppearanceRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/app-release': {
+      id: '/_authenticated/admin/app-release'
+      path: '/app-release'
+      fullPath: '/admin/app-release'
+      preLoaderRoute: typeof AuthenticatedAdminAppReleaseRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/admins': {
       id: '/_authenticated/admin/admins'
       path: '/admins'
@@ -958,6 +978,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
+  AuthenticatedAdminAppReleaseRoute: typeof AuthenticatedAdminAppReleaseRoute
   AuthenticatedAdminAppearanceRoute: typeof AuthenticatedAdminAppearanceRoute
   AuthenticatedAdminBlockedRoute: typeof AuthenticatedAdminBlockedRoute
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRoute
@@ -978,6 +999,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
+  AuthenticatedAdminAppReleaseRoute: AuthenticatedAdminAppReleaseRoute,
   AuthenticatedAdminAppearanceRoute: AuthenticatedAdminAppearanceRoute,
   AuthenticatedAdminBlockedRoute: AuthenticatedAdminBlockedRoute,
   AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRoute,
