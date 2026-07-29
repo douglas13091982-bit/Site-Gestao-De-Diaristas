@@ -30,5 +30,11 @@
     { "src": "/screenshots/desktop-pros.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Buscar diaristas no desktop" }
   ],
   "prefer_related_applications": false,
-  "related_applications": []
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=br.com.gersepa.twa",
+      "id": "br.com.gersepa.twa"
+    }
+  ]
 }
