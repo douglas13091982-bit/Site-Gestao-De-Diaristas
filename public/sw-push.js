@@ -20,7 +20,7 @@ self.addEventListener("push", (event) => {
   const options = {
     body: data.body || "",
     icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    badge: "/icons/badge-96.png",
     vibrate: [200, 80, 200],
     tag: data.tag || "rota66-push",
     renotify: true,
