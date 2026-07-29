@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as CidadesRouteImport } from './routes/cidades'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as BaixarAppRouteImport } from './routes/baixar-app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgendamentoRapidoRouteImport } from './routes/agendamento-rapido'
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
@@ -81,6 +82,11 @@ const CategoriasRoute = CategoriasRouteImport.update({
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaixarAppRoute = BaixarAppRouteImport.update({
+  id: '/baixar-app',
+  path: '/baixar-app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/baixar-app': typeof BaixarAppRoute
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
@@ -375,6 +382,7 @@ export interface FileRoutesByTo {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/baixar-app': typeof BaixarAppRoute
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
@@ -424,6 +432,7 @@ export interface FileRoutesById {
   '/agendamento': typeof AgendamentoRoute
   '/agendamento-rapido': typeof AgendamentoRapidoRoute
   '/auth': typeof AuthRoute
+  '/baixar-app': typeof BaixarAppRoute
   '/cadastro': typeof CadastroRoute
   '/categorias': typeof CategoriasRouteWithChildren
   '/cidades': typeof CidadesRouteWithChildren
@@ -475,6 +484,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/baixar-app'
     | '/cadastro'
     | '/categorias'
     | '/cidades'
@@ -524,6 +534,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/baixar-app'
     | '/cadastro'
     | '/categorias'
     | '/cidades'
@@ -572,6 +583,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/agendamento-rapido'
     | '/auth'
+    | '/baixar-app'
     | '/cadastro'
     | '/categorias'
     | '/cidades'
@@ -623,6 +635,7 @@ export interface RootRouteChildren {
   AgendamentoRoute: typeof AgendamentoRoute
   AgendamentoRapidoRoute: typeof AgendamentoRapidoRoute
   AuthRoute: typeof AuthRoute
+  BaixarAppRoute: typeof BaixarAppRoute
   CadastroRoute: typeof CadastroRoute
   CategoriasRoute: typeof CategoriasRouteWithChildren
   CidadesRoute: typeof CidadesRouteWithChildren
@@ -670,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/baixar-app': {
+      id: '/baixar-app'
+      path: '/baixar-app'
+      fullPath: '/baixar-app'
+      preLoaderRoute: typeof BaixarAppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1103,6 +1123,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentoRoute: AgendamentoRoute,
   AgendamentoRapidoRoute: AgendamentoRapidoRoute,
   AuthRoute: AuthRoute,
+  BaixarAppRoute: BaixarAppRoute,
   CadastroRoute: CadastroRoute,
   CategoriasRoute: CategoriasRouteWithChildren,
   CidadesRoute: CidadesRouteWithChildren,

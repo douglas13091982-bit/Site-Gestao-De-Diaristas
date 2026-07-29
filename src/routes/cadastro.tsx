@@ -121,7 +121,10 @@ function CadastroPage() {
         });
       }
       toast.success("Conta criada com sucesso!");
-      nav({ to: tipo === "professional" ? "/pro" : "/" });
+      nav({
+        to: "/baixar-app",
+        search: { tipo: tipo ?? "", next: tipo === "professional" ? "/pro" : "/" },
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar conta");
     } finally {
