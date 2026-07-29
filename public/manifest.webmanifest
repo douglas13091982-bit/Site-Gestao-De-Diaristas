@@ -8,6 +8,9 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "background_color": "#f0faf5",
   "theme_color": "#10b981",
   "lang": "pt-BR",
