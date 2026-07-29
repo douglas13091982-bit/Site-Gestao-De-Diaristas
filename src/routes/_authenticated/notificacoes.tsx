@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
-import { Bell, BellOff, CheckCheck, Trash2, ExternalLink } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Trash2, ExternalLink, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 
 type Notif = {
@@ -120,13 +120,23 @@ function NotificationsCenter() {
               {unread > 0 ? `${unread} não lida(s)` : "Você está em dia"}
             </p>
           </div>
-          <button
-            onClick={() => markAll.mutate()}
-            disabled={markAll.isPending || unread === 0}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground disabled:opacity-50 hover:bg-muted"
-          >
-            <CheckCheck className="h-4 w-4" /> Marcar todas
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/diagnostico-push"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              title="Diagnóstico de notificações"
+            >
+              <Stethoscope className="h-4 w-4" />
+              <span className="hidden sm:inline">Diagnóstico</span>
+            </Link>
+            <button
+              onClick={() => markAll.mutate()}
+              disabled={markAll.isPending || unread === 0}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground disabled:opacity-50 hover:bg-muted"
+            >
+              <CheckCheck className="h-4 w-4" /> Marcar todas
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2">

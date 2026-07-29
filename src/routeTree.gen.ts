@@ -30,6 +30,7 @@ import { Route as AgendamentoSucessoIdRouteImport } from './routes/agendamento-s
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
+import { Route as AuthenticatedDiagnosticoPushRouteImport } from './routes/_authenticated/diagnostico-push'
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -164,6 +165,12 @@ const AuthenticatedNotificacoesRoute =
   AuthenticatedNotificacoesRouteImport.update({
     id: '/notificacoes',
     path: '/notificacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDiagnosticoPushRoute =
+  AuthenticatedDiagnosticoPushRouteImport.update({
+    id: '/diagnostico-push',
+    path: '/diagnostico-push',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClienteRoute = AuthenticatedClienteRouteImport.update({
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookings': typeof AuthenticatedBookingsRoute
   '/cliente': typeof AuthenticatedClienteRouteWithChildren
+  '/diagnostico-push': typeof AuthenticatedDiagnosticoPushRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -405,6 +413,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/seja-diarista': typeof SejaDiaristaRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/diagnostico-push': typeof AuthenticatedDiagnosticoPushRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -459,6 +468,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/cliente': typeof AuthenticatedClienteRouteWithChildren
+  '/_authenticated/diagnostico-push': typeof AuthenticatedDiagnosticoPushRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
@@ -513,6 +523,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookings'
     | '/cliente'
+    | '/diagnostico-push'
     | '/notificacoes'
     | '/onboarding'
     | '/pro'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/seja-diarista'
     | '/bookings'
+    | '/diagnostico-push'
     | '/notificacoes'
     | '/onboarding'
     | '/pro'
@@ -616,6 +628,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/cliente'
+    | '/_authenticated/diagnostico-push'
     | '/_authenticated/notificacoes'
     | '/_authenticated/onboarding'
     | '/_authenticated/pro'
@@ -821,6 +834,13 @@ declare module '@tanstack/react-router' {
       path: '/notificacoes'
       fullPath: '/notificacoes'
       preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/diagnostico-push': {
+      id: '/_authenticated/diagnostico-push'
+      path: '/diagnostico-push'
+      fullPath: '/diagnostico-push'
+      preLoaderRoute: typeof AuthenticatedDiagnosticoPushRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cliente': {
@@ -1117,6 +1137,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedClienteRoute: typeof AuthenticatedClienteRouteWithChildren
+  AuthenticatedDiagnosticoPushRoute: typeof AuthenticatedDiagnosticoPushRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
@@ -1126,6 +1147,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedClienteRoute: AuthenticatedClienteRouteWithChildren,
+  AuthenticatedDiagnosticoPushRoute: AuthenticatedDiagnosticoPushRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
@@ -1180,13 +1202,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
