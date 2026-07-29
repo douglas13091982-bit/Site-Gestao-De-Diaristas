@@ -58,9 +58,21 @@ export function usePushNotifications() {
     const refresh = () => setStatus(getPushStatus());
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
+
+    // O service worker avisa quando chega push, para vibrarmos também aqui.
+    const onSwMessage = (event: MessageEvent) => {
+      const msg = event.data as { type?: string; pattern?: number[] } | undefined;
+      if (msg?.type !== "gersepa-vibrate") return;
+      try {
+        navigator.vibrate?.(msg.pattern ?? [300, 120, 300, 120, 400]);
+      } catch { /* noop */ }
+    };
+    navigator.serviceWorker?.addEventListener("message", onSwMessage);
+
     return () => {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
+      navigator.serviceWorker?.removeEventListener("message", onSwMessage);
     };
   }, []);
 
