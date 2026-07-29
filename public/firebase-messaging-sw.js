@@ -32,10 +32,18 @@ messaging.onBackgroundMessage((payload) => {
       badge: "/icons/icon-192.png",
       image,
       tag: data.tag || "gersepa-push",
-      renotify: false,
+      renotify: true,
+      silent: false,
+      vibrate: [300, 120, 300, 120, 400],
       data: { url: data.link || payload.fcmOptions?.link || "/notificacoes" },
     };
     self.registration.showNotification(title, options);
+    // Fallback: alguns Android/TWA ignoram `vibrate` da notificação.
+    try {
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+        list.forEach((c) => c.postMessage({ type: "gersepa-vibrate", pattern: [300, 120, 300, 120, 400] }));
+      });
+    } catch (e) { /* noop */ }
 });
 
 self.addEventListener("notificationclick", (event) => {

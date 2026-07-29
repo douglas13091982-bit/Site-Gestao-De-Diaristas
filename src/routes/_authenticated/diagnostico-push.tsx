@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { sendPushToUsers } from "@/lib/push.functions";
-import { CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw, Send, Smartphone, RotateCw } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw, Send, Smartphone, RotateCw, Vibrate } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/diagnostico-push")({
@@ -142,6 +142,18 @@ function DiagnosticoPush() {
       hint: tokenState !== "ok" ? "Toque em 'Ativar notificações' para gerar e salvar o token." : undefined,
     });
 
+    // 5b) Vibração
+    const canVibrate = typeof navigator !== "undefined" && "vibrate" in navigator;
+    list.push({
+      key: "vibrate",
+      label: "Vibração do aparelho",
+      state: canVibrate ? "ok" : "warn",
+      detail: canVibrate ? "API de vibração disponível" : "Este dispositivo/navegador não expõe a API de vibração",
+      hint: canVibrate
+        ? "Toque em 'Testar vibração' abaixo. Se não vibrar, verifique o modo silencioso e as vibrações do Android."
+        : "No iPhone a vibração do push é controlada pelo próprio iOS. No Android use Chrome ou o APK TWA.",
+    });
+
     // 6) assetlinks.json (só faz diferença para TWA)
     try {
       const res = await fetch("/.well-known/assetlinks.json", { cache: "no-store" });
@@ -247,6 +259,18 @@ function DiagnosticoPush() {
             </Button>
             <Button onClick={sendSelfTest} disabled={!canTest} variant="outline">
               <Send className="w-4 h-4 mr-2" /> Enviar teste para meu celular
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const ok = typeof navigator !== "undefined" && "vibrate" in navigator
+                  ? navigator.vibrate([300, 120, 300, 120, 400])
+                  : false;
+                if (ok) toast.success("Comando de vibração enviado. Sentiu o celular vibrar?");
+                else toast.error("Este dispositivo não permitiu vibrar (verifique modo silencioso ou suporte do navegador).");
+              }}
+            >
+              <Vibrate className="w-4 h-4 mr-2" /> Testar vibração
             </Button>
           </div>
           <p className="text-xs text-slate-500">

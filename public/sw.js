@@ -80,6 +80,10 @@ self.addEventListener("push", (event) => {
       body: data.body || "",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
+      vibrate: [300, 120, 300, 120, 400],
+      renotify: true,
+      silent: false,
+      tag: data.tag || "gersepa-push",
       data: { url: data.url || "/" },
     })
   );
