@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "br.com.gersepa.twa",
-        "sha256_cert_fingerprints": ["E0:5C:B6:FF:A8:50:A4:D5:8C:0E:FB:F0:E6:01:17:A6:ED:55:FF:CE:DA:C8:6B:62:7B:F0:C0:6D:D0:A4:68:C3"]
+        "sha256_cert_fingerprints": ["59:C1:4D:B5:79:07:64:ED:A3:3A:A9:16:D6:B6:29:C1:84:0A:32:98:78:3E:5E:8F:AC:96:2B:81:9B:1A:63:3C"]
       }
     }]
