@@ -69,9 +69,16 @@ export function usePushNotifications() {
     (async () => {
       if (status !== "granted") return;
       const off = await onForegroundMessage((raw) => {
-        const payload = raw as { notification?: { title?: string; body?: string } };
-        const title = payload.notification?.title || "Nova notificação";
-        const body = payload.notification?.body || "";
+        const payload = raw as {
+          notification?: { title?: string; body?: string };
+          data?: { title?: string; body?: string };
+        };
+        const title = payload.data?.title || payload.notification?.title || "Nova notificação";
+        const body = payload.data?.body || payload.notification?.body || "";
+        // Vibra o aparelho ao receber push com o app aberto.
+        try {
+          navigator.vibrate?.([300, 120, 300, 120, 400]);
+        } catch { /* noop */ }
         toast(title, { description: body });
       });
       unsub = typeof off === "function" ? off : undefined;
