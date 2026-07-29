@@ -22,5 +22,11 @@
     { "name": "Agendar diarista", "short_name": "Agendar", "url": "/agendamento", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Meus agendamentos", "short_name": "Agenda", "url": "/cliente/agendamentos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Área da diarista", "short_name": "Pro", "url": "/pro", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "screenshots": [
+    { "src": "/screenshots/mobile-home.png", "sizes": "412x915", "type": "image/png", "form_factor": "narrow", "label": "Página inicial no celular" },
+    { "src": "/screenshots/mobile-pros.png", "sizes": "412x915", "type": "image/png", "form_factor": "narrow", "label": "Buscar diaristas" },
+    { "src": "/screenshots/desktop-home.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Página inicial no desktop" },
+    { "src": "/screenshots/desktop-pros.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Buscar diaristas no desktop" }
   ]
 }
