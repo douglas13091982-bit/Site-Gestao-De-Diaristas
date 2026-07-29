@@ -6,7 +6,7 @@ import {
  LayoutDashboard, Users, Briefcase, Calendar, DollarSign,
   BarChart3, Palette, Settings as SettingsIcon, ShieldCheck, LogOut,
   ChevronDown, ChevronRight, MapPin, Tag, Package, Bell, Ban, Webhook, Wallet, KeyRound,
-  Menu, X,
+  Menu, X, Smartphone,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -89,6 +89,7 @@ const GROUPS: NavGroup[] = [
     { to: "/admin/admins", label: "Admins", icon: ShieldCheck },
     { to: "/admin/appearance", label: "Aparência", icon: Palette },
     { to: "/admin/webhooks", label: "Webhooks", icon: Webhook },
+    { to: "/admin/app-release", label: "APK do App", icon: Smartphone },
     { to: "/admin/settings", label: "Configurações", icon: SettingsIcon },
   ]},
 ];
