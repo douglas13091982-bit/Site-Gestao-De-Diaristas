@@ -49,15 +49,6 @@ function HomePage() {
       <FeaturedSection city={city} pros={featured.data ?? []} />
       <WhySection />
       <FooterSection />
-      <a
-        href="https://wa.me/5547999999999"
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Fale conosco no WhatsApp"
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[var(--bc-teal)] text-white grid place-items-center shadow-[var(--shadow-glow-teal)] hover:scale-105 hover:bg-[var(--bc-teal-soft)] hover:text-[var(--bc-navy)] transition-all duration-300"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </a>
     </div>
   );
 }
