@@ -207,6 +207,17 @@ export const createPayment = createServerFn({ method: "POST" })
         ) {
           throw new Error("O horário escolhido está fora da disponibilidade da profissional.");
         }
+      } else {
+        // Match the fallback slots shown by the UI when no weekly schedule exists.
+        const [requestedHour, requestedMinute] = data.start_time.split(":").map(Number);
+        const requestedStart = requestedHour * 60 + requestedMinute;
+        if (
+          requestedStart < 6 * 60 ||
+          requestedStart > 20 * 60 ||
+          requestedStart + trustedDuration * 60 > 24 * 60
+        ) {
+          throw new Error("O horário escolhido está fora do período permitido (06:00–20:00).");
+        }
       }
     }
 
