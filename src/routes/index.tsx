@@ -228,7 +228,7 @@ function FeaturedSection({ city, pros }: { city: string; pros: Pro[] }) {
               Nossas profissionais passam por um rigoroso protocolo de verificação antes de atender você.
             </p>
           </div>
-          <Link to="/professionals/" className="group inline-flex items-center gap-4 shrink-0">
+          <Link to="/professionals" className="group inline-flex items-center gap-4 shrink-0">
             <span className="font-bold text-[var(--bc-navy)] border-b-2 border-[var(--bc-navy)] pb-1 group-hover:text-[var(--bc-teal)] group-hover:border-[var(--bc-teal)] transition-colors">
               Conhecer todas
             </span>
