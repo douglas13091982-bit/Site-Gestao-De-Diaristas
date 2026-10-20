@@ -24,7 +24,7 @@ export function ProfessionalCard({ p }: { p: ProCardData }) {
   const specialties = (p.specialties ?? []).filter(Boolean).slice(0, 3);
 
   return (
-    <div className="relative min-w-0 rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgb(12_35_64/0.04),0_10px_30px_-16px_rgb(12_35_64/0.15)] hover:shadow-[0_1px_2px_rgb(12_35_64/0.04),0_18px_42px_-14px_rgb(12_35_64/0.22)] transition-shadow overflow-hidden border border-[var(--bc-navy)]/5">
+    <div className="relative min-w-0 rounded-2xl bg-white p-5 pt-5 shadow-[0_1px_2px_rgb(12_35_64/0.04),0_10px_30px_-16px_rgb(12_35_64/0.15)] hover:shadow-[0_1px_2px_rgb(12_35_64/0.04),0_18px_42px_-14px_rgb(12_35_64/0.22)] transition-shadow overflow-hidden border border-[var(--bc-navy)]/5">
       {/* dotted mint pattern */}
       <div
         aria-hidden
@@ -32,46 +32,48 @@ export function ProfessionalCard({ p }: { p: ProCardData }) {
         style={{ backgroundImage: "radial-gradient(circle, rgba(16,185,129,0.18) 1px, transparent 1.4px)", backgroundSize: "14px 14px" }}
       />
 
-      <div className="relative flex items-start gap-3 min-w-0">
-        <div className="relative shrink-0">
+      <Link to="/professionals/$id" params={{ id: p.id }} className="relative -mx-5 -mt-5 mb-5 block overflow-hidden bg-[var(--bc-mist)]">
+        <div className="relative h-64 sm:h-72 lg:h-80 w-full">
           {p.profile_photo ? (
             <img
               src={p.profile_photo}
               alt={p.full_name ?? "Diarista"}
               loading="lazy"
-              className="h-14 w-14 rounded-2xl object-cover border border-[var(--bc-navy)]/10"
+              className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-[1.03]"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
             />
           ) : (
-            <div className="h-14 w-14 rounded-2xl grid place-items-center font-display font-extrabold text-lg text-white bg-gradient-to-br from-[var(--bc-teal)] to-[var(--bc-sky)]">
+            <div className="h-full w-full grid place-items-center font-display font-extrabold text-7xl text-white bg-gradient-to-br from-[var(--bc-teal)] to-[var(--bc-sky)]">
               {initial}
             </div>
           )}
-          <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-400 text-white grid place-items-center shadow-sm ring-2 ring-white">
-            <Award className="h-3 w-3" />
-          </span>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <h3 className="truncate font-display font-bold text-[15px] text-[var(--bc-navy)]">
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--bc-navy)]/80 via-[var(--bc-navy)]/25 to-transparent px-5 pb-4 pt-12">
+            <h3 className="truncate font-display font-bold text-xl sm:text-2xl text-white">
               {p.full_name ?? "Diarista"}
             </h3>
-            {p.is_verified && <BadgeCheck className="h-4 w-4 shrink-0 text-[var(--bc-teal)]" />}
+            {p.is_verified && (
+              <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-white/90">
+                <BadgeCheck className="h-4 w-4 text-[var(--bc-teal-soft)]" /> Profissional verificada
+              </span>
+            )}
           </div>
-          <div className="mt-1 flex items-center gap-2 text-xs">
-            <span className="inline-flex items-center gap-1 font-semibold text-[var(--bc-navy)]">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {rating}
-            </span>
-            <span className="text-[var(--bc-navy-2)]/70">{bookings}+ limpezas</span>
-          </div>
-          {p.experience && (
-            <span className="mt-2 inline-flex items-center rounded-full bg-[var(--bc-mist)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--bc-navy)]">
-              {p.experience}
-            </span>
-          )}
+          <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-sm font-bold text-[var(--bc-navy)] shadow-sm">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {rating}
+          </span>
         </div>
+      </Link>
+      <div className="relative flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-semibold text-[var(--bc-navy)]">{bookings}+ limpezas</span>
+            {p.experience && (
+              <span className="truncate rounded-full bg-[var(--bc-mist)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--bc-navy)]">
+                {p.experience}
+              </span>
+            )}
+          </div>
+        </div>
+        <span className="shrink-0 text-xs font-semibold text-[var(--bc-navy-2)]/70">Perfil profissional</span>
       </div>
 
       {p.bio && (
