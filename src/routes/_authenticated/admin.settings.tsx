@@ -16,65 +16,34 @@ type Settings = {
   payment_platform: string;
   commission_percentage: string;
   suspension_days_on_cancel: string;
-  pix_key: string;
-  pix_key_type: string;
-  pix_beneficiary_name: string;
-  pix_qr_url: string;
   mp_access_token: string;
   mp_public_key: string;
   mp_webhook_secret: string;
   mp_environment: string;
-  ps_email: string;
-  ps_token: string;
-  ps_environment: string;
 };
 
 const DEFAULTS: Settings = {
   payment_platform: "mercadopago",
   commission_percentage: "20",
   suspension_days_on_cancel: "2",
-  pix_key: "",
-  pix_key_type: "email",
-  pix_beneficiary_name: "",
-  pix_qr_url: "",
   mp_access_token: "",
   mp_public_key: "",
   mp_webhook_secret: "",
   mp_environment: "sandbox",
-  ps_email: "",
-  ps_token: "",
-  ps_environment: "sandbox",
 };
 
 const META: Record<keyof Settings, { group: string; type: string; public: boolean; label: string }> = {
   payment_platform: { group: "payment", type: "text", public: false, label: "Plataforma de Pagamento" },
   commission_percentage: { group: "payment", type: "number", public: true, label: "Comissão da plataforma (%)" },
   suspension_days_on_cancel: { group: "rules", type: "number", public: true, label: "Dias de suspensão ao cancelar" },
-  pix_key: { group: "payment", type: "text", public: false, label: "Chave PIX" },
-  pix_key_type: { group: "payment", type: "text", public: false, label: "Tipo da Chave PIX" },
-  pix_beneficiary_name: { group: "payment", type: "text", public: false, label: "Nome do Beneficiário" },
-  pix_qr_url: { group: "payment", type: "text", public: false, label: "URL do QR Code PIX" },
   mp_access_token: { group: "payment", type: "text", public: false, label: "Mercado Pago - Access Token" },
   mp_public_key: { group: "payment", type: "text", public: true, label: "Mercado Pago - Public Key" },
   mp_webhook_secret: { group: "payment", type: "text", public: false, label: "Mercado Pago - Webhook Secret" },
   mp_environment: { group: "payment", type: "text", public: false, label: "Mercado Pago - Ambiente" },
-  ps_email: { group: "payment", type: "text", public: false, label: "PagSeguro - Email" },
-  ps_token: { group: "payment", type: "text", public: false, label: "PagSeguro - Token" },
-  ps_environment: { group: "payment", type: "text", public: false, label: "PagSeguro - Ambiente" },
 };
 
 const PLATFORMS = [
-  { id: "mercadopago", name: "Mercado Pago", desc: "PIX automático" },
-  { id: "pagseguro", name: "PagSeguro", desc: "PIX automático" },
-  { id: "pix_manual", name: "PIX Manual", desc: "QR Code estático" },
-];
-
-const KEY_TYPES = [
-  { id: "email", name: "Email" },
-  { id: "cpf", name: "CPF" },
-  { id: "cnpj", name: "CNPJ" },
-  { id: "phone", name: "Telefone" },
-  { id: "random", name: "Chave Aleatória" },
+  { id: "mercadopago", name: "Mercado Pago", desc: "PIX e cartão com confirmação automática" },
 ];
 
 function SettingsPage() {
@@ -94,7 +63,7 @@ function SettingsPage() {
           (map as Record<string, string>)[r.setting_key] = r.setting_value ?? "";
         }
       }
-      return { ...DEFAULTS, ...map } as Settings;
+      return { ...DEFAULTS, ...map, payment_platform: "mercadopago" } as Settings;
     },
   });
 
@@ -126,11 +95,7 @@ function SettingsPage() {
 
   const set = <K extends keyof Settings>(k: K, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const platformDesc =
-    form.payment_platform === "mercadopago"
-      ? "O agendamento será confirmado automaticamente quando o pagamento for aprovado pelo Mercado Pago."
-      : form.payment_platform === "pagseguro"
-      ? "O agendamento será confirmado automaticamente quando o pagamento for aprovado pelo PagSeguro."
-      : "O cliente pagará via QR Code PIX. O agendamento precisa ser confirmado manualmente após o pagamento.";
+    "PIX e cartão são processados pela integração Mercado Pago. O agendamento é confirmado automaticamente após a aprovação do pagamento.";
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -206,7 +171,7 @@ function SettingsPage() {
         </div>
 
         <div className="mb-2 text-sm font-medium text-slate-700">Plataforma de Pagamento Ativa</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {PLATFORMS.map((p) => {
             const active = form.payment_platform === p.id;
             return (
@@ -230,38 +195,6 @@ function SettingsPage() {
         </div>
         <p className="text-xs text-slate-500 mt-3">{platformDesc}</p>
 
-        <div className="border-t border-slate-100 mt-6 pt-6">
-          <div className="text-sm font-semibold text-slate-800 mb-4">PIX Manual (Fallback)</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Chave PIX">
-              <TextInput value={form.pix_key} onChange={(v) => set("pix_key", v)} />
-            </Field>
-            <Field label="Tipo da Chave">
-              <select
-                value={form.pix_key_type}
-                onChange={(e) => set("pix_key_type", e.target.value)}
-                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {KEY_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Nome do Beneficiário" className="md:col-span-2">
-              <TextInput value={form.pix_beneficiary_name} onChange={(v) => set("pix_beneficiary_name", v)} />
-            </Field>
-            <Field label="URL da Imagem do QR Code PIX" className="md:col-span-2">
-              <TextInput value={form.pix_qr_url} onChange={(v) => set("pix_qr_url", v)} placeholder="https://..." />
-            </Field>
-          </div>
-          {form.pix_qr_url && (
-            <div className="mt-4">
-              <div className="h-32 w-32 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
-                <img src={form.pix_qr_url} alt="QR Code PIX" className="max-h-full max-w-full object-contain" />
-              </div>
-            </div>
-          )}
-        </div>
       </section>
 
       {form.payment_platform === "mercadopago" && (
@@ -324,57 +257,6 @@ function SettingsPage() {
         </section>
       )}
 
-      {form.payment_platform === "pagseguro" && (
-        <section className="bg-white rounded-xl border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2 text-slate-800">
-              <Key className="h-5 w-5 text-emerald-600" />
-              <h3 className="font-semibold">Credenciais PagSeguro</h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSecrets((s) => !s)}
-              className="text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-1"
-            >
-              {showSecrets ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              {showSecrets ? "Ocultar" : "Mostrar"}
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Ambiente">
-              <select
-                value={form.ps_environment}
-                onChange={(e) => set("ps_environment", e.target.value)}
-                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="sandbox">Sandbox (Teste)</option>
-                <option value="production">Produção</option>
-              </select>
-            </Field>
-            <Field label="Email da Conta">
-              <TextInput value={form.ps_email} onChange={(v) => set("ps_email", v)} placeholder="conta@empresa.com" />
-            </Field>
-            <Field label="Token" className="md:col-span-2">
-              <TextInput
-                value={form.ps_token}
-                onChange={(v) => set("ps_token", v)}
-                placeholder="Token de integração PagSeguro"
-                type={showSecrets ? "text" : "password"}
-              />
-            </Field>
-          </div>
-          <div className="mt-4 flex items-start gap-2 rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800">
-            <Webhook className="h-4 w-4 mt-0.5" />
-            <div>
-              URL de Notificação: <code className="font-mono">/api/public/webhooks/pagseguro</code> — configure em Integrações → Notificações no painel do PagSeguro.
-            </div>
-          </div>
-          <TestConnectionButton
-            label="Testar conexão com PagSeguro"
-            onTest={() => runTest({ data: { provider: "pagseguro" } })}
-          />
-        </section>
-      )}
     </div>
   );
 }
