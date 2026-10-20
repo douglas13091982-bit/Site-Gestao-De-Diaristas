@@ -102,7 +102,17 @@ export const createPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pkgErr || !pkg) throw new Error("Pacote de preço não encontrado.");
     if (pkg.is_enabled === false) throw new Error("Pacote de preço indisponível.");
-    const [bookingYear, bookingMonth, bookingDay] = data.booking_date.split("-").map(Number);\n    const parsedBookingDate = new Date(Date.UTC(bookingYear, bookingMonth - 1, bookingDay));\n    if (\n      parsedBookingDate.getUTCFullYear() !== bookingYear ||\n      parsedBookingDate.getUTCMonth() !== bookingMonth - 1 ||\n      parsedBookingDate.getUTCDate() !== bookingDay\n    ) {\n      throw new Error("Data do agendamento inválida.");\n    }\n\n    // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
+    const [bookingYear, bookingMonth, bookingDay] = data.booking_date.split("-").map(Number);
+    const parsedBookingDate = new Date(Date.UTC(bookingYear, bookingMonth - 1, bookingDay));
+    if (
+      parsedBookingDate.getUTCFullYear() !== bookingYear ||
+      parsedBookingDate.getUTCMonth() !== bookingMonth - 1 ||
+      parsedBookingDate.getUTCDate() !== bookingDay
+    ) {
+      throw new Error("Data do agendamento inválida.");
+    }
+
+    // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
     try {
       const fmt = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Sao_Paulo",
