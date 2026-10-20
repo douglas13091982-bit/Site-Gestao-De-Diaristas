@@ -180,7 +180,7 @@ function AgendamentoPage() {
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      const iso = d.toISOString().slice(0, 10);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const dayAvailability = availabilityByDay.get(d.getDay());
       const blockedByDate = set.has(iso);
       const blockedBySchedule = hasAvailability && (!dayAvailability || !dayAvailability.is_available);

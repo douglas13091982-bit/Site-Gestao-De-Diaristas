@@ -59,9 +59,9 @@ function ProfessionalsPage() {
     queryKey: ["pros", s.city ?? "", s.name ?? "", s.category ?? "", s.minRating ?? 0, s.sort ?? "best"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("list_public_professionals", {
-        _city_slug: s.city || null,
-        _search: s.name || null,
-        _category: s.category || null,
+        _city_slug: s.city || undefined,
+        _search: s.name || undefined,
+        _category: s.category || undefined,
         _limit: 60,
       });
       if (error) throw error;
