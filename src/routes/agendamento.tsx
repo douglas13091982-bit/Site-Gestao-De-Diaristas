@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon, QrCode, CreditCard as CreditCardIcon } from "lucide-react";
+import { MapPin, Home, Clock, CheckCircle2, ArrowLeft, Star, Calendar as CalendarIcon, QrCode, CreditCard as CreditCardIcon, BedDouble, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { MpSecureCardFields, type MpSecureCardFieldsHandle } from "@/components/MpSecureCardFields";
 
@@ -334,296 +334,385 @@ function AgendamentoPage() {
   }
 
   const p = pro.data;
+  const stepsDef = [
+    { n: 1, label: "Profissional" },
+    { n: 2, label: "Data/Horário" },
+    { n: 3, label: "Confirmar" },
+    { n: 4, label: "Pagamento" },
+  ];
+  const price = selectedPkg ? Number(selectedPkg.price) : null;
+  const showSummary = step !== 4;
+  const TINT_TEAL = "bg-[var(--bc-mist)] text-[var(--bc-teal)]";
+  const TINT_WARM = "bg-orange-50 text-[var(--bc-orange)]";
+  const baseRows = [
+    { key: "city", icon: <MapPin className="h-4 w-4" />, tint: TINT_TEAL, label: "Cidade", value: p?.city ?? s.city ?? "—" },
+    { key: "type", icon: <Home className="h-4 w-4" />, tint: TINT_TEAL, label: "Imóvel", value: PROPERTY_LABEL[s.type] ?? s.type },
+    { key: "rooms", icon: <BedDouble className="h-4 w-4" />, tint: TINT_TEAL, label: "Cômodos", value: `${s.rooms} qts, ${s.baths} bh` },
+    { key: "dur", icon: <Clock className="h-4 w-4" />, tint: TINT_WARM, label: "Duração", value: `${selectedPkg?.duration_hours ?? s.dur}h` },
+  ];
+  const selectedBtn = "border-primary bg-primary text-primary-foreground shadow-[0_8px_20px_-8px_rgb(15_107_107/0.55)]";
+  const idleBtn = "border-border bg-white hover:border-primary/50 hover:bg-[var(--bc-mist)]";
+  const hideScrollbar = "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
   return (
-    <div className="min-h-screen bg-secondary/40">
+    <div className="min-h-screen bg-[var(--bc-paper)]">
       <Header />
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <Link to="/professionals" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+      <div className="mx-auto max-w-6xl px-5 py-6 sm:px-6 sm:py-10">
+        <Link to="/professionals" className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Link>
 
-        {/* Summary */}
-        <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-          <h2 className="font-bold text-lg mb-4">Resumo do Agendamento</h2>
-          <div className="grid sm:grid-cols-4 gap-4">
-            <SummaryItem icon={<MapPin className="h-4 w-4" />} tint="bg-emerald-50 text-emerald-600" label="Cidade" value={p?.city ?? s.city ?? "—"} />
-            <SummaryItem icon={<Home className="h-4 w-4" />} tint="bg-sky-50 text-sky-600" label="Imóvel" value={PROPERTY_LABEL[s.type] ?? s.type} />
-            <SummaryItem icon={<Home className="h-4 w-4" />} tint="bg-emerald-50 text-emerald-600" label="Cômodos" value={`${s.rooms} qts, ${s.baths} bh`} />
-            <SummaryItem icon={<Clock className="h-4 w-4" />} tint="bg-amber-50 text-amber-600" label="Duração" value={`${selectedPkg?.duration_hours ?? s.dur}h`} />
-          </div>
-        </div>
-
         {/* Stepper */}
-        <div className="flex items-center justify-between mb-8 text-sm">
-          {[
-            { n: 1, label: "Profissional" },
-            { n: 2, label: "Data/Horário" },
-            { n: 3, label: "Confirmar" },
-            { n: 4, label: "Pagamento" },
-          ].map((it, idx, arr) => (
-            <div key={it.n} className="flex items-center flex-1 last:flex-none">
-              <div className={`flex items-center gap-2 ${step >= it.n ? "text-primary" : "text-muted-foreground"}`}>
-                <div className={`h-7 w-7 rounded-full grid place-items-center text-xs font-bold ${step > it.n ? "bg-primary text-primary-foreground" : step === it.n ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
-                  {step > it.n ? <CheckCircle2 className="h-4 w-4" /> : it.n}
-                </div>
-                <span className="font-medium hidden sm:inline">{it.label}</span>
-              </div>
-              {idx < arr.length - 1 && <div className={`flex-1 h-px mx-3 ${step > it.n ? "bg-primary" : "bg-border"}`} />}
-            </div>
-          ))}
-        </div>
-
-        {/* Step content */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Escolha a Data e Horário</h1>
-              <p className="text-muted-foreground text-sm">Selecione quando {p?.full_name?.split(" ")[0] ?? "a diarista"} deve realizar a limpeza.</p>
-            </div>
-
-            {p && (
-              <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
-                {p.profile_photo ? (
-                  <img src={p.profile_photo} alt={p.full_name ?? ""} className="h-14 w-14 rounded-xl object-cover border" />
-                ) : (
-                  <div className="h-14 w-14 rounded-xl bg-primary/10 text-primary grid place-items-center font-bold">{(p.full_name ?? "?")[0]}</div>
-                )}
-                <div>
-                  <div className="font-semibold">{p.full_name}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {Number(p.rating ?? 0).toFixed(1)} · {p.total_reviews ?? 0}+ limpezas
+        <nav aria-label="Etapas do agendamento" className="mb-6 sm:mb-8">
+          <ol className="flex items-center">
+            {stepsDef.map((it, idx, arr) => {
+              const done = step > it.n;
+              const current = step === it.n;
+              return (
+                <li key={it.n} aria-current={current ? "step" : undefined} className={`flex items-center ${idx < arr.length - 1 ? "flex-1" : ""}`}>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold transition ${
+                        done || current ? "bg-primary text-primary-foreground" : "bg-white text-muted-foreground ring-1 ring-border"
+                      } ${current ? "ring-4 ring-primary/20" : ""}`}
+                    >
+                      {done ? <CheckCircle2 className="h-4 w-4" /> : it.n}
+                    </span>
+                    <span className={`hidden text-sm font-semibold sm:inline ${done || current ? "text-[var(--bc-navy)]" : "text-muted-foreground"}`}>
+                      {it.label}
+                    </span>
                   </div>
+                  {idx < arr.length - 1 && <span aria-hidden className={`mx-3 h-0.5 flex-1 rounded-full ${done ? "bg-primary" : "bg-border"}`} />}
+                </li>
+              );
+            })}
+          </ol>
+          <p className="mt-3 text-sm font-semibold text-[var(--bc-navy)] sm:hidden">
+            Passo {step} de 4 · {stepsDef[step - 1].label}
+          </p>
+        </nav>
+
+        <div className={showSummary ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-8" : "mx-auto max-w-2xl"}>
+          <div className="min-w-0 space-y-6">
+            {/* Resumo compacto (celular) */}
+            {showSummary && (
+              <div className={`${CARD} p-4 lg:hidden`}>
+                <h2 className="mb-3 font-display text-sm font-bold text-[var(--bc-navy)]">Resumo do Agendamento</h2>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  {baseRows.map((r) => (
+                    <SummaryItem key={r.key} small icon={r.icon} tint={r.tint} label={r.label} value={r.value} />
+                  ))}
+                </div>
+                {price !== null && (
+                  <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                    <span className="text-sm font-semibold text-[var(--bc-navy-2)]">Total</span>
+                    <span className="font-display text-lg font-extrabold text-primary">{brl(price)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step content */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold tracking-tight text-[var(--bc-navy)] sm:text-3xl">Escolha a Data e Horário</h1>
+                  <p className="mt-1 text-sm text-muted-foreground">Selecione quando {p?.full_name?.split(" ")[0] ?? "a diarista"} deve realizar a limpeza.</p>
+                </div>
+
+                {p && (
+                  <div className={`${CARD} flex items-center gap-4 p-4`}>
+                    {p.profile_photo ? (
+                      <img src={p.profile_photo} alt={p.full_name ?? ""} className="h-14 w-14 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="grid h-14 w-14 place-items-center rounded-2xl font-display text-xl font-extrabold text-white" style={{ background: "var(--gradient-brand)" }}>
+                        {(p.full_name ?? "?")[0]}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="truncate font-display font-bold text-[var(--bc-navy)]">{p.full_name}</div>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        <span className="font-semibold text-[var(--bc-navy)]">{Number(p.rating ?? 0).toFixed(1)}</span> · {p.total_reviews ?? 0}+ limpezas
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className={`${CARD} p-5`}>
+                  <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[var(--bc-navy)]">
+                    <Clock className="h-4 w-4 text-primary" /> Escolha o Pacote de Serviço
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                    {(packages.data ?? []).map(pk => {
+                      const active = selectedPkg?.id === pk.id;
+                      return (
+                        <button key={pk.id} type="button" onClick={() => setPkgId(pk.id)} aria-pressed={active}
+                          className={`relative rounded-2xl border p-3 text-left transition ${active ? "border-primary bg-[var(--bc-mist)] shadow-[inset_0_0_0_1px_var(--bc-teal)]" : idleBtn}`}>
+                          {active && <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />}
+                          <div className="font-display text-base font-bold text-[var(--bc-navy)] sm:text-lg">{pk.duration_hours}h</div>
+                          <div className="whitespace-nowrap text-[11px] text-muted-foreground">{pk.start_time?.slice(0,5)}–{sumHours(pk.start_time, pk.duration_hours)}</div>
+                          <div className="mt-2 text-sm font-extrabold text-[var(--bc-orange)]">{brl(Number(pk.price))}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={`${CARD} p-5`}>
+                  <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione a Data</Label>
+                  <div className={`-mx-5 mt-3 flex snap-x gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-7 sm:overflow-visible sm:px-0 sm:pb-0 ${hideScrollbar}`}>
+                    {days.map(d => {
+                      const active = date === d.iso;
+                      return (
+                        <button key={d.iso} type="button" disabled={d.blocked} aria-pressed={active} onClick={() => { setDate(d.iso); setTime(""); }}
+                          className={`w-[90px] shrink-0 snap-start whitespace-nowrap rounded-2xl border px-2 py-3 text-center transition sm:w-auto ${
+                            d.blocked ? "cursor-not-allowed border-border bg-muted/50 opacity-60" : active ? selectedBtn : idleBtn
+                          }`}>
+                          <div className={`text-xs ${active ? "text-white/80" : "text-muted-foreground"}`}>{d.weekday}</div>
+                          <div className="font-display text-sm font-bold leading-tight sm:text-base">{d.label}</div>
+                          {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : d.range ? <div className={`text-[10px] ${active ? "text-white/80" : "text-muted-foreground"}`}>{d.range}</div> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={`${CARD} p-5`}>
+                  <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o Horário de Início</Label>
+                  {times.length === 0 && (
+                    <p className="mt-3 text-sm text-muted-foreground">Escolha uma data para ver os horários disponíveis.</p>
+                  )}
+                  <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-5 xl:grid-cols-6">
+                    {times.map(t => {
+                      const active = time === t;
+                      return (
+                        <button key={t} type="button" onClick={() => setTime(t)} aria-pressed={active}
+                          className={`rounded-xl border py-2.5 text-center text-sm font-bold transition ${active ? selectedBtn : idleBtn}`}>
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button size="lg" className="h-12 w-full rounded-xl px-8 font-bold sm:w-auto" disabled={!canNextFromStep2} onClick={() => setStep(3)}>Continuar</Button>
                 </div>
               </div>
             )}
 
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" /> Escolha o Pacote de Serviço
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {(packages.data ?? []).map(pk => {
-                  const active = selectedPkg?.id === pk.id;
-                  return (
-                    <button key={pk.id} type="button" onClick={() => setPkgId(pk.id)}
-                      className={`text-left rounded-xl border p-3 transition ${active ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/40"}`}>
-                      <div className="font-bold">{pk.duration_hours} horas</div>
-                      <div className="text-xs text-muted-foreground">{pk.start_time?.slice(0,5)} - {sumHours(pk.start_time, pk.duration_hours)}</div>
-                      <div className="mt-2 font-bold text-amber-600">R$ {Number(pk.price).toFixed(2)}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-sm">Selecione a Data</Label>
-              <div className="mt-2 grid grid-cols-3 sm:grid-cols-7 gap-2">
-                {days.map(d => {
-                  const active = date === d.iso;
-                  return (
-                    <button key={d.iso} type="button" disabled={d.blocked} onClick={() => { setDate(d.iso); setTime(""); }}
-                      className={`rounded-xl border p-3 text-center transition ${d.blocked ? "opacity-50 cursor-not-allowed" : active ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/40"}`}>
-                      <div className="text-xs text-muted-foreground">{d.weekday}</div>
-                      <div className="font-semibold">{d.label}</div>
-                      {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : d.range ? <div className="text-[10px] text-muted-foreground">{d.range}</div> : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-sm">Selecione o Horário de Início</Label>
-              <div className="mt-2 grid grid-cols-4 sm:grid-cols-8 gap-2">
-                {times.map(t => {
-                  const active = time === t;
-                  return (
-                    <button key={t} type="button" onClick={() => setTime(t)}
-                      className={`rounded-xl border py-2 text-center font-semibold transition ${active ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border hover:border-primary/40"}`}>
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button size="lg" disabled={!canNextFromStep2} onClick={() => setStep(3)}>Continuar</Button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Confirmar Endereço</h1>
-              <p className="text-muted-foreground text-sm">Onde a diarista deve atender?</p>
-            </div>
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-              <div>
-                <Label>Endereço completo</Label>
-                <Input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Rua, número, bairro" />
-              </div>
-              <div>
-                <Label>Complemento (opcional)</Label>
-                <Input value={complement} onChange={(e) => setComplement(e.target.value)} maxLength={100} placeholder="Apto, bloco, referência" />
-              </div>
-              <div>
-                <Label>Observações (opcional)</Label>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={500} placeholder="Detalhes que a diarista deve saber" />
-              </div>
-              {!user && (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Seu nome</Label>
-                    <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} maxLength={100} placeholder="Como devemos te chamar" required />
-                  </div>
-                  <div>
-                    <Label>WhatsApp</Label>
-                    <Input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} maxLength={20} placeholder="(47) 99999-9999" required />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label>Seu e-mail</Label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} placeholder="voce@email.com" required />
-                    <p className="text-xs text-muted-foreground mt-1">Enviaremos a confirmação e o código PIX por e-mail.</p>
-                  </div>
+            {step === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold tracking-tight text-[var(--bc-navy)] sm:text-3xl">Confirmar Endereço</h1>
+                  <p className="mt-1 text-sm text-muted-foreground">Onde a diarista deve atender?</p>
                 </div>
-              )}
-            </div>
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(2)}>Voltar</Button>
-              <Button size="lg" disabled={!canNextFromStep3} onClick={() => setStep(4)}>Continuar</Button>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && selectedPkg && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Pagamento</h1>
-              <p className="text-muted-foreground text-sm">
-                Revise, escolha a forma de pagamento e confirme.
-              </p>
-            </div>
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-3">
-              <Row label="Profissional" value={p?.full_name ?? "—"} />
-              <Row label="Data" value={formatDate(date)} />
-              <Row label="Início" value={time} />
-              <Row label="Duração" value={`${selectedPkg.duration_hours}h`} />
-              <Row label="Endereço" value={address} />
-              <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-primary">R$ {Number(selectedPkg.price).toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Seletor de método */}
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <button
-                  type="button"
-                  disabled={!pixEnabled}
-                  onClick={() => setPaymentMethod("pix")}
-                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
-                    paymentMethod === "pix"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-border text-foreground hover:border-primary/40"
-                  }`}
-                >
-                  <QrCode className="h-4 w-4" /> PIX
-                </button>
-                <button
-                  type="button"
-                  disabled={!cardEnabled}
-                  onClick={() => setPaymentMethod("card")}
-                  title={!cardEnabled && platform === "pagseguro" ? "Cartão via PagSeguro em breve" : undefined}
-                  className={`h-12 rounded-xl border text-sm font-semibold inline-flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${
-                    paymentMethod === "card"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-border text-foreground hover:border-primary/40"
-                  }`}
-                >
-                  <CreditCardIcon className="h-4 w-4" /> Cartão
-                </button>
-              </div>
-
-              {paymentMethod === "pix" && (
-                <div className="text-sm text-muted-foreground">
-                  Após confirmar, geramos um QR Code PIX válido por 30 minutos. O agendamento é liberado assim que o pagamento é aprovado por <strong>{platform === "pagseguro" ? "PagSeguro" : "Mercado Pago"}</strong>.
-                </div>
-              )}
-
-              {paymentMethod === "card" && (
-                <div className="space-y-3">
+                <div className={`${CARD} space-y-4 p-5 sm:p-6`}>
                   <div>
-                    <Label>Nome impresso no cartão</Label>
-                    <Input
-                      value={cardHolder}
-                      onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                      maxLength={40}
-                      placeholder="NOME COMO NO CARTÃO"
-                    />
+                    <Label>Endereço completo</Label>
+                    <Input className="mt-1.5 h-12 rounded-xl bg-white" value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Rua, número, bairro" />
                   </div>
-                  {paySettings.data?.mpPublicKey ? (
-                    <MpSecureCardFields ref={mpFieldsRef} publicKey={paySettings.data.mpPublicKey} idPrefix="ag" />
-                  ) : (
-                    <p className="text-xs text-destructive">Cartão indisponível: Public Key do Mercado Pago não configurada.</p>
+                  <div>
+                    <Label>Complemento (opcional)</Label>
+                    <Input className="mt-1.5 h-12 rounded-xl bg-white" value={complement} onChange={(e) => setComplement(e.target.value)} maxLength={100} placeholder="Apto, bloco, referência" />
+                  </div>
+                  <div>
+                    <Label>Observações (opcional)</Label>
+                    <Textarea className="mt-1.5 rounded-xl bg-white" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={500} placeholder="Detalhes que a diarista deve saber" />
+                  </div>
+                  {!user && (
+                    <div className="grid gap-4 border-t border-border pt-5 sm:grid-cols-2">
+                      <div>
+                        <Label>Seu nome</Label>
+                        <Input className="mt-1.5 h-12 rounded-xl bg-white" value={guestName} onChange={(e) => setGuestName(e.target.value)} maxLength={100} placeholder="Como devemos te chamar" required />
+                      </div>
+                      <div>
+                        <Label>WhatsApp</Label>
+                        <Input className="mt-1.5 h-12 rounded-xl bg-white" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} maxLength={20} placeholder="(47) 99999-9999" required />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Seu e-mail</Label>
+                        <Input className="mt-1.5 h-12 rounded-xl bg-white" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} placeholder="voce@email.com" required />
+                        <p className="mt-1.5 text-xs text-muted-foreground">Enviaremos a confirmação e o código PIX por e-mail.</p>
+                      </div>
+                    </div>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>CPF do titular</Label>
-                      <Input
-                        value={cardCpf}
-                        onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                        inputMode="numeric"
-                        placeholder="Somente números"
-                      />
-                    </div>
-                    <div>
-                      <Label>Parcelas</Label>
-                      <select
-                        value={installments}
-                        onChange={(e) => setInstallments(Number(e.target.value))}
-                        className="w-full h-11 rounded-md border border-input bg-background px-3 text-sm"
-                      >
-                        {[1, 2, 3, 4, 5, 6].map((n) => (
-                          <option key={n} value={n}>
-                            {n}x de R$ {(Number(selectedPkg.price) / n).toFixed(2)}{n === 1 ? " (à vista)" : " sem juros"}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Campos hospedados pelo Mercado Pago (PCI-DSS SAQ-A). O número do cartão nunca passa pelo nosso servidor.
+                </div>
+                <div className="flex justify-between gap-3">
+                  <Button variant="outline" className="h-12 rounded-xl px-6" onClick={() => setStep(2)}>Voltar</Button>
+                  <Button size="lg" className="h-12 flex-1 rounded-xl px-8 font-bold sm:flex-none" disabled={!canNextFromStep3} onClick={() => setStep(4)}>Continuar</Button>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && selectedPkg && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold tracking-tight text-[var(--bc-navy)] sm:text-3xl">Pagamento</h1>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Revise, escolha a forma de pagamento e confirme.
                   </p>
                 </div>
-              )}
-            </div>
+                <div className={`${CARD} overflow-hidden`}>
+                  <div className="space-y-3 p-5 sm:p-6">
+                    <Row label="Profissional" value={p?.full_name ?? "—"} />
+                    <Row label="Data" value={formatDate(date)} />
+                    <Row label="Início" value={time} />
+                    <Row label="Duração" value={`${selectedPkg.duration_hours}h`} />
+                    <Row label="Endereço" value={address} />
+                  </div>
+                  <div className="flex items-center justify-between bg-[var(--bc-navy)] px-5 py-4 text-white sm:px-6">
+                    <span className="font-semibold">Total</span>
+                    <span className="font-display text-2xl font-extrabold text-[var(--bc-teal-soft)]">{brl(Number(selectedPkg.price))}</span>
+                  </div>
+                </div>
 
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(3)}>Voltar</Button>
-              <Button size="lg" disabled={submitting} onClick={submitBooking}>
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                {submitting ? "Enviando…" : "Confirmar pagamento"}
-              </Button>
-            </div>
+                {/* Seletor de método */}
+                <div className={`${CARD} p-4 sm:p-5`}>
+                  <div className="mb-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={!pixEnabled}
+                      aria-pressed={paymentMethod === "pix"}
+                      onClick={() => setPaymentMethod("pix")}
+                      className={`inline-flex h-14 items-center justify-center gap-2 rounded-2xl border text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        paymentMethod === "pix" ? selectedBtn : "border-border bg-white text-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      <QrCode className="h-4 w-4" /> PIX
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!cardEnabled}
+                      aria-pressed={paymentMethod === "card"}
+                      onClick={() => setPaymentMethod("card")}
+                      title={!cardEnabled && platform === "pagseguro" ? "Cartão via PagSeguro em breve" : undefined}
+                      className={`inline-flex h-14 items-center justify-center gap-2 rounded-2xl border text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        paymentMethod === "card" ? selectedBtn : "border-border bg-white text-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      <CreditCardIcon className="h-4 w-4" /> Cartão
+                    </button>
+                  </div>
+
+                  {paymentMethod === "pix" && (
+                    <div className="rounded-2xl bg-[var(--bc-mist)] p-4 text-sm leading-relaxed text-[var(--bc-navy-2)]">
+                      Após confirmar, geramos um QR Code PIX válido por 30 minutos. O agendamento é liberado assim que o pagamento é aprovado por <strong>{platform === "pagseguro" ? "PagSeguro" : "Mercado Pago"}</strong>.
+                    </div>
+                  )}
+
+                  {paymentMethod === "card" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Nome impresso no cartão</Label>
+                        <Input
+                          className="mt-1.5 h-12 rounded-xl bg-white"
+                          value={cardHolder}
+                          onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                          maxLength={40}
+                          placeholder="NOME COMO NO CARTÃO"
+                        />
+                      </div>
+                      {paySettings.data?.mpPublicKey ? (
+                        <MpSecureCardFields ref={mpFieldsRef} publicKey={paySettings.data.mpPublicKey} idPrefix="ag" />
+                      ) : (
+                        <p className="text-xs text-destructive">Cartão indisponível: Public Key do Mercado Pago não configurada.</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>CPF do titular</Label>
+                          <Input
+                            className="mt-1.5 h-12 rounded-xl bg-white"
+                            value={cardCpf}
+                            onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                            inputMode="numeric"
+                            placeholder="Somente números"
+                          />
+                        </div>
+                        <div>
+                          <Label>Parcelas</Label>
+                          <select
+                            value={installments}
+                            onChange={(e) => setInstallments(Number(e.target.value))}
+                            className="mt-1.5 h-12 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                          >
+                            {[1, 2, 3, 4, 5, 6].map((n) => (
+                              <option key={n} value={n}>
+                                {n}x de {brl(Number(selectedPkg.price) / n)}{n === 1 ? " (à vista)" : " sem juros"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <p className="flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground">
+                        <Lock className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                        Campos hospedados pelo Mercado Pago (PCI-DSS SAQ-A). O número do cartão nunca passa pelo nosso servidor.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between gap-3">
+                  <Button variant="outline" className="h-12 rounded-xl px-6" onClick={() => setStep(3)}>Voltar</Button>
+                  <Button
+                    size="lg"
+                    disabled={submitting}
+                    onClick={submitBooking}
+                    className="h-12 flex-1 rounded-xl border-0 px-6 font-bold text-[#062f2f] shadow-[var(--shadow-glow-orange)] hover:brightness-105 sm:flex-none"
+                    style={{ background: "var(--gradient-cta)" }}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {submitting ? "Enviando…" : "Confirmar pagamento"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Resumo lateral (computador) */}
+          {showSummary && (
+            <aside className="hidden lg:sticky lg:top-24 lg:block">
+              <div className={`${CARD} p-6`}>
+                <h2 className="font-display text-lg font-bold text-[var(--bc-navy)]">Resumo do Agendamento</h2>
+                <div className="mt-5 space-y-4">
+                  {p?.full_name && <SummaryItem icon={<Star className="h-4 w-4" />} tint={TINT_WARM} label="Profissional" value={p.full_name} />}
+                  {baseRows.map((r) => (
+                    <SummaryItem key={r.key} icon={r.icon} tint={r.tint} label={r.label} value={r.value} />
+                  ))}
+                </div>
+                <div className="mt-5 space-y-2 border-t border-border pt-4">
+                  <Row label="Data" value={formatDate(date)} />
+                  <Row label="Início" value={time || "—"} />
+                </div>
+                {price !== null && (
+                  <div className="mt-4 flex items-baseline justify-between rounded-2xl bg-[var(--bc-mist)] px-4 py-3">
+                    <span className="text-sm font-semibold text-[var(--bc-navy-2)]">Total</span>
+                    <span className="font-display text-2xl font-extrabold text-primary">{brl(price)}</span>
+                  </div>
+                )}
+              </div>
+            </aside>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function SummaryItem({ icon, tint, label, value }: { icon: React.ReactNode; tint: string; label: string; value: string }) {
+const CARD = "rounded-3xl border border-[var(--bc-navy)]/8 bg-white shadow-[var(--shadow-card)]";
+
+function brl(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function SummaryItem({ icon, tint, label, value, small = false }: { icon: React.ReactNode; tint: string; label: string; value: string; small?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`h-10 w-10 rounded-xl grid place-items-center ${tint}`}>{icon}</div>
+      <div className={`grid shrink-0 place-items-center rounded-xl ${small ? "h-9 w-9" : "h-10 w-10"} ${tint}`}>{icon}</div>
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="font-semibold truncate">{value}</div>
+        <div className={`truncate font-semibold text-[var(--bc-navy)] ${small ? "text-sm" : ""}`}>{value}</div>
       </div>
     </div>
   );
@@ -631,9 +720,9 @@ function SummaryItem({ icon, tint, label, value }: { icon: React.ReactNode; tint
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm">
+    <div className="flex justify-between gap-4 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold text-right">{value}</span>
+      <span className="text-right font-semibold text-[var(--bc-navy)]">{value}</span>
     </div>
   );
 }
