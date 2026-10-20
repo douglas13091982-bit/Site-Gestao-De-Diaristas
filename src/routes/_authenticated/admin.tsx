@@ -74,7 +74,7 @@ function useAdminBadges(): BadgeCounts {
         supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("password_reset_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
-      const bookingIds = (bookings.data ?? []).map((booking) => booking.id as string);
+      const bookingIds = (bookings.data ?? []).map((booking) => String(booking.id));
       const seenIds = readSeenBookingIds();
       // Na primeira execução, os agendamentos antigos viram a linha de base,
       // para não reaparecer uma contagem histórica como se fosse novidade.
@@ -140,7 +140,7 @@ function AdminLayout() {
       const { data, error } = await supabase.from("bookings").select("id");
       if (cancelled || error) return;
       const currentSeen = readSeenBookingIds() ?? new Set<string>();
-      for (const booking of data ?? []) currentSeen.add(booking.id as string);
+      for (const booking of data ?? []) currentSeen.add(String(booking.id));
       saveSeenBookingIds(currentSeen);
       await queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
     };

@@ -962,6 +962,12 @@ export type Database = {
       }
     }
     Functions: {
+      get_professional_blocked_dates: {
+        Args: { _pro: string }
+        Returns: {
+          blocked_date: string
+        }[]
+      }
       get_public_professional: {
         Args: { _id: string }
         Returns: {
