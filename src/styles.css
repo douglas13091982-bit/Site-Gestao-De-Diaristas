@@ -116,3 +116,39 @@ h1, h2, h3, h4 {
 @utility bc-rise {
   animation: bc-rise 0.7s var(--ease-premium) both;
 }
+
+/* Azulejo discreto no fundo do hero: grade de ladrilhos que some nas bordas. */
+.bc-tiles {
+  background-image:
+    linear-gradient(to right, rgb(16 185 129 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(16 185 129 / 0.08) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 70% 35%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 70% at 70% 35%, #000 0%, transparent 75%);
+}
+
+/* Traço que se desenha sob "impecável." e ticks do checklist. */
+@keyframes bc-draw {
+  to { stroke-dashoffset: 0; }
+}
+.bc-draw path {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: bc-draw 0.9s 0.5s var(--ease-premium) forwards;
+}
+.bc-tick path {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: bc-draw 0.45s var(--ease-premium) forwards;
+  animation-delay: var(--d, 0s);
+}
+
+:where(a, button, [role="tab"]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bc-rise { animation: none; }
+  .bc-draw path, .bc-tick path { animation: none; stroke-dashoffset: 0; }
+}
