@@ -14,8 +14,8 @@ const inputSchema = z.object({
   service_type: z.string().optional().nullable(),
   // Preço e duração são derivados no servidor a partir de pricing_packages.
   package_id: z.number().int().positive(),
-  booking_date: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/, "Data inválida."),
-  start_time: z.string().regex(/^(?:[01]\\d|2[0-3]):[0-5]\\d$/, "Horário inválido."),
+  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
+  start_time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Horário inválido."),
   property_type: z.string().optional().nullable(),
   rooms: z.number().int().min(0).max(50).nullable().optional(),
   bathrooms: z.number().int().min(0).max(50).nullable().optional(),
