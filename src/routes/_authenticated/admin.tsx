@@ -41,22 +41,54 @@ type NavGroup = { label: string; items: NavItem[] };
 
 type BadgeCounts = Record<string, number>;
 
+const SEEN_BOOKINGS_KEY = "gersepa_admin_seen_booking_ids";
+
+function readSeenBookingIds(): Set<string> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(SEEN_BOOKINGS_KEY);
+    if (raw === null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed.filter((id): id is string => typeof id === "string")) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenBookingIds(ids: Iterable<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SEEN_BOOKINGS_KEY, JSON.stringify([...new Set(ids)]));
+  } catch {
+    // A badge não deve quebrar o painel se o armazenamento do navegador estiver indisponível.
+  }
+}
+
 function useAdminBadges(): BadgeCounts {
   const { data } = useQuery({
     queryKey: ["admin-badges"],
     refetchInterval: 30_000,
     queryFn: async () => {
       const [bookings, withdrawals, resets] = await Promise.all([
-        supabase
-          .from("bookings")
-          .select("id", { count: "exact", head: true })
-          .eq("payment_status", "paid")
-          .in("status", ["pending", "confirmed", "in_progress", "awaiting_client_confirmation"]),
+        supabase.from("bookings").select("id"),
         supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("password_reset_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
+      const bookingIds = (bookings.data ?? []).map((booking) => booking.id as string);
+      const seenIds = readSeenBookingIds();
+      // Na primeira execução, os agendamentos antigos viram a linha de base,
+      // para não reaparecer uma contagem histórica como se fosse novidade.
+      if (seenIds === null) {
+        saveSeenBookingIds(bookingIds);
+        return {
+          "/admin/bookings": 0,
+          "/admin/withdrawals": withdrawals.count ?? 0,
+          "/admin/password-resets": resets.count ?? 0,
+        } as BadgeCounts;
+      }
+      const unseenCount = bookingIds.filter((id) => !seenIds.has(id)).length;
       return {
-        "/admin/bookings": bookings.count ?? 0,
+        "/admin/bookings": unseenCount,
         "/admin/withdrawals": withdrawals.count ?? 0,
         "/admin/password-resets": resets.count ?? 0,
       } as BadgeCounts;
@@ -101,6 +133,21 @@ function AdminLayout() {
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const badges = useAdminBadges();
+  useEffect(() => {
+    if (pathname !== "/admin/bookings") return;
+    let cancelled = false;
+    const markBookingsAsSeen = async () => {
+      const { data, error } = await supabase.from("bookings").select("id");
+      if (cancelled || error) return;
+      const currentSeen = readSeenBookingIds() ?? new Set<string>();
+      for (const booking of data ?? []) currentSeen.add(booking.id as string);
+      saveSeenBookingIds(currentSeen);
+      await queryClient.invalidateQueries({ queryKey: ["admin-badges"] });
+    };
+    void markBookingsAsSeen();
+    return () => { cancelled = true; };
+  }, [pathname, queryClient]);
+
   useEffect(() => {
     const ch = supabase
       .channel("admin-badges-realtime")
