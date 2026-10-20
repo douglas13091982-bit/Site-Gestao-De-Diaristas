@@ -3,8 +3,8 @@
 ALTER TABLE public.available_cities
   ADD COLUMN IF NOT EXISTS manually_disabled boolean NOT NULL DEFAULT false;
 
--- Preserva cidades que já estavam desativadas pelo administrador.
-UPDATE public.available_cities SET manually_disabled = true WHERE is_enabled = false;
+-- Cidades inicialmente inativas continuam elegíveis para a primeira aprovação.
+-- Bloqueios manuais feitos a partir desta migração usam manually_disabled.
 
 INSERT INTO public.app_settings
  (setting_key, setting_value, setting_group, setting_type, setting_label, is_public)
