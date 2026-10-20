@@ -30,8 +30,8 @@ function ProfilePage() {
     queryFn: async () => (await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle()).data,
   });
   const cities = useQuery({
-    queryKey: ["cities-enabled"],
-    queryFn: async () => (await supabase.from("available_cities").select("slug,name,state").eq("is_enabled", true).order("name")).data ?? [],
+    queryKey: ["cities-registration"],
+    queryFn: async () => (await supabase.from("available_cities").select("slug,name,state").order("name")).data ?? [],
   });
 
   const [f, setF] = useState<Record<string, string>>({});
