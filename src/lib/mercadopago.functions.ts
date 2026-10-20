@@ -14,11 +14,11 @@ const inputSchema = z.object({
   service_type: z.string().optional().nullable(),
   // Preço e duração são derivados no servidor a partir de pricing_packages.
   package_id: z.number().int().positive(),
-  booking_date: z.string(),
-  start_time: z.string(),
+  booking_date: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/, "Data inválida."),
+  start_time: z.string().regex(/^(?:[01]\\d|2[0-3]):[0-5]\\d$/, "Horário inválido."),
   property_type: z.string().optional().nullable(),
-  rooms: z.number().int().nullable().optional(),
-  bathrooms: z.number().int().nullable().optional(),
+  rooms: z.number().int().min(0).max(50).nullable().optional(),
+  bathrooms: z.number().int().min(0).max(50).nullable().optional(),
   address: z.string().min(3).optional().nullable(),
   address_complement: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
@@ -102,7 +102,7 @@ export const createPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pkgErr || !pkg) throw new Error("Pacote de preço não encontrado.");
     if (pkg.is_enabled === false) throw new Error("Pacote de preço indisponível.");
-    // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
+    const [bookingYear, bookingMonth, bookingDay] = data.booking_date.split("-").map(Number);\n    const parsedBookingDate = new Date(Date.UTC(bookingYear, bookingMonth - 1, bookingDay));\n    if (\n      parsedBookingDate.getUTCFullYear() !== bookingYear ||\n      parsedBookingDate.getUTCMonth() !== bookingMonth - 1 ||\n      parsedBookingDate.getUTCDate() !== bookingDay\n    ) {\n      throw new Error("Data do agendamento inválida.");\n    }\n\n    // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
     try {
       const fmt = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Sao_Paulo",
@@ -195,7 +195,7 @@ export const createPayment = createServerFn({ method: "POST" })
         throw new Error("Mercado Pago não configurado. Peça ao administrador para preencher o Access Token.");
       }
       try {
-      const idempotencyKey = `bk-${booking.id}-${Date.now()}`;
+      const idempotencyKey = `bk-${booking.id}`;
       const itemTitle = isQuick ? "Agendamento rápido Gersepa" : "Agendamento Gersepa";
       const itemDescription = [
         clean.service_type ?? "Serviço de limpeza",
