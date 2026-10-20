@@ -69,10 +69,29 @@ export const createPayment = createServerFn({ method: "POST" })
       if (!data.professional_id) {
         throw new Error("Profissional obrigatório para agendamento direto.");
       }
+
+      const { data: professional, error: professionalError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, is_professional, is_available")
+        .eq("id", data.professional_id)
+        .maybeSingle();
+      if (professionalError) throw new Error("Não foi possível validar a profissional.");
+      if (!professional || !professional.is_professional || professional.is_available === false) {
+        throw new Error("Esta profissional não está disponível para novos agendamentos.");
+      }
     } else {
       if (!clean.city_slug) {
         throw new Error("Cidade é obrigatória para agendamento rápido.");
       }
+
+      const { data: city, error: cityError } = await supabaseAdmin
+        .from("available_cities")
+        .select("slug")
+        .eq("slug", clean.city_slug)
+        .eq("is_enabled", true)
+        .maybeSingle();
+      if (cityError) throw new Error("Não foi possível validar a cidade.");
+      if (!city) throw new Error("A cidade selecionada não está disponível para agendamento.");
     }
 
     // ---- Autorização opcional ----------------------------------------
