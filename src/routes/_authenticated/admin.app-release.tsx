@@ -98,8 +98,11 @@ function AppReleasePage() {
           cacheControl: "3600",
         });
       if (up.error) throw up.error;
-      const { data: pub } = supabase.storage.from("apk-releases").getPublicUrl(path);
-      const url = pub.publicUrl;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("apk-releases")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Falha ao gerar link do APK");
+      const url = signed.signedUrl;
       const now = new Date().toISOString();
       await Promise.all([
         saveSetting("apk_url", url),
