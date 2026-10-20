@@ -18,7 +18,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Install My Project"
+const SITE_NAME = "Gersepa Solutions"
 const ROOT_DOMAIN = "gersepa.com.br"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
