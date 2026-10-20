@@ -159,6 +159,56 @@ export const createPayment = createServerFn({ method: "POST" })
     if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
       throw new Error("Pacote de preço inválido.");
     }
+    if (!Number.isFinite(trustedDuration) || trustedDuration <= 0) {
+      throw new Error("Duração do pacote inválida.");
+    }
+
+    if (!isQuick && data.professional_id) {
+      const weekday = new Date(`${data.booking_date}T12:00:00-03:00`).getDay();
+      const [{ data: schedules, error: scheduleError }, { data: blockedDate, error: blockedError }] =
+        await Promise.all([
+          supabaseAdmin
+            .from("professional_availability")
+            .select("day_of_week, start_time, end_time, is_available")
+            .eq("professional_id", data.professional_id),
+          supabaseAdmin
+            .from("professional_blocked_dates")
+            .select("id")
+            .eq("professional_id", data.professional_id)
+            .eq("blocked_date", data.booking_date)
+            .maybeSingle(),
+        ]);
+
+      if (scheduleError || blockedError) {
+        throw new Error("Não foi possível confirmar a disponibilidade da profissional.");
+      }
+      if (blockedDate) {
+        throw new Error("A profissional bloqueou a data selecionada.");
+      }
+
+      // When a schedule has been configured, enforce it on the server too;
+      // client-side availability controls can be bypassed.
+      if ((schedules ?? []).length > 0) {
+        const schedule = schedules?.find((item) => item.day_of_week === weekday);
+        if (!schedule?.is_available) {
+          throw new Error("A profissional não atende no dia selecionado.");
+        }
+        const [scheduleStartHour, scheduleStartMinute] = schedule.start_time.split(":").map(Number);
+        const [scheduleEndHour, scheduleEndMinute] = schedule.end_time.split(":").map(Number);
+        const [requestedHour, requestedMinute] = data.start_time.split(":").map(Number);
+        const scheduleStart = scheduleStartHour * 60 + scheduleStartMinute;
+        const scheduleEnd = scheduleEndHour * 60 + scheduleEndMinute;
+        const requestedStart = requestedHour * 60 + requestedMinute;
+        if (
+          !Number.isFinite(scheduleStart) ||
+          !Number.isFinite(scheduleEnd) ||
+          requestedStart < scheduleStart ||
+          requestedStart + trustedDuration * 60 > scheduleEnd
+        ) {
+          throw new Error("O horário escolhido está fora da disponibilidade da profissional.");
+        }
+      }
+    }
 
     const { data: settingsRows, error: settingsErr } = await supabaseAdmin
       .from("app_settings")
