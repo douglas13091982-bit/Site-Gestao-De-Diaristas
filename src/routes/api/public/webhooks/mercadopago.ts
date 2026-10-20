@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           error: !secret ? "Webhook secret not configured" : signatureValid ? null : "Invalid signature",
         });
 
-        if (httpStatus !== 200) return new Response("Invalid signature", { status: 401 });
+        if (httpStatus !== 200) return new Response(httpStatus === 503 ? "Webhook secret not configured" : "Invalid signature", { status: httpStatus });
 
         // Handle payment events: fetch payment from MP and mark booking as paid
         try {
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                   !!booking &&
                   Number.isFinite(Number(pay.transaction_amount)) &&
                   Math.round(Number(pay.transaction_amount) * 100) === Math.round(Number(booking.total_price) * 100);
-                const currencyMatches = !pay.currency_id || pay.currency_id === "BRL";
+                const currencyMatches = pay.currency_id === "BRL";
                 const paymentIdMatches =
                   !booking?.payment_provider_id || String(booking.payment_provider_id) === String(externalId);
 
