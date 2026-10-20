@@ -115,9 +115,33 @@ function PasswordResetsPage() {
         title="Redefinições de senha"
         subtitle="Pedidos feitos pela tela de login. Envie o link por WhatsApp para a diarista / cliente."
         actions={
-          <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ["password-reset-requests"] })}>
-            <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={async () => {
+                const msg =
+                  `Olá! Aqui é da Gersepa Solutions. 😊\n\n` +
+                  `Para continuar recebendo agendamentos, crie sua nova senha:\n` +
+                  `1. Acesse ${window.location.origin}/auth\n` +
+                  `2. Digite seu e-mail\n` +
+                  `3. Toque em "Criar / redefinir senha"\n\n` +
+                  `Você vai receber um link no seu e-mail para criar a nova senha. ` +
+                  `Se não encontrar, confira a caixa de spam.`;
+                try {
+                  await navigator.clipboard.writeText(msg);
+                  toast.success("Mensagem copiada! Cole no grupo ou lista de transmissão do WhatsApp.");
+                } catch {
+                  toast.error("Não foi possível copiar a mensagem.");
+                }
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" /> Copiar aviso para diaristas
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ["password-reset-requests"] })}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
+            </Button>
+          </div>
         }
       />
 
