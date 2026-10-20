@@ -106,8 +106,8 @@ function HeroSection({ city }: { city: string }) {
               >
                 <defs>
                   <linearGradient id="bc-shine" x1="0" x2="1">
-                    <stop offset="0" stopColor="#10b981" />
-                    <stop offset="1" stopColor="#3aa8d8" />
+                    <stop offset="0" stopColor="#F07A1A" />
+                    <stop offset="1" stopColor="#F7B267" />
                   </linearGradient>
                 </defs>
                 <path d="M3 9 C 70 2, 150 3, 215 7 S 285 6, 297 4" fill="none" stroke="url(#bc-shine)" strokeWidth="5" strokeLinecap="round" />
@@ -192,7 +192,7 @@ function HeroSection({ city }: { city: string }) {
               >
                 <Button
                   size="lg"
-                  className="group h-14 w-full rounded-2xl border-0 text-base font-bold text-white shadow-[var(--shadow-glow-teal)] transition-all duration-300 hover:brightness-105"
+                  className="group h-14 w-full rounded-2xl border-0 text-base font-bold text-[#062f2f] shadow-[var(--shadow-glow-orange)] transition-all duration-300 hover:brightness-105"
                   style={{ background: "var(--gradient-cta)" }}
                 >
                   Agendar agora

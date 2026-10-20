@@ -19,7 +19,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Marketplace editorial de diaristas premium em Joinville. Curadoria rigorosa, pagamento seguro e garantia de satisfação." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "#0c2340" },
+      { name: "theme-color", content: "#0A4545" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "Gersepa" },
@@ -65,7 +65,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
             alignItems: "center",
             justifyContent: "center",
             gap: "1.5rem",
-            background: "linear-gradient(135deg, #10b981 0%, #3aa8d8 100%)",
+            background: "linear-gradient(135deg, #0A4545 0%, #0F6B6B 100%)",
             transition: "opacity 400ms ease",
             pointerEvents: "none",
           }}

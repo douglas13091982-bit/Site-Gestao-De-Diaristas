@@ -98,7 +98,7 @@ export function ProfessionalCard({ p }: { p: ProCardData }) {
             search={{ pro: p.id, city: p.city_slug ?? "joinville", dur: 4, type: "residential", rooms: 2, baths: 1 }}
             className="min-w-0"
           >
-            <Button className="h-11 w-full gap-1.5 rounded-xl border-0 font-semibold text-white hover:brightness-105" style={{ background: "var(--gradient-cta)" }}>
+            <Button className="h-11 w-full gap-1.5 rounded-xl border-0 font-semibold text-[#062f2f] hover:brightness-105" style={{ background: "var(--gradient-cta)" }}>
               <Calendar className="h-4 w-4" /> Agendar
             </Button>
           </Link>
