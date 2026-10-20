@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "Install My Project"
+const SITE_NAME = "Gersepa Solutions"
 const SENDER_DOMAIN = "notify.gersepa.com.br"
 const ROOT_DOMAIN = "gersepa.com.br"
 const FROM_DOMAIN = "gersepa.com.br"
