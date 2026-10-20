@@ -55,7 +55,7 @@ export type Database = {
           created_at: string
           display_order: number
           id: number
-          is_enabled: boolean
+          is_enabled: boolean\n          manually_disabled: boolean
           name: string
           slug: string
           state: string
@@ -65,7 +65,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: number
-          is_enabled?: boolean
+          is_enabled?: boolean\n          manually_disabled?: boolean
           name: string
           slug: string
           state: string
@@ -75,7 +75,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: number
-          is_enabled?: boolean
+          is_enabled?: boolean\n          manually_disabled?: boolean
           name?: string
           slug?: string
           state?: string
