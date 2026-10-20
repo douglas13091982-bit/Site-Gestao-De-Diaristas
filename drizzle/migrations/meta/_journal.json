@@ -8,6 +8,13 @@
       "when": 1792509518492,
       "tag": "0000_catalog_read_enabled_only",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792509759757,
+      "tag": "0001_blocked_dates_hide_reason",
+      "breakpoints": true
     }
   ]
 }

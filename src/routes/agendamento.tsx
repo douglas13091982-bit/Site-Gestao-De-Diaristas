@@ -148,8 +148,7 @@ function AgendamentoPage() {
   const blocked = useQuery({
     enabled: !!s.pro,
     queryKey: ["ag-blocked", s.pro],
-    queryFn: async () => (await supabase.from("professional_blocked_dates")
-      .select("blocked_date").eq("professional_id", s.pro)).data ?? [],
+    queryFn: async () => (await supabase.rpc("get_professional_blocked_dates", { _pro: s.pro! })).data ?? [],
   });
 
   const availability = useQuery({
