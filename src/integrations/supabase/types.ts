@@ -997,6 +997,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_verified_professional: { Args: { _id: string }; Returns: boolean }
       list_public_professionals: {
         Args: {
           _category?: string
