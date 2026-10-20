@@ -14,11 +14,11 @@ const inputSchema = z.object({
   service_type: z.string().optional().nullable(),
   // Preço e duração são derivados no servidor a partir de pricing_packages.
   package_id: z.number().int().positive(),
-  booking_date: z.string(),
-  start_time: z.string(),
+  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
+  start_time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Horário inválido."),
   property_type: z.string().optional().nullable(),
-  rooms: z.number().int().nullable().optional(),
-  bathrooms: z.number().int().nullable().optional(),
+  rooms: z.number().int().min(0).max(50).nullable().optional(),
+  bathrooms: z.number().int().min(0).max(50).nullable().optional(),
   address: z.string().min(3).optional().nullable(),
   address_complement: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
@@ -69,10 +69,29 @@ export const createPayment = createServerFn({ method: "POST" })
       if (!data.professional_id) {
         throw new Error("Profissional obrigatório para agendamento direto.");
       }
+
+      const { data: professional, error: professionalError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, is_professional, is_available")
+        .eq("id", data.professional_id)
+        .maybeSingle();
+      if (professionalError) throw new Error("Não foi possível validar a profissional.");
+      if (!professional || !professional.is_professional || professional.is_available === false) {
+        throw new Error("Esta profissional não está disponível para novos agendamentos.");
+      }
     } else {
       if (!clean.city_slug) {
         throw new Error("Cidade é obrigatória para agendamento rápido.");
       }
+
+      const { data: city, error: cityError } = await supabaseAdmin
+        .from("available_cities")
+        .select("slug")
+        .eq("slug", clean.city_slug)
+        .eq("is_enabled", true)
+        .maybeSingle();
+      if (cityError) throw new Error("Não foi possível validar a cidade.");
+      if (!city) throw new Error("A cidade selecionada não está disponível para agendamento.");
     }
 
     // ---- Autorização opcional ----------------------------------------
@@ -102,12 +121,22 @@ export const createPayment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pkgErr || !pkg) throw new Error("Pacote de preço não encontrado.");
     if (pkg.is_enabled === false) throw new Error("Pacote de preço indisponível.");
+    const [bookingYear, bookingMonth, bookingDay] = data.booking_date.split("-").map(Number);
+    const parsedBookingDate = new Date(Date.UTC(bookingYear, bookingMonth - 1, bookingDay));
+    if (
+      parsedBookingDate.getUTCFullYear() !== bookingYear ||
+      parsedBookingDate.getUTCMonth() !== bookingMonth - 1 ||
+      parsedBookingDate.getUTCDate() !== bookingDay
+    ) {
+      throw new Error("Data do agendamento inválida.");
+    }
+
     // Data/hora não pode estar no passado (fuso America/Sao_Paulo).
     try {
       const fmt = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Sao_Paulo",
         year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false,
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23",
       });
       const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
       const todayISO = `${p.year}-${p.month}-${p.day}`;
@@ -129,6 +158,67 @@ export const createPayment = createServerFn({ method: "POST" })
     const trustedDuration = Number(pkg.duration_hours);
     if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
       throw new Error("Pacote de preço inválido.");
+    }
+    if (!Number.isFinite(trustedDuration) || trustedDuration <= 0) {
+      throw new Error("Duração do pacote inválida.");
+    }
+
+    if (!isQuick && data.professional_id) {
+      const weekday = new Date(`${data.booking_date}T12:00:00-03:00`).getDay();
+      const [{ data: schedules, error: scheduleError }, { data: blockedDate, error: blockedError }] =
+        await Promise.all([
+          supabaseAdmin
+            .from("professional_availability")
+            .select("day_of_week, start_time, end_time, is_available")
+            .eq("professional_id", data.professional_id),
+          supabaseAdmin
+            .from("professional_blocked_dates")
+            .select("id")
+            .eq("professional_id", data.professional_id)
+            .eq("blocked_date", data.booking_date)
+            .maybeSingle(),
+        ]);
+
+      if (scheduleError || blockedError) {
+        throw new Error("Não foi possível confirmar a disponibilidade da profissional.");
+      }
+      if (blockedDate) {
+        throw new Error("A profissional bloqueou a data selecionada.");
+      }
+
+      // When a schedule has been configured, enforce it on the server too;
+      // client-side availability controls can be bypassed.
+      if ((schedules ?? []).length > 0) {
+        const schedule = schedules?.find((item) => item.day_of_week === weekday);
+        if (!schedule?.is_available) {
+          throw new Error("A profissional não atende no dia selecionado.");
+        }
+        const [scheduleStartHour, scheduleStartMinute] = schedule.start_time.split(":").map(Number);
+        const [scheduleEndHour, scheduleEndMinute] = schedule.end_time.split(":").map(Number);
+        const [requestedHour, requestedMinute] = data.start_time.split(":").map(Number);
+        const scheduleStart = scheduleStartHour * 60 + scheduleStartMinute;
+        const scheduleEnd = scheduleEndHour * 60 + scheduleEndMinute;
+        const requestedStart = requestedHour * 60 + requestedMinute;
+        if (
+          !Number.isFinite(scheduleStart) ||
+          !Number.isFinite(scheduleEnd) ||
+          requestedStart < scheduleStart ||
+          requestedStart + trustedDuration * 60 > scheduleEnd
+        ) {
+          throw new Error("O horário escolhido está fora da disponibilidade da profissional.");
+        }
+      } else {
+        // Match the fallback slots shown by the UI when no weekly schedule exists.
+        const [requestedHour, requestedMinute] = data.start_time.split(":").map(Number);
+        const requestedStart = requestedHour * 60 + requestedMinute;
+        if (
+          requestedStart < 6 * 60 ||
+          requestedStart > 20 * 60 ||
+          requestedStart + trustedDuration * 60 > 24 * 60
+        ) {
+          throw new Error("O horário escolhido está fora do período permitido (06:00–20:00).");
+        }
+      }
     }
 
     const { data: settingsRows, error: settingsErr } = await supabaseAdmin
@@ -195,7 +285,7 @@ export const createPayment = createServerFn({ method: "POST" })
         throw new Error("Mercado Pago não configurado. Peça ao administrador para preencher o Access Token.");
       }
       try {
-      const idempotencyKey = `bk-${booking.id}-${Date.now()}`;
+      const idempotencyKey = `bk-${booking.id}`;
       const itemTitle = isQuick ? "Agendamento rápido Gersepa" : "Agendamento Gersepa";
       const itemDescription = [
         clean.service_type ?? "Serviço de limpeza",
@@ -286,7 +376,8 @@ export const createPayment = createServerFn({ method: "POST" })
           payment_status: approved ? "paid" : (mpJson.status ?? "pending"),
           status: approved ? "pending" : "awaiting_payment",
         })
-        .eq("id", booking.id);
+        .eq("id", booking.id)
+        .neq("payment_status", "paid");
 
       if (approved) {
         try {
@@ -330,7 +421,7 @@ export const createPayment = createServerFn({ method: "POST" })
   });
 
 async function failBooking(supabaseAdmin: any, id: number) {
-  await supabaseAdmin.from("bookings").update({ payment_status: "failed", status: "cancelled" }).eq("id", id);
+  await supabaseAdmin.from("bookings").update({ payment_status: "failed", status: "cancelled" }).eq("id", id).neq("payment_status", "paid");
 }
 
 // Retro-compatibilidade

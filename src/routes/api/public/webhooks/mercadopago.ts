@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
         const eventType = (payload as { type?: string; action?: string } | null)?.type
           ?? (payload as { action?: string } | null)?.action ?? null;
         const externalId = (payload as { data?: { id?: string | number } } | null)?.data?.id?.toString() ?? null;
-        const httpStatus = !secret ? 200 : signatureValid ? 200 : 401;
+        const httpStatus = !secret ? 503 : signatureValid ? 200 : 401;
 
         await supabaseAdmin.from("webhook_events").insert({
           provider: "mercadopago",
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           error: !secret ? "Webhook secret not configured" : signatureValid ? null : "Invalid signature",
         });
 
-        if (httpStatus !== 200) return new Response("Invalid signature", { status: 401 });
+        if (httpStatus !== 200) return new Response(httpStatus === 503 ? "Webhook secret not configured" : "Invalid signature", { status: httpStatus });
 
         // Handle payment events: fetch payment from MP and mark booking as paid
         try {
@@ -80,43 +80,74 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                 status?: string;
                 external_reference?: string;
                 date_approved?: string;
+                transaction_amount?: number;
+                currency_id?: string;
               };
               const ref = pay.external_reference ?? "";
               const match = /^booking:(\d+)$/.exec(ref);
               if (match && pay.status === "approved") {
                 const bookingId = Number(match[1]);
-                const { data: upd } = await supabaseAdmin
+                const { data: booking, error: bookingLookupError } = await supabaseAdmin
                   .from("bookings")
-                  .update({
-                    payment_status: "paid",
-                    paid_at: pay.date_approved ?? new Date().toISOString(),
-                    status: "pending",
-                  })
+                  .select("id, total_price, payment_provider_id, payment_status, professional_id, booking_type")
                   .eq("id", bookingId)
-                  .neq("payment_status", "paid")
-                  .select("id, professional_id, booking_type")
                   .maybeSingle();
-                if (upd?.professional_id) {
-                  try {
-                    const { notifyProfessionalBookingConfirmed } = await import("@/lib/push.functions");
-                    await notifyProfessionalBookingConfirmed({ data: { bookingId } });
-                  } catch (e) {
-                    console.warn("[push] falha ao notificar profissional (pix)", e);
+
+                const amountMatches =
+                  !!booking &&
+                  Number.isFinite(Number(pay.transaction_amount)) &&
+                  Math.round(Number(pay.transaction_amount) * 100) === Math.round(Number(booking.total_price) * 100);
+                const currencyMatches = pay.currency_id === "BRL";
+                const paymentIdMatches =
+                  !booking?.payment_provider_id || String(booking.payment_provider_id) === String(externalId);
+
+                if (bookingLookupError || !booking || !amountMatches || !currencyMatches || !paymentIdMatches) {
+                  await supabaseAdmin.from("webhook_events").insert({
+                    provider: "mercadopago",
+                    event_type: "payment_validation_failed",
+                    external_id: externalId,
+                    signature_valid: signatureValid,
+                    status: "payment_validation_failed",
+                    http_status: 200,
+                    payload: (payload ?? null) as never,
+                    headers: headers as never,
+                    error: bookingLookupError?.message ?? (!booking ? "Booking not found" : !amountMatches ? "Payment amount does not match booking total" : !currencyMatches ? "Unexpected payment currency" : "Payment ID does not match booking"),
+                  });
+                } else {
+                  const { data: upd } = await supabaseAdmin
+                    .from("bookings")
+                    .update({
+                      payment_provider_id: String(externalId),
+                      payment_status: "paid",
+                      paid_at: pay.date_approved ?? new Date().toISOString(),
+                      status: "pending",
+                    })
+                    .eq("id", bookingId)
+                    .neq("payment_status", "paid")
+                    .select("id, professional_id, booking_type")
+                    .maybeSingle();
+                  if (upd?.professional_id) {
+                    try {
+                      const { notifyProfessionalBookingConfirmed } = await import("@/lib/push.functions");
+                      await notifyProfessionalBookingConfirmed({ data: { bookingId } });
+                    } catch (e) {
+                      console.warn("[push] falha ao notificar profissional (pix)", e);
+                    }
+                  } else if (upd && upd.booking_type === "quick") {
+                    try {
+                      const { broadcastNewBookingPush } = await import("@/lib/push.functions");
+                      await broadcastNewBookingPush({ data: { bookingId } });
+                    } catch (e) {
+                      console.warn("[push] falha ao broadcast quick booking (pix)", e);
+                    }
                   }
-                } else if (upd && upd.booking_type === "quick") {
-                  try {
-                    const { broadcastNewBookingPush } = await import("@/lib/push.functions");
-                    await broadcastNewBookingPush({ data: { bookingId } });
-                  } catch (e) {
-                    console.warn("[push] falha ao broadcast quick booking (pix)", e);
-                  }
-                }
-                if (upd) {
-                  try {
-                    const { notifyAdminsBookingPaid } = await import("@/lib/push.functions");
-                    await notifyAdminsBookingPaid({ data: { bookingId } });
-                  } catch (e) {
-                    console.warn("[push] falha ao notificar admins (pix)", e);
+                  if (upd) {
+                    try {
+                      const { notifyAdminsBookingPaid } = await import("@/lib/push.functions");
+                      await notifyAdminsBookingPaid({ data: { bookingId } });
+                    } catch (e) {
+                      console.warn("[push] falha ao notificar admins (pix)", e);
+                    }
                   }
                 }
               }
