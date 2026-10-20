@@ -107,7 +107,7 @@ export const createPayment = createServerFn({ method: "POST" })
       const fmt = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Sao_Paulo",
         year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false,
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23",
       });
       const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
       const todayISO = `${p.year}-${p.month}-${p.day}`;
@@ -286,7 +286,8 @@ export const createPayment = createServerFn({ method: "POST" })
           payment_status: approved ? "paid" : (mpJson.status ?? "pending"),
           status: approved ? "pending" : "awaiting_payment",
         })
-        .eq("id", booking.id);
+        .eq("id", booking.id)
+        .neq("payment_status", "paid");
 
       if (approved) {
         try {
@@ -330,7 +331,7 @@ export const createPayment = createServerFn({ method: "POST" })
   });
 
 async function failBooking(supabaseAdmin: any, id: number) {
-  await supabaseAdmin.from("bookings").update({ payment_status: "failed", status: "cancelled" }).eq("id", id);
+  await supabaseAdmin.from("bookings").update({ payment_status: "failed", status: "cancelled" }).eq("id", id).neq("payment_status", "paid");
 }
 
 // Retro-compatibilidade
