@@ -22,8 +22,6 @@ function AdminCities() {
     queryKey: ["admin-cities"],
     queryFn: async () => (await supabase.from("available_cities").select("*").order("display_order").order("name")).data ?? [],
   });
-  const auto = useQuery({ queryKey: ["city-auto-enable"], queryFn: async () => { const { data, error } = await supabase.from("app_settings").select("setting_value").eq("setting_key", "auto_enable_city_first_professional").maybeSingle(); if (error) throw error; return data?.setting_value === "true"; } });
-  const setAuto = useMutation({ mutationFn: async (enabled: boolean) => { const { error } = await supabase.from("app_settings").upsert({ setting_key: "auto_enable_city_first_professional", setting_value: String(enabled), setting_group: "cities", setting_type: "boolean", setting_label: "Liberar cidade após aprovação da primeira profissional", is_public: false }, { onConflict: "setting_key" }); if (error) throw error; }, onSuccess: () => { qc.invalidateQueries({ queryKey: ["city-auto-enable"] }); toast.success("Configuração atualizada"); }, onError: (e: Error) => toast.error(e.message) });
   const auto = useQuery({
     queryKey: ["city-auto-enable"],
     queryFn: async () => {
