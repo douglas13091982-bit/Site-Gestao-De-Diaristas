@@ -257,4 +257,16 @@ function ProfilePage() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>;
-}
+  useEffect(() => {
+    if (!profile.data?.city_slug || selectedState) return;
+    let cancelled = false;
+    void supabase.from("available_cities").select("state,name")
+      .eq("slug", profile.data.city_slug).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) {
+          setSelectedState(data.state);
+          setCitySearch(data.name);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [profile.data?.city_slug, selectedState]);}
