@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -60,6 +61,26 @@ function CadastroPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [city, setCity] = useState("");
+  const [uf, setUf] = useState("");
+  const ibgeStates = useQuery({
+    queryKey: ["ibge-states"],
+    queryFn: async () => {
+      const r = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
+      if (!r.ok) throw new Error("Falha ao carregar estados");
+      return (await r.json()) as { id: number; sigla: string; nome: string }[];
+    },
+    staleTime: Infinity,
+  });
+  const ibgeCities = useQuery({
+    queryKey: ["ibge-cities", uf],
+    enabled: !!uf,
+    queryFn: async () => {
+      const r = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios?orderBy=nome`);
+      if (!r.ok) throw new Error("Falha ao carregar cidades");
+      return (await r.json()) as { id: number; nome: string }[];
+    },
+    staleTime: Infinity,
+  });
   const [busy, setBusy] = useState(false);
 
   // Estados por tipo
@@ -114,7 +135,7 @@ function CadastroPage() {
       } else {
         await submitSignup({
           tipo: "professional",
-          fullName, email, phone, password, city,
+          fullName, email, phone, password, city, state: uf,
           fields: professionalFields,
           availability,
           photoFile: photoFile!,
@@ -194,6 +215,32 @@ function CadastroPage() {
                 </div>
               </div>
 
+              {tipo === "professional" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="uf">Estado</Label>
+                    <select id="uf" value={uf} required
+                      onChange={(e) => { setUf(e.target.value); setCity(""); }}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                      <option value="">{ibgeStates.isLoading ? "Carregando…" : "Selecione"}</option>
+                      {ibgeStates.data?.map((s) => (
+                        <option key={s.id} value={s.sigla}>{s.nome} — {s.sigla}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="city">Cidade</Label>
+                    <select id="city" value={city} required disabled={!uf || ibgeCities.isLoading}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm disabled:opacity-60">
+                      <option value="">{!uf ? "Selecione primeiro o estado" : ibgeCities.isLoading ? "Carregando cidades…" : "Selecione sua cidade"}</option>
+                      {ibgeCities.data?.map((c) => (
+                        <option key={c.id} value={c.nome}>{c.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-1.5">
                 <Label htmlFor="city">Cidade</Label>
                 <select
@@ -211,6 +258,7 @@ function CadastroPage() {
                   ))}
                 </select>
               </div>
+              )}
 
               {tipo === "professional" && (
                 <ProfessionalFieldsBottom

@@ -20,6 +20,7 @@ export type CommonProfile = {
   phone: string;
   password: string;
   city: string;
+  state?: string;
 };
 
 type ClientPayload = CommonProfile & {
@@ -118,8 +119,15 @@ export async function submitSignup(payload: SignupPayload) {
     throw e;
   });
 
+  const citySlug = (city ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const uf = (payload.state ?? "").trim().toUpperCase();
+  if (city && citySlug && /^[A-Z]{2}$/.test(uf)) {
+    await supabase.rpc("register_professional_city", { p_name: city, p_state: uf, p_slug: citySlug });
+  }
+
   const { error: upProErr } = await supabase.from("profiles").update({
     ...base,
+    city_slug: citySlug || null,
     cpf: sanitizeDigits(f.cpf, 11),
     pix_key: sanitizeText(f.pixKey, { maxLength: 120, collapseWhitespace: true }),
     pix_key_type: detectPixKeyType(f.pixKey),
