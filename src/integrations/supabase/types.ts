@@ -56,6 +56,7 @@ export type Database = {
           display_order: number
           id: number
           is_enabled: boolean
+          manually_disabled: boolean
           name: string
           slug: string
           state: string
@@ -66,6 +67,7 @@ export type Database = {
           display_order?: number
           id?: number
           is_enabled?: boolean
+          manually_disabled?: boolean
           name: string
           slug: string
           state: string
@@ -76,6 +78,7 @@ export type Database = {
           display_order?: number
           id?: number
           is_enabled?: boolean
+          manually_disabled?: boolean
           name?: string
           slug?: string
           state?: string
@@ -961,7 +964,7 @@ export type Database = {
         ]
       }
     }
-    Functions: {\n      register_professional_city: {\n        Args: { p_name: string; p_state: string; p_slug: string }\n        Returns: number\n      }
+    Functions: {
       get_professional_blocked_dates: {
         Args: { _pro: string }
         Returns: {
