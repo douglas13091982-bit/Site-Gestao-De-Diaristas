@@ -1029,6 +1029,10 @@ export type Database = {
         }[]
       }
       recalc_professional_rating: { Args: { _pro: string }; Returns: undefined }
+      register_professional_city: {
+        Args: { p_name: string; p_slug: string; p_state: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "professional" | "client"

@@ -29,6 +29,13 @@
       "when": 1792509866454,
       "tag": "0003_availability_verified_helper",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792543821638,
+      "tag": "0004_register_professional_city",
+      "breakpoints": true
     }
   ]
 }
