@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState }\nimport { useQuery } from "@tanstack/react-query" from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,32 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [uf, setUf] = useState("");
+  const [cityText, setCityText] = useState("");
+  const [chosenCity, setChosenCity] = useState("");
+  const [showCities, setShowCities] = useState(false);
+  const states = useQuery({
+    queryKey: ["signup-ibge-states"],
+    enabled: mode === "signup" && role === "professional",
+    queryFn: async () => {
+      const response = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
+      if (!response.ok) throw new Error("Falha ao carregar estados");
+      return await response.json() as Array<{ id: number; sigla: string; nome: string }>;
+    },
+    staleTime: 86400000,
+  });
+  const cities = useQuery({
+    queryKey: ["signup-ibge-cities", uf],
+    enabled: mode === "signup" && role === "professional" && !!uf,
+    queryFn: async () => {
+      const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios?orderBy=nome`);
+      if (!response.ok) throw new Error("Falha ao carregar municípios");
+      return await response.json() as Array<{ id: number; nome: string }>;
+    },
+    staleTime: 86400000,
+  });
+  const normalize = (text: string) => text.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
+  const cityMatches = (cities.data ?? []).filter((city) => normalize(city.nome).includes(normalize(cityText))).slice(0, 40);
   const [busy, setBusy] = useState(false);
   const [sending, setSending] = useState(false);
   const sendSetup = useServerFn(sendPasswordSetupEmail);
@@ -68,7 +94,12 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        await signUpAccount({ email, password, fullName, role });
+        if (role === "professional" && (!uf || !chosenCity)) {
+          throw new Error("Selecione um estado e escolha a cidade nas sugestões.");
+        }
+        await signUpAccount({ email, password, fullName, role,
+          ...(role === "professional" ? { city: chosenCity, state: uf } : {}),
+        });
         toast.success("Conta criada! Complete seu perfil.");
         navigate({ to: role === "professional" ? "/pro" : "/" });
         return;
