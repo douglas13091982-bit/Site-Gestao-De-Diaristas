@@ -154,6 +154,45 @@ function AuthPage() {
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
             )}
+            {mode === "signup" && role === "professional" && (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="signup-state">Estado (UF)</Label>
+                  <select id="signup-state" required value={uf}
+                    className="w-full h-10 rounded-md border bg-background px-3 text-sm"
+                    onChange={(e) => { setUf(e.target.value); setCityText(""); setChosenCity(""); setShowCities(false); }}>
+                    <option value="">Selecione o estado</option>
+                    {states.data?.map((state) => <option key={state.id} value={state.sigla}>{state.nome} — {state.sigla}</option>)}
+                  </select>
+                  {states.isError && <p className="text-xs text-destructive">Não foi possível carregar os estados.</p>}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="signup-city">Cidade</Label>
+                  <div className="relative">
+                    <Input id="signup-city" role="combobox" aria-expanded={showCities}
+                      required disabled={!uf || cities.isLoading}
+                      placeholder={!uf ? "Selecione o estado primeiro" : cities.isLoading ? "Carregando municípios…" : "Digite sua cidade"}
+                      value={cityText}
+                      onFocus={() => setShowCities(true)}
+                      onChange={(e) => { setCityText(e.target.value); setChosenCity(""); setShowCities(true); }} />
+                    {showCities && !!uf && !cities.isLoading && (
+                      <div role="listbox" className="absolute z-30 mt-1 max-h-52 w-full overflow-auto rounded-md border bg-background shadow-lg">
+                        {cityMatches.map((city) => (
+                          <button type="button" key={city.id} role="option" aria-selected={chosenCity === city.nome}
+                            className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                            onClick={() => { setCityText(city.nome); setChosenCity(city.nome); setShowCities(false); }}>
+                            {city.nome}
+                          </button>
+                        ))}
+                        {!cityMatches.length && <p className="px-3 py-2 text-sm text-muted-foreground">Nenhuma cidade encontrada.</p>}
+                      </div>
+                    )}
+                  </div>
+                  {cities.isError && <p className="text-xs text-destructive">Não foi possível carregar as cidades.</p>}
+                  {cityText && !chosenCity && <p className="text-xs text-muted-foreground">Selecione a cidade nas sugestões.</p>}
+                </div>
+              </>
+            )}
             <div className="space-y-1">
               <Label htmlFor="email">E-mail</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
