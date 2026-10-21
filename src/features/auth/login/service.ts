@@ -28,7 +28,7 @@ export async function signUpAccount(args: {
     password: args.password,
     options: {
       emailRedirectTo: `${window.location.origin}/${args.role === "professional" ? "pro" : "dashboard"}`,
-      data: { full_name: args.fullName, role: args.role },
+      data: { full_name: args.fullName, role: args.role, ...(args.role === "professional" ? { city: args.city, state: args.state } : {}) },
     },
   });
   if (error) throw error;
