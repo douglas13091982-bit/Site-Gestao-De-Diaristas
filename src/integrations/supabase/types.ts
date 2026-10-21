@@ -961,7 +961,7 @@ export type Database = {
         ]
       }
     }
-    Functions: {
+    Functions: {\n      register_professional_city: {\n        Args: { p_name: string; p_state: string; p_slug: string }\n        Returns: number\n      }
       get_professional_blocked_dates: {
         Args: { _pro: string }
         Returns: {
