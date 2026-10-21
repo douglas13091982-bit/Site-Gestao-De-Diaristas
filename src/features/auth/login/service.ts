@@ -22,6 +22,8 @@ export async function signUpAccount(args: {
   password: string;
   fullName: string;
   role: LoginRole;
+  city?: string;
+  state?: string;
 }) {
   const { error } = await supabase.auth.signUp({
     email: args.email,
