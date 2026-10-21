@@ -62,7 +62,10 @@ function AdminCities() {
   });
   const toggle = useMutation({
     mutationFn: async (row: { id: number; is_enabled: boolean }) => {
-      const { error } = await supabase.from("available_cities").update({ is_enabled: !row.is_enabled, manually_disabled: row.is_enabled }).eq("id", row.id);
+      // A coluna manually_disabled existe no banco; o cast evita erro enquanto
+      // os tipos gerados ainda não a incluem.
+      const patch = { is_enabled: !row.is_enabled, manually_disabled: row.is_enabled };
+      const { error } = await supabase.from("available_cities").update(patch as never).eq("id", row.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-cities"] }),
