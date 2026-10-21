@@ -22,6 +22,35 @@ function AdminCities() {
     queryKey: ["admin-cities"],
     queryFn: async () => (await supabase.from("available_cities").select("*").order("display_order").order("name")).data ?? [],
   });
+  const auto = useQuery({ queryKey: ["city-auto-enable"], queryFn: async () => { const { data, error } = await supabase.from("app_settings").select("setting_value").eq("setting_key", "auto_enable_city_first_professional").maybeSingle(); if (error) throw error; return data?.setting_value === "true"; } });
+  const setAuto = useMutation({ mutationFn: async (enabled: boolean) => { const { error } = await supabase.from("app_settings").upsert({ setting_key: "auto_enable_city_first_professional", setting_value: String(enabled), setting_group: "cities", setting_type: "boolean", setting_label: "Liberar cidade após aprovação da primeira profissional", is_public: false }, { onConflict: "setting_key" }); if (error) throw error; }, onSuccess: () => { qc.invalidateQueries({ queryKey: ["city-auto-enable"] }); toast.success("Configuração atualizada"); }, onError: (e: Error) => toast.error(e.message) });
+  const auto = useQuery({
+    queryKey: ["city-auto-enable"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("app_settings")
+        .select("setting_value").eq("setting_key", "auto_enable_city_first_professional").maybeSingle();
+      if (error) throw error;
+      return data?.setting_value === "true";
+    },
+  });
+  const setAuto = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const { error } = await supabase.from("app_settings").upsert({
+        setting_key: "auto_enable_city_first_professional",
+        setting_value: String(enabled),
+        setting_group: "cities",
+        setting_type: "boolean",
+        setting_label: "Liberar cidade após aprovação da primeira profissional",
+        is_public: false,
+      }, { onConflict: "setting_key" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["city-auto-enable"] });
+      toast.success("Configuração atualizada");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [name, setName] = useState(""); const [state, setState] = useState("");
 
   const add = useMutation({
@@ -35,7 +64,7 @@ function AdminCities() {
   });
   const toggle = useMutation({
     mutationFn: async (row: { id: number; is_enabled: boolean }) => {
-      const { error } = await supabase.from("available_cities").update({ is_enabled: !row.is_enabled }).eq("id", row.id);
+      const { error } = await supabase.from("available_cities").update({ is_enabled: !row.is_enabled, manually_disabled: row.is_enabled }).eq("id", row.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-cities"] }),
@@ -49,6 +78,17 @@ function AdminCities() {
   return (
     <div className="p-4 md:p-8">
       <AdminPageHeader title="Cidades atendidas" subtitle="Gerencie as cidades exibidas publicamente." />
+      <label className="bg-white rounded-xl border border-slate-200 p-5 mb-6 flex items-start gap-3 cursor-pointer"><input type="checkbox" className="mt-1 h-5 w-5" checked={auto.data ?? false} disabled={auto.isLoading || setAuto.isPending} onChange={(e) => setAuto.mutate(e.target.checked)} /><span><strong className="block">Liberar cidade automaticamente após aprovação da primeira profissional</strong><span className="text-sm text-slate-600">A cidade será liberada para clientes e outras diaristas quando a primeira profissional cadastrada nela for verificada. Cidades bloqueadas manualmente permanecem bloqueadas.</span></span></label>
+      <label className="bg-white rounded-xl border border-slate-200 p-5 mb-6 flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" className="mt-1 h-5 w-5"
+          checked={auto.data ?? false}
+          disabled={auto.isLoading || setAuto.isPending}
+          onChange={(e) => setAuto.mutate(e.target.checked)} />
+        <span>
+          <strong className="block">Liberar cidade automaticamente após aprovação da primeira profissional</strong>
+          <span className="text-sm text-slate-600">Após a verificação da primeira diarista, a cidade fica disponível para clientes e outras profissionais.</span>
+        </span>
+      </label>
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 grid sm:grid-cols-[1fr_120px_auto] gap-3">
         <Input placeholder="Nome da cidade" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
         <Input placeholder="UF" value={state} onChange={e => setState(e.target.value)} maxLength={2} />
