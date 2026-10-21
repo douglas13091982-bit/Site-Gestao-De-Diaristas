@@ -92,15 +92,10 @@ function ProfilePage() {
       if (!user) return;
       const cityName = ibgeCities.data?.find((city) => citySlug(city.nome) === f.city_slug)?.nome ?? null;
       if (!selectedState || !cityName) throw new Error("Selecione um estado e uma cidade da lista.");
-      const { data: existingCity, error: lookupError } = await supabase.from("available_cities")
-        .select("id").eq("slug", f.city_slug).eq("state", selectedState).maybeSingle();
-      if (lookupError) throw lookupError;
-      if (!existingCity) {
-        const { error: cityError } = await supabase.from("available_cities").insert({
-          name: cityName, state: selectedState, slug: f.city_slug, is_enabled: false, display_order: 999,
-        });
-        if (cityError) throw new Error("A cidade ainda não está cadastrada e não foi possível adicioná-la. Contate o administrador.");
-      }
+      const { error: cityError } = await supabase.rpc("register_professional_city", {
+        p_name: cityName, p_state: selectedState, p_slug: f.city_slug,
+      });
+      if (cityError) throw cityError;
       const { error } = await supabase.from("profiles").update({
         full_name: sanitizeText(f.full_name, { maxLength: 120, collapseWhitespace: true }),
         phone: sanitizeDigits(f.phone, 15),
