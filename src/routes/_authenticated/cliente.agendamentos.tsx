@@ -23,13 +23,14 @@ const STATUS: Record<string, { label: string; color: string }> = {
 function ClienteAgendamentos() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [confirming, setConfirming] = useState<number | null>(null);
   const q = useQuery({
     enabled: !!user,
     queryKey: ["cliente-bookings", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("bookings")
         .select("id, service_type, city, address, booking_date, start_time, duration_hours, status, total_price, professional_id, payment_status, guest_token")
-        .or(`client_id.eq.${user!.id},client_email.eq.${user!.email}`)
+        .or(`client_id.eq.${user!.id},and(client_id.is.null,client_email.ilike.${user!.email})`)
         .order("booking_date", { ascending: false }).limit(100);
       const rows = data ?? [];
       const ids = Array.from(new Set(rows.map((r) => r.professional_id).filter(Boolean))) as string[];
@@ -74,7 +75,7 @@ function ClienteAgendamentos() {
         {q.data?.map((b) => {
           const s = STATUS[b.status] ?? { label: b.status, color: "bg-slate-100 text-slate-700" };
           const contactUnlocked = b.professional && (b.status === "confirmed" || b.status === "in_progress" || b.status === "completed");
-          const needsConfirm = b.status === "awaiting_client_confirmation";
+          const needsConfirm = b.status === "awaiting_client_confirmation" && b.payment_status === "paid";
           return (
             <li key={b.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
@@ -125,19 +126,38 @@ function ClienteAgendamentos() {
 
               {needsConfirm && (
                 <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-2">A diarista marcou o serviço como concluído. Confirme para liberar o pagamento a ela.</p>
+                  <p className="text-xs text-muted-foreground mb-2">A diarista marcou o serviço como concluído. Confirme para liberar o valor na carteira dela.</p>
                   <button
                     type="button"
+                    disabled={confirming !== null}
                     onClick={async () => {
-                      if (!confirm("Confirmar que o serviço foi concluído? O pagamento será liberado para a diarista.")) return;
-                      const { error } = await supabase.from("bookings").update({ status: "completed" }).eq("id", b.id);
-                      if (error) return toast.error("Erro ao confirmar: " + error.message);
-                      toast.success("Serviço confirmado. Obrigado!");
-                      qc.invalidateQueries({ queryKey: ["cliente-bookings"] });
+                      if (!confirm("Confirmar que o serviço foi concluído? O valor ficará disponível para saque pela diarista.")) return;
+                      setConfirming(b.id);
+                      try {
+                        const { error } = await supabase
+                          .from("bookings")
+                          .update({ status: "completed" })
+                          .eq("id", b.id)
+                          .eq("status", "awaiting_client_confirmation")
+                          .eq("payment_status", "paid")
+                          .select("id")
+                          .single();
+                        if (error) throw error;
+                        await Promise.all([
+                          qc.invalidateQueries({ queryKey: ["cliente-bookings"] }),
+                          qc.invalidateQueries({ queryKey: ["cliente-home-bookings"] }),
+                        ]);
+                        toast.success("Conclusão confirmada. Obrigado!");
+                      } catch (error) {
+                        const detail = error && typeof error === "object" && "message" in error ? String(error.message) : "Tente novamente.";
+                        toast.error("Erro ao confirmar: " + detail);
+                      } finally {
+                        setConfirming(null);
+                      }
                     }}
                     className="h-9 px-4 rounded-md bg-emerald-600 text-white text-xs font-semibold"
                   >
-                    Confirmar conclusão
+                    {confirming === b.id ? "Confirmando…" : "Confirmar conclusão"}
                   </button>
                 </div>
               )}
