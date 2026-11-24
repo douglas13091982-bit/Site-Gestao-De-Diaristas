@@ -93,6 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     roles,
     loading,
     signOut: async () => {
+      if (session?.user.id) {
+        try {
+          const { detachPushDevice } = await import("@/lib/push-device");
+          await detachPushDevice(session.user.id);
+        } catch {
+          console.warn("[push] não foi possível desvincular o dispositivo ao sair");
+        }
+      }
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     },
