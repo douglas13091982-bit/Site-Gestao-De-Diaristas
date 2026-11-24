@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { cancelPaidProfessionalBooking } from "@/lib/push.functions";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 import { toast } from "sonner";
 
@@ -38,6 +39,20 @@ function AgendaPage() {
       return data ?? [];
     },
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const professionalId = user.id;
+    const channel = supabase.channel(`agenda-bookings-${professionalId}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "bookings",
+        filter: `professional_id=eq.${professionalId}`,
+      }, () => { void qc.invalidateQueries({ queryKey: ["pro-bookings", professionalId] }); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [qc, user?.id]);
 
   const avail = useQuery({
     queryKey: ["my-avail", user?.id],
@@ -83,9 +98,8 @@ function AgendaPage() {
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       if (status === "cancelled") {
-        const { data, error } = await supabase.rpc("cancel_professional_booking", { booking_id: id });
-        if (error) throw new Error(error.message);
-        return data;
+        await cancelPaidProfessionalBooking({ data: { bookingId: id } });
+        return;
       }
 
       const { error } = await supabase.from("bookings").update({ status })
@@ -93,14 +107,12 @@ function AgendaPage() {
       if (error) throw new Error(error.message);
     },
     onError: (error: Error) => toast.error(error.message),
-    onSuccess: (nextStatus, vars) => {
+    onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["pro-bookings", user?.id] });
       qc.invalidateQueries({ queryKey: ["my-offers", user?.id] });
       qc.invalidateQueries({ queryKey: ["pro-wallet", user?.id] });
       if (vars.status === "cancelled") {
-        toast.warning(nextStatus === "awaiting_payment"
-          ? "Serviço cancelado. O pedido só volta à fila após o pagamento."
-          : "Serviço cancelado e devolvido à fila.");
+        toast.warning("Serviço cancelado e devolvido à fila.");
       }
       if (vars.status === "awaiting_client_confirmation") {
         toast.success("Serviço marcado como concluído. Aguardando confirmação do cliente para liberar o pagamento.");
@@ -131,52 +143,52 @@ function AgendaPage() {
             <ul className="divide-y">
               {upcoming.map((b) => {
                 const isPaid = b.payment_status === "paid";
-                const awaitingClient = b.status === "awaiting_client_confirmation";
+                const canCancel = isPaid && (b.status === "confirmed" || b.status === "in_progress");
                 return (
                   <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        Status: {BOOKING_STATUS[b.status] ?? b.status}
-                        {b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
+                        {isPaid ? (BOOKING_STATUS[b.status] ?? b.status) : "Aguardando pagamento do cliente"}
+                        {isPaid && b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
                       </div>
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      {isPaid && b.status === "confirmed" && (
-                        <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>
-                      )}
-                      {isPaid && b.status === "in_progress" && (
-                        <Button
-                          size="sm"
-                          disabled={updateStatus.isPending}
-                          className="flex-1 sm:flex-none min-h-10"
-                          onClick={() => {
-                            if (confirm("Marcar como concluído? O cliente precisará confirmar antes do pagamento ser liberado.")) {
-                              updateStatus.mutate({ id: b.id, status: "awaiting_client_confirmation" });
-                            }
-                          }}
-                        >
-                          Concluir
-                        </Button>
-                      )}
-                      {!awaitingClient && (
-                        <Button
-                          disabled={updateStatus.isPending}
-                          size="sm"
-                          variant="ghost"
-                          className="flex-1 sm:flex-none min-h-10 text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            const d = suspensionDays.data ?? 2;
-                            if (confirm(`Cancelar este serviço? Você ficará suspensa por ${d} dia(s) sem receber novas propostas.`)) {
-                              updateStatus.mutate({ id: b.id, status: "cancelled" });
-                            }
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                      )}
-                    </div>
+                    {canCancel && (
+                      <div className="flex flex-col gap-2 shrink-0">
+                        {isPaid && b.status === "confirmed" && (
+                          <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>
+                        )}
+                        {isPaid && b.status === "in_progress" && (
+                          <Button
+                            size="sm"
+                            disabled={updateStatus.isPending}
+                            className="flex-1 sm:flex-none min-h-10"
+                            onClick={() => {
+                              if (confirm("Marcar como concluído? O cliente precisará confirmar antes do pagamento ser liberado.")) {
+                                updateStatus.mutate({ id: b.id, status: "awaiting_client_confirmation" });
+                              }
+                            }}
+                          >
+                            Concluir
+                          </Button>
+                        )}
+                          <Button
+                            disabled={updateStatus.isPending}
+                            size="sm"
+                            variant="ghost"
+                            className="flex-1 sm:flex-none min-h-10 text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              const d = suspensionDays.data ?? 2;
+                              if (confirm(`Cancelar este serviço? Você ficará suspensa por ${d} dia(s) sem receber novas propostas.`)) {
+                                updateStatus.mutate({ id: b.id, status: "cancelled" });
+                              }
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                      </div>
+                    )}
                   </li>
                 );
               })}

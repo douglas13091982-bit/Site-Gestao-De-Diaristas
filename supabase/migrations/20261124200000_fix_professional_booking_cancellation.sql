@@ -11,6 +11,10 @@ BEGIN
      AND OLD.status IS DISTINCT FROM 'cancelled'
      AND OLD.professional_id IS NOT NULL
      AND auth.uid() = OLD.professional_id THEN
+    IF OLD.payment_status IS DISTINCT FROM 'paid' THEN
+      RAISE EXCEPTION 'Aguarde o pagamento do cliente para cancelar.' USING ERRCODE = '23514';
+    END IF;
+
     SELECT nullif(setting_value, '')::integer INTO suspension_days
     FROM public.app_settings WHERE setting_key = 'suspension_days_on_cancel';
 
@@ -23,7 +27,7 @@ BEGIN
 
     NEW.professional_id := NULL;
     NEW.booking_type := 'quick';
-    NEW.status := CASE WHEN OLD.payment_status = 'paid' THEN 'pending' ELSE 'awaiting_payment' END;
+    NEW.status := 'pending';
   END IF;
   RETURN NEW;
 END;
@@ -68,12 +72,21 @@ BEGIN
   SET status = 'cancelled'
   WHERE b.id = booking_id
     AND b.professional_id = actor
-    AND b.status IN ('pending', 'awaiting_payment', 'confirmed', 'in_progress')
+    AND b.payment_status = 'paid'
+    AND b.status IN ('confirmed', 'in_progress')
   RETURNING b.status INTO next_status;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Este serviço não pode mais ser cancelado.' USING ERRCODE = '42501';
+    RAISE EXCEPTION 'Somente serviços pagos e em aberto podem ser cancelados pela diarista responsável.' USING ERRCODE = '42501';
   END IF;
+
+  INSERT INTO public.notifications (user_id, title, body, link)
+  SELECT o.professional_id,
+         'Serviço disponível',
+         'Um serviço pago voltou à fila. Confira o pedido e aceite se estiver disponível.',
+         '/pro/leads'
+  FROM public.booking_offers o
+  WHERE o.booking_id = cancel_professional_booking.booking_id AND o.status = 'pending';
 
   RETURN next_status;
 END;
@@ -81,3 +94,32 @@ $$;
 
 REVOKE ALL ON FUNCTION public.cancel_professional_booking(bigint) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.cancel_professional_booking(bigint) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.confirm_paid_direct_booking()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF OLD.payment_status IS DISTINCT FROM 'paid'
+     AND NEW.payment_status = 'paid'
+     AND NEW.booking_type = 'direct'
+     AND NEW.professional_id IS NOT NULL
+     AND NEW.status IN ('pending', 'awaiting_payment') THEN
+    NEW.status := 'confirmed';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_bookings_sync_paid_direct ON public.bookings;
+CREATE TRIGGER trg_bookings_sync_paid_direct
+BEFORE UPDATE OF payment_status ON public.bookings
+FOR EACH ROW EXECUTE FUNCTION public.confirm_paid_direct_booking();
+
+UPDATE public.bookings
+SET status = 'confirmed'
+WHERE payment_status = 'paid'
+  AND booking_type = 'direct'
+  AND professional_id IS NOT NULL
+  AND status IN ('pending', 'awaiting_payment');

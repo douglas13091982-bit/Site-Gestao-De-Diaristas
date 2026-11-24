@@ -123,3 +123,25 @@ export const notifyAdminsWithdrawalRequest = createServerFn({ method: "POST" })
     }
     return { sent, failed };
   });
+
+export const cancelPaidProfessionalBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ bookingId: z.number().int().positive() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("cancel_professional_booking", {
+      booking_id: data.bookingId,
+    });
+    if (error) throw new Error(error.message);
+
+    try {
+      const { broadcastNewBookingPush } = await import("./booking-push.server");
+      const result = await broadcastNewBookingPush(data.bookingId);
+      if (result.failed || ("error" in result && result.error)) {
+        console.warn("[push] falha parcial na redistribuição", data.bookingId);
+      }
+    } catch (error) {
+      // A oferta e o aviso no app já foram gravados na transação.
+      console.warn("[push] falha na redistribuição", data.bookingId, error);
+    }
+    return { requeued: true };
+  });
