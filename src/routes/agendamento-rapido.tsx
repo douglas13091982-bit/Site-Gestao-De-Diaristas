@@ -290,6 +290,7 @@ function QuickBookingPage() {
                 <option value="">Selecione um turno…</option>
                 {BOOKING_SHIFTS.map((shift) => <option key={shift.start} value={shift.start}>{shift.label}</option>)}
               </select>
+              <p className="mt-1 text-xs text-muted-foreground">Pausa para almoço das 12h às 13h.</p>
             </div>
             <div><Label>Quartos</Label><Input name="rooms" type="number" min={0} defaultValue={formData?.rooms ?? 2} required /></div>
             <div><Label>Banheiros</Label><Input name="bathrooms" type="number" min={0} defaultValue={formData?.bathrooms ?? 1} required /></div>

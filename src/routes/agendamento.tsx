@@ -478,6 +478,7 @@ function AgendamentoPage() {
 
                 <div className={`${CARD} p-5`}>
                   <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o turno</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">Pausa para almoço das 12h às 13h.</p>
                   {times.length === 0 && (
                     <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário disponível para a duração escolhida nesta data." : "Escolha uma data para ver os horários disponíveis."}</p>
                   )}
