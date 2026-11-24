@@ -164,13 +164,6 @@ function AgendamentoPage() {
     },
   });
 
-  // Pre-select package matching dur
-  const selectedPkg = useMemo(() => {
-    const list = packages.data ?? [];
-    if (pkgId) return list.find(p => p.id === pkgId) ?? null;
-    return list.find(p => Number(p.duration_hours) === Number(s.dur)) ?? list[0] ?? null;
-  }, [packages.data, pkgId, s.dur]);
-
   const days = useMemo(() => {
     const today = new Date();
     const arr: { iso: string; label: string; weekday: string; blocked: boolean; availabilityLabel: string }[] = [];
@@ -217,46 +210,43 @@ function AgendamentoPage() {
     return (availability.data ?? []).find((a) => a.day_of_week === weekday) ?? null;
   }, [availability.data, date]);
 
-  const times = useMemo(() => {
-    const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
-    if (!date || selectedDay?.blocked || availability.isLoading || availability.isError) return [];
-    let slots: string[] = BOOKING_SHIFT_STARTS.filter((start) => {
-      const end = bookingEndMinute(start, duration);
-      if (end === null) return false;
+  const packagesForDay = useMemo(() => {
+    if (!date || !selectedDay || selectedDay.blocked || blocked.isLoading || availability.isLoading || availability.isError) return [];
+
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date()).map((part) => [part.type, part.value]));
+    const today = `${parts.year}-${parts.month}-${parts.day}`;
+    const earliest = date === today ? Number(parts.hour) * 60 + Number(parts.minute) + 60 : 0;
+    if (date < today) return [];
+
+    return (packages.data ?? []).flatMap((pkg) => {
+      const duration = Number(pkg.duration_hours);
       const usesBothShifts = duration > BOOKING_SHIFT_HOURS;
-      if (!selectedAvailability?.is_available) return !usesBothShifts && !availability.data?.length;
-      return timeToMinutes(start) >= timeToMinutes(selectedAvailability.start_time)
-        && (usesBothShifts ? 17 * 60 : end) <= timeToMinutes(selectedAvailability.end_time);
-    });
-    // Se a data escolhida é hoje (fuso America/Sao_Paulo), esconde horários
-    // já passados e exige pelo menos 1h de antecedência.
-    try {
-      const fmt = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false,
+      const times: string[] = BOOKING_SHIFT_STARTS.filter((start) => {
+        const startMinute = timeToMinutes(start);
+        const end = bookingEndMinute(start, duration);
+        if (end === null || startMinute < earliest) return false;
+        if (!selectedAvailability?.is_available) return !usesBothShifts && !availability.data?.length;
+        return startMinute >= timeToMinutes(selectedAvailability.start_time)
+          && (usesBothShifts ? 17 * 60 : end) <= timeToMinutes(selectedAvailability.end_time);
       });
-      const parts = Object.fromEntries(fmt.formatToParts(new Date()).map(p => [p.type, p.value]));
-      const todayISO = `${parts.year}-${parts.month}-${parts.day}`;
-      if (date === todayISO) {
-        const nowMin = Number(parts.hour) * 60 + Number(parts.minute) + 60; // buffer 1h
-        slots = slots.filter(t => timeToMinutes(t) >= nowMin);
-      }
-    } catch { /* noop */ }
-    return slots;
-  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date, selectedDay?.blocked, availability.isLoading, availability.isError, availability.data?.length]);
+      return times.length ? [{ ...pkg, times }] : [];
+    });
+  }, [date, selectedDay, blocked.isLoading, availability.isLoading, availability.isError, availability.data?.length, packages.data, selectedAvailability]);
+
+  const selectedPkg = packagesForDay.find((pkg) => pkg.id === pkgId);
+  const times = selectedPkg?.times ?? [];
 
   useEffect(() => {
     if (date && selectedDay?.blocked) {
       setDate("");
+      setPkgId(null);
       setTime("");
-      return;
     }
-    if (!date && !blocked.isLoading && !availability.isLoading) {
-      const firstAvailableDay = days.find((d) => !d.blocked);
-      if (firstAvailableDay) setDate(firstAvailableDay.iso);
-    }
-  }, [availability.isLoading, blocked.isLoading, date, days, selectedDay?.blocked]);
+  }, [date, selectedDay?.blocked]);
 
   useEffect(() => {
     if (time && !times.includes(time)) setTime("");
@@ -269,7 +259,7 @@ function AgendamentoPage() {
   );
 
   async function submitBooking() {
-    if (!selectedPkg || !date || !time || !s.pro) return;
+    if (!selectedPkg || !canNextFromStep2 || !s.pro) return;
     setSubmitting(true);
     try {
       const cityName = pro.data?.city ?? s.city;
@@ -362,7 +352,7 @@ function AgendamentoPage() {
     { key: "city", icon: <MapPin className="h-4 w-4" />, tint: TINT_TEAL, label: "Cidade", value: p?.city ?? s.city ?? "—" },
     { key: "type", icon: <Home className="h-4 w-4" />, tint: TINT_TEAL, label: "Imóvel", value: PROPERTY_LABEL[s.type] ?? s.type },
     { key: "rooms", icon: <BedDouble className="h-4 w-4" />, tint: TINT_TEAL, label: "Cômodos", value: `${s.rooms} qts, ${s.baths} bh` },
-    { key: "dur", icon: <Clock className="h-4 w-4" />, tint: TINT_WARM, label: "Duração", value: `${selectedPkg?.duration_hours ?? s.dur}h` },
+    { key: "dur", icon: <Clock className="h-4 w-4" />, tint: TINT_WARM, label: "Duração", value: selectedPkg ? `${selectedPkg.duration_hours}h` : "—" },
   ];
   const selectedBtn = "border-primary bg-primary text-primary-foreground shadow-[0_8px_20px_-8px_rgb(15_107_107/0.55)]";
   const idleBtn = "border-border bg-white hover:border-primary/50 hover:bg-[var(--bc-mist)]";
@@ -454,32 +444,17 @@ function AgendamentoPage() {
                 )}
 
                 <div className={`${CARD} p-5`}>
-                  <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[var(--bc-navy)]">
-                    <Clock className="h-4 w-4 text-primary" /> Escolha o Pacote de Serviço
-                  </div>
-                  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
-                    {(packages.data ?? []).map(pk => {
-                      const active = selectedPkg?.id === pk.id;
-                      return (
-                        <button key={pk.id} type="button" onClick={() => setPkgId(pk.id)} aria-pressed={active}
-                          className={`relative rounded-2xl border p-3 text-left transition ${active ? "border-primary bg-[var(--bc-mist)] shadow-[inset_0_0_0_1px_var(--bc-teal)]" : idleBtn}`}>
-                          {active && <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />}
-                          <div className="font-display text-base font-bold text-[var(--bc-navy)] sm:text-lg">{pk.duration_hours}h</div>
-
-                          <div className="mt-2 text-sm font-extrabold text-[var(--bc-orange)]">{brl(Number(pk.price))}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className={`${CARD} p-5`}>
                   <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione a Data</Label>
                   <div className={`-mx-5 mt-3 flex snap-x gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-7 sm:overflow-visible sm:px-0 sm:pb-0 ${hideScrollbar}`}>
                     {days.map(d => {
                       const active = date === d.iso;
                       return (
-                        <button key={d.iso} type="button" disabled={d.blocked} aria-pressed={active} onClick={() => { setDate(d.iso); setTime(""); }}
+                        <button key={d.iso} type="button" disabled={d.blocked} aria-pressed={active} onClick={() => {
+                          if (date === d.iso) return;
+                          setDate(d.iso);
+                          setPkgId(null);
+                          setTime("");
+                        }}
                           className={`w-[90px] shrink-0 snap-start whitespace-nowrap rounded-2xl border px-2 py-3 text-center transition sm:w-auto ${
                             d.blocked ? "cursor-not-allowed border-border bg-muted/50 opacity-60" : active ? selectedBtn : idleBtn
                           }`}>
@@ -495,10 +470,33 @@ function AgendamentoPage() {
                 </div>
 
                 <div className={`${CARD} p-5`}>
+                  <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[var(--bc-navy)]">
+                    <Clock className="h-4 w-4 text-primary" /> Escolha o Pacote de Serviço
+                  </div>
+                  {!packagesForDay.length && (
+                    <p className="text-sm text-muted-foreground">{!date ? "Selecione uma data para ver os pacotes disponíveis." : packages.isLoading || availability.isLoading || blocked.isLoading ? "Carregando pacotes…" : "Nenhum pacote disponível nesta data."}</p>
+                  )}
+                  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                    {packagesForDay.map(pk => {
+                      const active = selectedPkg?.id === pk.id;
+                      return (
+                        <button key={pk.id} type="button" onClick={() => { setPkgId(pk.id); setTime(""); }} aria-pressed={active}
+                          className={`relative rounded-2xl border p-3 text-left transition ${active ? "border-primary bg-[var(--bc-mist)] shadow-[inset_0_0_0_1px_var(--bc-teal)]" : idleBtn}`}>
+                          {active && <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />}
+                          <div className="font-display text-base font-bold text-[var(--bc-navy)] sm:text-lg">{pk.duration_hours}h</div>
+
+                          <div className="mt-2 text-sm font-extrabold text-[var(--bc-orange)]">{brl(Number(pk.price))}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={`${CARD} p-5`}>
                   <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o turno</Label>
                   <p className="mt-1 text-xs text-muted-foreground">Pausa para almoço das 12h às 13h.</p>
                   {times.length === 0 && (
-                    <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário para este pacote na data escolhida. Pacotes de 6h e 8h exigem disponibilidade nos dois turnos." : "Escolha uma data para ver os horários disponíveis."}</p>
+                    <p className="mt-3 text-sm text-muted-foreground">{!date ? "Escolha uma data primeiro." : "Escolha um pacote para ver os turnos disponíveis."}</p>
                   )}
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {times.map(t => {
