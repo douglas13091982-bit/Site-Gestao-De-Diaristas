@@ -52,9 +52,9 @@ messaging.onBackgroundMessage(async (payload) => {
     undefined;
   const options = {
     body: data.body || payload.notification?.body || "Você tem uma nova notificação.",
-    icon: "/icons/icon-192.png",
     badge: "/icons/badge-96-v3.png",
-    image,
+    // Android renders the optional icon and image as a right-side thumbnail.
+    ...(/Android/i.test(self.navigator.userAgent) ? {} : { icon: "/icons/icon-192.png", image }),
     ...(data.tag ? { tag: data.tag, renotify: true } : {}),
     silent: false,
     requireInteraction: true,

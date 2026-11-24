@@ -85,9 +85,8 @@ export function usePushNotifications({ listen = false } = {}) {
             const options: NotificationOptions & { image?: string } = {
               body,
               tag,
-              icon: "/icons/icon-192.png",
               badge: "/icons/badge-96-v3.png",
-              image,
+              ...(/Android/i.test(navigator.userAgent) ? {} : { icon: "/icons/icon-192.png", image }),
               data: { url: link || "/" },
             };
             await registration.showNotification(title, options);
