@@ -51,8 +51,9 @@ export async function requestPushToken(): Promise<string | null> {
   );
 
   if (!swRegistration.active) {
-    const worker = swRegistration.installing ?? swRegistration.waiting;
-    if (!worker) throw new Error("O service worker do Firebase não foi instalado.");
+    const maybeWorker = swRegistration.installing ?? swRegistration.waiting;
+    if (!maybeWorker) throw new Error("O service worker do Firebase não foi instalado.");
+    const worker: ServiceWorker = maybeWorker;
     await new Promise<void>((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         worker.removeEventListener("statechange", onStateChange);
