@@ -3,6 +3,17 @@ import { renewPushToken, requestPushToken } from "@/lib/firebase";
 
 const REGISTRATION_KEY = "gersepa:push-device";
 
+export function isPushDeviceRegistered(userId: string) {
+  try {
+    const raw = localStorage.getItem(REGISTRATION_KEY);
+    if (!raw) return false;
+    const registration = JSON.parse(raw) as { userId?: string; id?: unknown };
+    return registration.userId === userId && typeof registration.id === "number";
+  } catch {
+    return false;
+  }
+}
+
 export async function registerPushDevice(userId: string): Promise<boolean> {
   const token = await requestPushToken();
   if (!token) return false;

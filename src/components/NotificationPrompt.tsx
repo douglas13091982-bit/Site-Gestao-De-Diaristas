@@ -1,71 +1,85 @@
-import { useEffect, useState } from "react";
-import { Bell, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { useLocation } from "@tanstack/react-router";
+import { BellRing } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useAuth } from "@/hooks/use-auth";
+import { isPushDeviceRegistered } from "@/lib/push-device";
 
-const DISMISS_KEY = "gersepa:push-dismissed-at";
-const DISMISS_MS = 1000 * 60 * 60 * 24 * 3; // 3 dias
+const DISMISS_MS = 3 * 24 * 60 * 60 * 1000;
 
-/**
- * Banner global que solicita permissão de notificações para usuários logados
- * quando o navegador ainda não pediu (Notification.permission === "default").
- */
 export function NotificationPrompt() {
-  const { user } = useAuth();
-  const { status, busy, enable, inFrame } = usePushNotifications({ listen: true });
-  const [hidden, setHidden] = useState(true);
+  const { user, roles, loading } = useAuth();
+  const { pathname } = useLocation();
+  const { status, busy, registerDevice, inFrame } = usePushNotifications({ listen: true });
+  const [promptUser, setPromptUser] = useState<string | null>(null);
+  const dismissed = useRef(new Set<string>());
+
+  const userId = user?.id;
+  const professionalHome = (pathname === "/pro" || pathname === "/pro/") && roles.includes("professional");
+  const clientHome = (pathname === "/cliente" || pathname === "/cliente/") && roles.includes("client");
+  const eligible = !!userId && !loading && !inFrame && (professionalHome || clientHome)
+    && (status === "default" || status === "granted");
 
   useEffect(() => {
-    if (!user) return;
-    if (status !== "default") return;
+    if (!eligible || !userId || dismissed.current.has(userId)) return;
+    if (status === "granted" && isPushDeviceRegistered(userId)) return;
     try {
-      const ts = Number(localStorage.getItem(DISMISS_KEY) || 0);
-      if (ts && Date.now() - ts < DISMISS_MS) return;
+      const until = Number(localStorage.getItem(`gersepa:push-dismissed-until:${userId}`));
+      if (until > Date.now()) return;
     } catch {
-      /* noop */
+      // A preferência ainda vale nesta sessão.
     }
-    // Pequeno atraso para não competir com o splash / install prompt
-    const t = setTimeout(() => setHidden(false), 1500);
-    return () => clearTimeout(t);
-  }, [user, status]);
+    const timer = window.setTimeout(() => {
+      if (!dismissed.current.has(userId) && !(status === "granted" && isPushDeviceRegistered(userId))) setPromptUser(userId);
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [eligible, status, userId]);
+
+  useEffect(() => {
+    if (!eligible) setPromptUser(null);
+  }, [eligible]);
 
   function dismiss() {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* noop */ }
-    setHidden(true);
+    if (!userId || busy) return;
+    dismissed.current.add(userId);
+    try {
+      localStorage.setItem(`gersepa:push-dismissed-until:${userId}`, String(Date.now() + DISMISS_MS));
+    } catch {
+      // A preferência ainda vale nesta sessão.
+    }
+    setPromptUser(null);
   }
 
-  if (hidden) return null;
-  if (!user) return null;
-  if (status === "granted" || status === "denied" || status === "unsupported") return null;
+  async function activate() {
+    if (!(await registerDevice())) return;
+    if (userId) dismissed.current.add(userId);
+    setPromptUser(null);
+  }
 
   return (
-    <div className="fixed left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 z-[65] w-[min(92vw,420px)] rounded-2xl border border-border bg-background shadow-2xl p-4 flex items-start gap-3 animate-in slide-in-from-bottom">
-      <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-        <Bell className="h-5 w-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-bold text-foreground">Ativar notificações</div>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {inFrame
-            ? "Para aparecer a permissão, abra o app fora da pré-visualização ou use o APK instalado."
-            : "Receba alertas de novos agendamentos, confirmações e mensagens em tempo real."}
-        </p>
-        <button
-          onClick={enable}
-          disabled={busy}
-          className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 disabled:opacity-60"
-        >
-          <Bell className="h-4 w-4" /> {busy ? "Ativando..." : "Ativar agora"}
-        </button>
-      </div>
-      <button
-        type="button"
-        aria-label="Fechar"
-        onClick={dismiss}
-        className="p-1 -m-1 text-muted-foreground hover:text-foreground"
-      >
-        <X className="h-4 w-4" />
-      </button>
-    </div>
+    <Dialog.Root open={eligible && promptUser === userId} onOpenChange={(open) => { if (!open) dismiss(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[70] bg-black/45" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[71] grid max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 gap-3 overflow-auto rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xl">
+          <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+            <BellRing className="size-5" aria-hidden="true" />
+          </span>
+          <Dialog.Title className="text-lg font-bold">Ativar notificações</Dialog.Title>
+          <Dialog.Description className="text-sm text-muted-foreground">
+            {professionalHome
+              ? "Receba avisos de novos serviços e atualizações dos seus agendamentos."
+              : "Receba confirmações e atualizações dos seus agendamentos."}
+          </Dialog.Description>
+          <div className="mt-1 flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="ghost" className="min-h-11" disabled={busy} onClick={dismiss}>Agora não</Button>
+            <Button type="button" className="min-h-11" disabled={busy} onClick={() => void activate()}>
+              {busy ? "Ativando…" : status === "granted" ? "Registrar dispositivo" : "Ativar notificações"}
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

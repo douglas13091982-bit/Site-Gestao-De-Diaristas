@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Calendar, MapPin, Sparkles, Users, User, Bell } from "lucide-react";
-import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 export const Route = createFileRoute("/_authenticated/cliente/")({
   head: () => ({ meta: [{ title: "Início — Minha conta Gersepa" }, { name: "description", content: "Resumo dos seus agendamentos." }] }),
@@ -51,7 +50,6 @@ function ClienteHome() {
         <div className="text-sm text-muted-foreground">Serviços em</div>
         <div className="break-words text-xl font-bold">{cityLabel}</div>
       </div>
-      <PushNotificationButton />
       <DashboardModuleGrid label="Menu do cliente" modules={CLIENT_MODULES} />
 
       <section>
