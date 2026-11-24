@@ -46,7 +46,7 @@ function showFrameInstructions() {
  * - solicita permissão e salva o token FCM em `push_subscriptions`
  * - exibe toast quando chega mensagem em primeiro plano
  */
-export function usePushNotifications() {
+export function usePushNotifications({ listen = false } = {}) {
   const { user } = useAuth();
   const [status, setStatus] = useState<Status>("default");
   const [busy, setBusy] = useState(false);
@@ -59,27 +59,17 @@ export function usePushNotifications() {
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
 
-    // O service worker avisa quando chega push, para vibrarmos também aqui.
-    const onSwMessage = (event: MessageEvent) => {
-      const msg = event.data as { type?: string; pattern?: number[] } | undefined;
-      if (msg?.type !== "gersepa-vibrate") return;
-      try {
-        navigator.vibrate?.(msg.pattern ?? [300, 120, 300, 120, 400]);
-      } catch { /* noop */ }
-    };
-    navigator.serviceWorker?.addEventListener("message", onSwMessage);
-
     return () => {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
-      navigator.serviceWorker?.removeEventListener("message", onSwMessage);
     };
   }, []);
 
   useEffect(() => {
+    if (!listen || !user || status !== "granted") return;
+    let cancelled = false;
     let unsub: (() => void) | undefined;
     (async () => {
-      if (status !== "granted") return;
       const off = await onForegroundMessage((raw) => {
         const payload = raw as {
           notification?: { title?: string; body?: string };
@@ -93,12 +83,14 @@ export function usePushNotifications() {
         } catch { /* noop */ }
         toast(title, { description: body });
       });
-      unsub = typeof off === "function" ? off : undefined;
-    })();
+      if (cancelled) off();
+      else unsub = off;
+    })().catch((error) => console.warn("[push] falha no listener", error));
     return () => {
+      cancelled = true;
       unsub?.();
     };
-  }, [status]);
+  }, [listen, status, user]);
 
   const enable = useCallback(async () => {
     if (!user) {

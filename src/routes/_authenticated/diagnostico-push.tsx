@@ -195,8 +195,10 @@ function DiagnosticoPush() {
           link: "/notificacoes",
         },
       });
-      if (r.sent > 0) toast.success(`Push enviado para ${r.sent} dispositivo(s). Verifique agora.`);
-      else toast.error(`Nenhum dispositivo recebeu. Falhas: ${r.failed}. Ative as notificações e reexecute.`);
+      if (r.error) toast.error("Não foi possível consultar os dispositivos registrados.");
+      else if (r.sent > 0) toast.success(`Firebase aceitou o teste para ${r.sent} dispositivo(s). Confira se o aviso chegou.`);
+      else if (r.failed) toast.error(`Firebase rejeitou o envio para ${r.failed} dispositivo(s).`);
+      else toast.error("Nenhum dispositivo registrado. Ative as notificações e reexecute.");
     } catch (e) {
       toast.error("Falha ao disparar teste. Tente reexecutar o diagnóstico.");
     }

@@ -88,7 +88,7 @@ export type FcmPayload = {
   data?: Record<string, string>;
 };
 
-export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean; error?: string }> {
+export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean; error?: string; unregistered?: boolean }> {
   const sa = loadServiceAccount();
   const token = await getAccessToken();
   const message = {
@@ -110,7 +110,6 @@ export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean
           Urgency: "high",
           TTL: "86400",
         },
-        fcm_options: payload.link ? { link: payload.link } : undefined,
       },
       data: {
         ...(payload.data ?? {}),
@@ -134,5 +133,18 @@ export async function sendFcmMessage(payload: FcmPayload): Promise<{ ok: boolean
   );
   if (res.ok) return { ok: true };
   const text = await res.text();
-  return { ok: false, error: `${res.status} ${text}` };
+  let unregistered = false;
+  try {
+    const response = JSON.parse(text) as {
+      error?: { details?: Array<{ "@type"?: string; errorCode?: string }> };
+    };
+    unregistered = response.error?.details?.some(
+      (detail) =>
+        detail["@type"] === "type.googleapis.com/google.firebase.fcm.v1.FcmError" &&
+        detail.errorCode === "UNREGISTERED",
+    ) ?? false;
+  } catch {
+    // A non-JSON response does not establish that the token expired.
+  }
+  return { ok: false, error: `${res.status} ${text}`, unregistered };
 }

@@ -382,18 +382,18 @@ export const createPayment = createServerFn({ method: "POST" })
       if (approved) {
         try {
           if (isQuick) {
-            const { broadcastNewBookingPush } = await import("./push.functions");
-            await broadcastNewBookingPush({ data: { bookingId: booking.id as number } });
+            const { broadcastNewBookingPush } = await import("./booking-push.server");
+            await broadcastNewBookingPush(booking.id as number);
           } else {
-            const { notifyProfessionalBookingConfirmed } = await import("./push.functions");
-            await notifyProfessionalBookingConfirmed({ data: { bookingId: booking.id as number } });
+            const { notifyProfessionalBookingConfirmed } = await import("./booking-push.server");
+            await notifyProfessionalBookingConfirmed(booking.id as number);
           }
         } catch (e) {
           console.warn("[push] falha ao notificar profissionais (card)", e);
         }
         try {
-          const { notifyAdminsBookingPaid } = await import("./push.functions");
-          await notifyAdminsBookingPaid({ data: { bookingId: booking.id as number } });
+          const { notifyAdminsBookingPaid } = await import("./booking-push.server");
+          await notifyAdminsBookingPaid(booking.id as number);
         } catch (e) {
           console.warn("[push] falha ao notificar admins (card)", e);
         }
