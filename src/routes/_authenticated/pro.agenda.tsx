@@ -242,7 +242,7 @@ function AgendaPage() {
       <aside className="space-y-4 sm:space-y-6">
         <div className="rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="mb-1 font-semibold">Dias que atendo</h2>
-          <p className="mb-3 text-sm text-muted-foreground">Escolha o período disponível em cada dia.</p>
+          <p className="mb-3 text-sm text-muted-foreground">Escolha o período disponível em cada dia. Com os dois turnos, o almoço fica livre das 12h às 13h.</p>
           {avail.isError && <p role="alert" className="mb-3 text-sm text-destructive">Não foi possível carregar os horários.</p>}
           <div className="divide-y divide-border">
             {DAYS.map((day, index) => {
