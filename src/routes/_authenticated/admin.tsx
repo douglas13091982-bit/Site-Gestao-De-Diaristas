@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState, redirect, useNavigate } 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardModuleGrid, DashboardQuickAction, type DashboardModule } from "@/components/DashboardModuleGrid";
+import { AdminBookingAlarmProvider } from "@/components/AdminBookingAlarm";
 import { useAuth } from "@/hooks/use-auth";
 import {
  LayoutDashboard, Users, Briefcase, Calendar, DollarSign,
@@ -241,22 +242,24 @@ function AdminLayout() {
         </div>
       </aside>
       <main className={`flex-1 min-w-0 ${isHome ? "pb-28 md:pb-0" : ""}`}>
-        {isHome && (
-          <div className="mx-auto max-w-[430px] space-y-5 px-4 pt-4 md:hidden">
-            <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground">
-              <div className="text-sm text-muted-foreground">Painel de administração</div>
-              <div className="mt-1 text-xl font-bold">Gersepa Solutions</div>
+        <AdminBookingAlarmProvider>
+          {isHome && (
+            <div className="mx-auto max-w-[430px] space-y-5 px-4 pt-4 md:hidden">
+              <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground">
+                <div className="text-sm text-muted-foreground">Painel de administração</div>
+                <div className="mt-1 text-xl font-bold">Gersepa Solutions</div>
+              </div>
+              {GROUPS.slice(1).map(({ label, items }) => (
+                <section key={label}>
+                  <h2 className="mb-2 text-sm font-semibold text-foreground">{label}</h2>
+                  <DashboardModuleGrid label={label} modules={items} badges={badges} />
+                </section>
+              ))}
+              <DashboardQuickAction to="/admin/bookings" label="Agendamentos" icon={Calendar} />
             </div>
-            {GROUPS.slice(1).map(({ label, items }) => (
-              <section key={label}>
-                <h2 className="mb-2 text-sm font-semibold text-foreground">{label}</h2>
-                <DashboardModuleGrid label={label} modules={items} badges={badges} />
-              </section>
-            ))}
-            <DashboardQuickAction to="/admin/bookings" label="Agendamentos" icon={Calendar} />
-          </div>
-        )}
-        <Outlet />
+          )}
+          <Outlet />
+        </AdminBookingAlarmProvider>
       </main>
     </div>
   );
