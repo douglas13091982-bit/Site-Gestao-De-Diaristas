@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { cancelPaidProfessionalBooking } from "@/lib/push.functions";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 import { toast } from "sonner";
+import { BOOKING_SHIFTS } from "@/shared/lib/booking-shifts";
 import { Clock3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro/agenda")({
@@ -22,7 +23,16 @@ const BOOKING_STATUS: Record<string, string> = {
   awaiting_client_confirmation: "Aguardando confirmação do cliente",
 };
 
-const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const DAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+const PERIODS = [
+  { value: "off", label: "Não atende", start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[1].end },
+  { value: "morning", label: BOOKING_SHIFTS[0].label, start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[0].end },
+  { value: "afternoon", label: BOOKING_SHIFTS[1].label, start: BOOKING_SHIFTS[1].start, end: BOOKING_SHIFTS[1].end },
+  { value: "all", label: "Manhã e tarde", start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[1].end },
+] as const;
+
+type Period = (typeof PERIODS)[number];
 
 function AgendaPage() {
   const { user } = useAuth();
@@ -58,7 +68,11 @@ function AgendaPage() {
   const avail = useQuery({
     queryKey: ["my-avail", user?.id],
     enabled: !!user,
-    queryFn: async () => (await supabase.from("professional_availability").select("*").eq("professional_id", user!.id)).data ?? [],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("professional_availability").select("*").eq("professional_id", user!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const blocked = useQuery({
@@ -67,19 +81,25 @@ function AgendaPage() {
     queryFn: async () => (await supabase.from("professional_blocked_dates").select("*").eq("professional_id", user!.id).order("blocked_date")).data ?? [],
   });
 
-  const enabledDays = new Set((avail.data ?? []).filter((a) => a.is_available).map((a) => a.day_of_week));
+  const availabilityByDay = new Map(avail.data?.map((row) => [row.day_of_week, row]));
 
-  const toggleDay = useMutation({
-    mutationFn: async (day: number) => {
-      if (!user) return;
-      const existing = (avail.data ?? []).find((a) => a.day_of_week === day);
-      if (existing) {
-        await supabase.from("professional_availability").delete().eq("id", existing.id);
-      } else {
-        await supabase.from("professional_availability").insert({ professional_id: user.id, day_of_week: day, start_time: "08:00", end_time: "18:00", is_available: true });
-      }
+  const savePeriod = useMutation({
+    mutationFn: async ({ day, period }: { day: number; period: Period }) => {
+      if (!user) throw new Error("Faça login para atualizar sua agenda.");
+      const { error } = await supabase.from("professional_availability").upsert({
+        professional_id: user.id,
+        day_of_week: day,
+        start_time: period.start,
+        end_time: period.end,
+        is_available: period.value !== "off",
+      }, { onConflict: "professional_id,day_of_week" });
+      if (error) throw new Error(error.message);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-avail", user?.id] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["my-avail", user?.id] });
+      toast.success("Horário de atendimento atualizado.");
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const [blockDate, setBlockDate] = useState("");
@@ -221,16 +241,39 @@ function AgendaPage() {
 
       <aside className="space-y-4 sm:space-y-6">
         <div className="rounded-xl border bg-card p-4 sm:p-5">
-          <h2 className="font-semibold mb-3">Dias que atendo</h2>
-          <div className="grid grid-cols-7 gap-1">
-            {DAYS.map((d, i) => (
-              <button key={d} onClick={() => toggleDay.mutate(i)}
-                className={`h-11 rounded-md text-xs font-semibold ${enabledDays.has(i) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                {d}
-              </button>
-            ))}
+          <h2 className="mb-1 font-semibold">Dias que atendo</h2>
+          <p className="mb-3 text-sm text-muted-foreground">Escolha o período disponível em cada dia.</p>
+          {avail.isError && <p role="alert" className="mb-3 text-sm text-destructive">Não foi possível carregar os horários.</p>}
+          <div className="divide-y divide-border">
+            {DAYS.map((day, index) => {
+              const row = availabilityByDay.get(index);
+              const start = row?.start_time.slice(0, 5);
+              const end = row?.end_time.slice(0, 5);
+              const saved = row?.is_available
+                ? PERIODS.find((period) => period.value !== "off" && period.start === start && period.end === end)?.value ?? (start === "08:00" && end === "18:00" ? "all" : start === "12:00" && end === "18:00" ? "afternoon" : "custom")
+                : "off";
+              const value = savePeriod.isPending && savePeriod.variables.day === index ? savePeriod.variables.period.value : saved;
+
+              return (
+                <div key={day} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5">
+                  <label htmlFor={`availability-day-${index}`} className="text-sm font-medium">{day}</label>
+                  <select
+                    id={`availability-day-${index}`}
+                    className="min-h-11 max-w-full flex-1 rounded-lg border border-input bg-background px-2 py-1 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60"
+                    value={value}
+                    disabled={avail.isLoading || avail.isError || savePeriod.isPending}
+                    onChange={(event) => {
+                      const period = PERIODS.find((option) => option.value === event.target.value);
+                      if (period) savePeriod.mutate({ day: index, period });
+                    }}
+                  >
+                    {saved === "custom" && <option value="custom" disabled>{start} às {end}</option>}
+                    {PERIODS.map((period) => <option key={period.value} value={period.value}>{period.label}</option>)}
+                  </select>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-xs text-muted-foreground mt-2">08:00 – 18:00. Clique para ativar/desativar.</p>
         </div>
 
         <div className="rounded-xl border bg-card p-4 sm:p-5">

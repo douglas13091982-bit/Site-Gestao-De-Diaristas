@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
+import { BOOKING_SHIFT_HOURS, BOOKING_SHIFTS } from "@/shared/lib/booking-shifts";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -141,8 +142,8 @@ function AgendamentoPage() {
   const packages = useQuery({
     queryKey: ["ag-pkgs"],
     queryFn: async () => (await supabase.from("pricing_packages")
-      .select("id, duration_hours, price, start_time, is_enabled")
-      .eq("is_enabled", true).order("duration_hours")).data ?? [],
+      .select("id, duration_hours, price")
+      .eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_SHIFT_HOURS).order("duration_hours")).data ?? [],
   });
 
   const blocked = useQuery({
@@ -172,7 +173,7 @@ function AgendamentoPage() {
 
   const days = useMemo(() => {
     const today = new Date();
-    const arr: { iso: string; label: string; weekday: string; blocked: boolean; reason?: string; range?: string }[] = [];
+    const arr: { iso: string; label: string; weekday: string; blocked: boolean; reason?: string }[] = [];
     const set = new Set((blocked.data ?? []).map(b => b.blocked_date));
     const availabilityByDay = new Map((availability.data ?? []).map((a) => [a.day_of_week, a]));
     const hasAvailability = (availability.data ?? []).length > 0;
@@ -189,7 +190,7 @@ function AgendamentoPage() {
         weekday: DAYS_SHORT[d.getDay()],
         blocked: blockedByDate || blockedBySchedule,
         reason: blockedByDate ? "Bloqueada" : blockedBySchedule ? "Indisponível" : undefined,
-        range: dayAvailability?.is_available ? `${dayAvailability.start_time.slice(0, 5)}–${dayAvailability.end_time.slice(0, 5)}` : undefined,
+
       });
     }
     return arr;
@@ -204,16 +205,13 @@ function AgendamentoPage() {
 
   const times = useMemo(() => {
     const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
-    let slots: string[];
-    if (!selectedAvailability?.is_available) {
-      slots = Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
-    } else {
-      const start = timeToMinutes(selectedAvailability.start_time);
-      const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
-      slots = [];
-      for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
-      if (!slots.length) slots = [selectedAvailability.start_time.slice(0, 5)];
-    }
+    if (!date || selectedDay?.blocked || duration <= 0 || duration > BOOKING_SHIFT_HOURS) return [];
+    let slots: string[] = BOOKING_SHIFTS.filter(({ start }) => {
+      if (!selectedAvailability?.is_available) return true;
+      const startMinute = timeToMinutes(start);
+      return startMinute >= timeToMinutes(selectedAvailability.start_time)
+        && startMinute + duration * 60 <= timeToMinutes(selectedAvailability.end_time);
+    }).map(({ start }) => start);
     // Se a data escolhida é hoje (fuso America/Sao_Paulo), esconde horários
     // já passados e exige pelo menos 1h de antecedência.
     try {
@@ -230,7 +228,7 @@ function AgendamentoPage() {
       }
     } catch { /* noop */ }
     return slots;
-  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date]);
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date, selectedDay?.blocked]);
 
   useEffect(() => {
     if (date && selectedDay?.blocked) {
@@ -451,7 +449,7 @@ function AgendamentoPage() {
                           className={`relative rounded-2xl border p-3 text-left transition ${active ? "border-primary bg-[var(--bc-mist)] shadow-[inset_0_0_0_1px_var(--bc-teal)]" : idleBtn}`}>
                           {active && <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />}
                           <div className="font-display text-base font-bold text-[var(--bc-navy)] sm:text-lg">{pk.duration_hours}h</div>
-                          <div className="whitespace-nowrap text-[11px] text-muted-foreground">{pk.start_time?.slice(0,5)}–{sumHours(pk.start_time, pk.duration_hours)}</div>
+
                           <div className="mt-2 text-sm font-extrabold text-[var(--bc-orange)]">{brl(Number(pk.price))}</div>
                         </button>
                       );
@@ -471,7 +469,7 @@ function AgendamentoPage() {
                           }`}>
                           <div className={`text-xs ${active ? "text-white/80" : "text-muted-foreground"}`}>{d.weekday}</div>
                           <div className="font-display text-sm font-bold leading-tight sm:text-base">{d.label}</div>
-                          {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : d.range ? <div className={`text-[10px] ${active ? "text-white/80" : "text-muted-foreground"}`}>{d.range}</div> : null}
+                          {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : null}
                         </button>
                       );
                     })}
@@ -479,17 +477,17 @@ function AgendamentoPage() {
                 </div>
 
                 <div className={`${CARD} p-5`}>
-                  <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o Horário de Início</Label>
+                  <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o turno</Label>
                   {times.length === 0 && (
-                    <p className="mt-3 text-sm text-muted-foreground">Escolha uma data para ver os horários disponíveis.</p>
+                    <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário disponível para a duração escolhida nesta data." : "Escolha uma data para ver os horários disponíveis."}</p>
                   )}
-                  <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-5 xl:grid-cols-6">
+                  <div className="mt-3 grid grid-cols-2 gap-2">
                     {times.map(t => {
                       const active = time === t;
                       return (
                         <button key={t} type="button" onClick={() => setTime(t)} aria-pressed={active}
                           className={`rounded-xl border py-2.5 text-center text-sm font-bold transition ${active ? selectedBtn : idleBtn}`}>
-                          {t}
+                          {BOOKING_SHIFTS.find((shift) => shift.start === t)?.label ?? t}
                         </button>
                       );
                     })}
@@ -727,24 +725,12 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function sumHours(start: string | null | undefined, dur: number): string {
-  if (!start) return "";
-  const [h, m] = start.split(":").map(Number);
-  const end = new Date(2000, 0, 1, h, m);
-  end.setHours(end.getHours() + Number(dur));
-  return `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
-}
 
 function timeToMinutes(value: string): number {
   const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
   return hours * 60 + minutes;
 }
 
-function minutesToTime(value: number): string {
-  const hours = Math.floor(value / 60);
-  const minutes = value % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-}
 
 function formatDate(iso: string) {
   if (!iso) return "—";

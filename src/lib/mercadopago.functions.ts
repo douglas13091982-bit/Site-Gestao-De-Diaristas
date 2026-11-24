@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { BOOKING_SHIFT_HOURS, BOOKING_SHIFT_STARTS } from "@/shared/lib/booking-shifts";
 import {
   sanitizeText,
   sanitizeTextOrNull,
@@ -15,7 +16,7 @@ const inputSchema = z.object({
   // Preço e duração são derivados no servidor a partir de pricing_packages.
   package_id: z.number().int().positive(),
   booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
-  start_time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Horário inválido."),
+  start_time: z.enum(BOOKING_SHIFT_STARTS),
   property_type: z.string().optional().nullable(),
   rooms: z.number().int().min(0).max(50).nullable().optional(),
   bathrooms: z.number().int().min(0).max(50).nullable().optional(),
@@ -159,12 +160,12 @@ export const createPayment = createServerFn({ method: "POST" })
     if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
       throw new Error("Pacote de preço inválido.");
     }
-    if (!Number.isFinite(trustedDuration) || trustedDuration <= 0) {
-      throw new Error("Duração do pacote inválida.");
+    if (!Number.isFinite(trustedDuration) || trustedDuration <= 0 || trustedDuration > BOOKING_SHIFT_HOURS) {
+      throw new Error("Escolha um pacote que caiba em um turno de até quatro horas.");
     }
 
     if (!isQuick && data.professional_id) {
-      const weekday = new Date(`${data.booking_date}T12:00:00-03:00`).getDay();
+      const weekday = new Date(`${data.booking_date}T00:00:00Z`).getUTCDay();
       const [{ data: schedules, error: scheduleError }, { data: blockedDate, error: blockedError }] =
         await Promise.all([
           supabaseAdmin
