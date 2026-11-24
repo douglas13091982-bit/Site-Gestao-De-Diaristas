@@ -77,7 +77,7 @@ function availabilityRows(userId: string, availability: AvailabilityMap) {
 }
 
 export async function submitSignup(payload: SignupPayload) {
-  const redirectSuffix = payload.tipo === "professional" ? "pro" : "dashboard";
+  const redirectSuffix = payload.tipo === "professional" ? "pro" : "cliente";
   const fullName = sanitizeText(payload.fullName, { maxLength: 120, collapseWhitespace: true });
   const email = sanitizeEmail(payload.email);
   const phone = sanitizeDigits(payload.phone, 15);

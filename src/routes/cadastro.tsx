@@ -144,7 +144,7 @@ function CadastroPage() {
       toast.success("Conta criada com sucesso!");
       nav({
         to: "/baixar-app",
-        search: { tipo: tipo ?? "", next: tipo === "professional" ? "/pro" : "/" },
+        search: { tipo: tipo ?? "", next: tipo === "professional" ? "/pro" : "/cliente" },
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar conta");

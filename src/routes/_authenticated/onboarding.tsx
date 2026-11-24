@@ -122,7 +122,7 @@ function OnboardingPage() {
 
     qc.invalidateQueries();
     setSaving(false);
-    nav({ to: "/pro/leads" });
+    nav({ to: "/pro" });
   }
 
   return (

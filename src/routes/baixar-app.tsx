@@ -50,7 +50,7 @@ function BaixarAppPage() {
       });
   }, []);
 
-  const destino = next || (tipo === "professional" ? "/pro" : "/");
+  const destino = next || (tipo === "professional" ? "/pro" : tipo === "client" ? "/cliente" : "/");
   const sizeMb = size ? (size / (1024 * 1024)).toFixed(1) : null;
 
   function skip() {

@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useNavigate } from "@tanstack/react-router";
+import { DashboardModuleGrid, DashboardQuickAction, type DashboardModule } from "@/components/DashboardModuleGrid";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Calendar, MapPin, Sparkles, Users, Home, Building2, Store, Landmark } from "lucide-react";
-import { useState } from "react";
+import { Calendar, MapPin, Sparkles, Users, User, Bell } from "lucide-react";
 import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 export const Route = createFileRoute("/_authenticated/cliente/")({
@@ -20,23 +19,19 @@ const STATUS: Record<string, { label: string; color: string }> = {
   cancelled:   { label: "Cancelado", color: "bg-red-100 text-red-700" },
 };
 
-const PROPERTY_TYPES = [
-  { value: "casa", label: "Casa", icon: Home },
-  { value: "apartamento", label: "Apartamento", icon: Building2 },
-  { value: "comercial", label: "Comercial", icon: Store },
-  { value: "condominio", label: "Condomínio", icon: Landmark },
-];
+const CLIENT_MODULES = [
+  { to: "/agendamento-rapido", label: "Agendamento rápido", icon: Sparkles, primary: true },
+  { to: "/professionals", label: "Escolher profissional", icon: Users },
+  { to: "/cliente/agendamentos", label: "Meus agendamentos", icon: Calendar },
+  { to: "/cliente/perfil", label: "Meu perfil", icon: User },
+] satisfies DashboardModule[];
 
 function ClienteHome() {
   const { user } = useAuth();
-  const nav = useNavigate();
-  const [mode, setMode] = useState<"quick" | "choose">("quick");
-  const [propertyType, setPropertyType] = useState<string>("casa");
-
   const profile = useQuery({
     enabled: !!user,
     queryKey: ["cliente-home-profile", user?.id],
-    queryFn: async () => (await supabase.from("profiles").select("city, city_slug").eq("id", user!.id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("profiles").select("city").eq("id", user!.id).maybeSingle()).data,
   });
 
   const q = useQuery({
@@ -50,74 +45,14 @@ function ClienteHome() {
 
   const cityLabel = profile.data?.city || "sua cidade";
 
-  function startBooking() {
-    if (mode === "quick") {
-      nav({ to: "/agendamento-rapido" });
-    } else {
-      nav({ to: "/professionals" });
-    }
-  }
-
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <PushNotificationButton />
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="text-sm text-muted-foreground">Serviços em</div>
+        <div className="break-words text-xl font-bold">{cityLabel}</div>
       </div>
-      <section className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-        <div className="bg-gradient-to-r from-primary to-primary/70 text-primary-foreground p-5">
-          <div className="font-bold text-xl">Agende seu Serviço</div>
-          <div className="text-xs opacity-90 mt-0.5">Em {cityLabel}</div>
-        </div>
-        <div className="p-5 space-y-5">
-          <div>
-            <div className="text-sm font-semibold mb-2">Como deseja agendar?</div>
-            <div className="space-y-2">
-              <button type="button" onClick={() => setMode("quick")}
-                className={`w-full text-left rounded-xl border p-3 flex items-center gap-3 transition ${mode === "quick" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border"}`}>
-                <div className={`h-10 w-10 rounded-lg grid place-items-center shrink-0 ${mode === "quick" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className={`font-semibold text-sm ${mode === "quick" ? "text-primary" : ""}`}>Agendamento Rápido</div>
-                  <div className="text-xs text-muted-foreground">Enviamos para várias profissionais disponíveis</div>
-                </div>
-              </button>
-              <button type="button" onClick={() => setMode("choose")}
-                className={`w-full text-left rounded-xl border p-3 flex items-center gap-3 transition ${mode === "choose" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border"}`}>
-                <div className={`h-10 w-10 rounded-lg grid place-items-center shrink-0 ${mode === "choose" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                  <Users className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className={`font-semibold text-sm ${mode === "choose" ? "text-primary" : ""}`}>Escolher Profissional</div>
-                  <div className="text-xs text-muted-foreground">Você escolhe quem vai realizar o serviço</div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold mb-2">Tipo de Imóvel</div>
-            <div className="grid grid-cols-2 gap-2">
-              {PROPERTY_TYPES.map((p) => {
-                const active = propertyType === p.value;
-                const Icon = p.icon;
-                return (
-                  <button key={p.value} type="button" onClick={() => setPropertyType(p.value)}
-                    className={`rounded-xl border p-3 flex items-center gap-2 transition ${active ? "border-primary bg-primary/5 ring-2 ring-primary/20 text-primary" : "border-border text-muted-foreground"}`}>
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="text-sm font-medium truncate">{p.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <button type="button" onClick={startBooking}
-            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center justify-center gap-2 hover:opacity-90 transition">
-            <Sparkles className="h-4 w-4" /> Agendar Agora →
-          </button>
-        </div>
-      </section>
+      <PushNotificationButton />
+      <DashboardModuleGrid label="Menu do cliente" modules={CLIENT_MODULES} />
 
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -153,6 +88,7 @@ function ClienteHome() {
           })}
         </ul>
       </section>
+      <DashboardQuickAction to="/notificacoes" label="Notificações" icon={Bell} />
     </div>
   );
 }

@@ -85,8 +85,11 @@ function AuthPage() {
 
   useEffect(() => {
     if (loading || !user) return;
-    const isPro = roles.includes("professional");
-    const target = search.redirect ?? (isPro ? "/pro" : "/");
+    const home = roles.includes("admin") ? "/admin"
+      : roles.includes("professional") ? "/pro"
+      : roles.includes("client") ? "/cliente"
+      : "/";
+    const target = search.redirect ?? home;
     navigate({ to: target as "/" });
   }, [user, loading, roles, navigate, search.redirect]);
 
@@ -102,7 +105,7 @@ function AuthPage() {
           ...(role === "professional" ? { city: chosenCity, state: uf } : {}),
         });
         toast.success("Conta criada! Complete seu perfil.");
-        navigate({ to: role === "professional" ? "/pro" : "/" });
+        navigate({ to: role === "professional" ? "/pro" : "/cliente" });
         return;
       } else {
         await signInWithPassword(email, password);
