@@ -126,7 +126,7 @@ function CarteiraPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">Minha carteira</h2>
+      <h2 className="text-2xl font-bold tracking-tight">{"\n"}</h2>
       <WithdrawSection available={available} pixKey={profileQ.data?.pix_key ?? null} pixKeyType={profileQ.data?.pix_key_type ?? null} />
 
       <section className="divide-y rounded-2xl border border-border bg-card" aria-label="Detalhes da carteira">
