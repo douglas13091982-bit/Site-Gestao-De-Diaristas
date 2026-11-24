@@ -52,17 +52,18 @@ function AdminNotifications() {
   const eligible = targets.filter((recipient) => recipient.devices > 0);
   const devices = eligible.reduce((total, recipient) => total + recipient.devices, 0);
 
+  const payload = {
+    title: title.trim(),
+    body: body.trim(),
+    link: link.trim() || "/",
+    ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+    systemNotification: true,
+  };
+
   const send = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !body.trim()) throw new Error("Informe o título e a mensagem.");
       if (!eligible.length) throw new Error("Nenhum destinatário tem um dispositivo registrado.");
-      const payload = {
-        title: title.trim(),
-        body: body.trim(),
-        link: link.trim() || "/",
-        ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
-        systemNotification: true,
-      };
       let sent = 0;
       let failed = 0;
       let unknown = 0;
@@ -98,11 +99,10 @@ function AdminNotifications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Você precisa estar logado.");
       const result = await sendPushToUsers({ data: {
+        ...payload,
         userIds: [user.id],
-        title: "Teste de notificação push",
-        body: "Este aviso foi enviado pelo Super Admin.",
-        link: "/",
-        systemNotification: true,
+        title: payload.title || "Teste de notificação push",
+        body: payload.body || "Este aviso foi enviado pelo Super Admin.",
       } });
       if (result.error) throw new Error("Não foi possível consultar os dispositivos registrados.");
       return result;
@@ -289,7 +289,7 @@ function AdminNotifications() {
             <Button
               type="button"
               onClick={() => sendTestToMe.mutate()}
-              disabled={sendTestToMe.isPending}
+              disabled={sendTestToMe.isPending || uploading}
               variant="outline"
               className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
             >
