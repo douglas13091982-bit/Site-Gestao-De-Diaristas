@@ -965,7 +965,10 @@ export type Database = {
       }
     }
     Functions: {
-      cancel_professional_booking: { Args: { booking_id: number }; Returns: string }
+      cancel_professional_booking: {
+        Args: { booking_id: number }
+        Returns: string
+      }
       get_professional_blocked_dates: {
         Args: { _pro: string }
         Returns: {
@@ -1001,6 +1004,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_verified_booking_email: {
+        Args: { booking_email: string }
+        Returns: boolean
+      }
       is_verified_professional: { Args: { _id: string }; Returns: boolean }
       list_public_professionals: {
         Args: {
@@ -1028,6 +1035,15 @@ export type Database = {
           total_bookings: number
           total_reviews: number
         }[]
+      }
+      professional_can_take_slot: {
+        Args: {
+          professional: string
+          service_date: string
+          service_hours: number
+          service_start: string
+        }
+        Returns: boolean
       }
       recalc_professional_rating: { Args: { _pro: string }; Returns: undefined }
       register_professional_city: {
