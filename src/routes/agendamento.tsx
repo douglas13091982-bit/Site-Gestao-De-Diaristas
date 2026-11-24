@@ -205,6 +205,7 @@ function AgendamentoPage() {
   const times = useMemo(() => {
     const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
     let slots: string[];
+    if (!date || selectedDay?.blocked) return [];
     if (!selectedAvailability?.is_available) {
       slots = Array.from({ length: 15 }, (_, i) => `${String(6 + i).padStart(2, "0")}:00`);
     } else {
@@ -212,7 +213,7 @@ function AgendamentoPage() {
       const end = timeToMinutes(selectedAvailability.end_time) - duration * 60;
       slots = [];
       for (let current = start; current <= end; current += 60) slots.push(minutesToTime(current));
-      if (!slots.length) slots = [selectedAvailability.start_time.slice(0, 5)];
+
     }
     // Se a data escolhida é hoje (fuso America/Sao_Paulo), esconde horários
     // já passados e exige pelo menos 1h de antecedência.
@@ -230,7 +231,7 @@ function AgendamentoPage() {
       }
     } catch { /* noop */ }
     return slots;
-  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date]);
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date, selectedDay?.blocked]);
 
   useEffect(() => {
     if (date && selectedDay?.blocked) {
@@ -481,7 +482,7 @@ function AgendamentoPage() {
                 <div className={`${CARD} p-5`}>
                   <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o Horário de Início</Label>
                   {times.length === 0 && (
-                    <p className="mt-3 text-sm text-muted-foreground">Escolha uma data para ver os horários disponíveis.</p>
+                    <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário disponível para a duração escolhida nesta data." : "Escolha uma data para ver os horários disponíveis."}</p>
                   )}
                   <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-5 xl:grid-cols-6">
                     {times.map(t => {

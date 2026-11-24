@@ -61,7 +61,7 @@ function LeadsPage() {
   const respond = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: "accepted" | "rejected" }) => {
       const { error } = await supabase.from("booking_offers").update({ status }).eq("id", id);
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       return status;
     },
     onSuccess: (status) => {

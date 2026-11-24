@@ -164,7 +164,7 @@ export const createPayment = createServerFn({ method: "POST" })
     }
 
     if (!isQuick && data.professional_id) {
-      const weekday = new Date(`${data.booking_date}T12:00:00-03:00`).getDay();
+      const weekday = new Date(`${data.booking_date}T00:00:00Z`).getUTCDay();
       const [{ data: schedules, error: scheduleError }, { data: blockedDate, error: blockedError }] =
         await Promise.all([
           supabaseAdmin
