@@ -30,8 +30,11 @@ function HomePage() {
   const { roles, loading } = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!loading && roles.includes("professional")) {
-      navigate({ to: "/pro" });
+    if (loading || roles.includes("admin")) return;
+    if (roles.includes("professional")) {
+      navigate({ to: "/pro", replace: true });
+    } else if (roles.includes("client")) {
+      navigate({ to: "/cliente", replace: true });
     }
   }, [loading, roles, navigate]);
   const featured = useQuery({

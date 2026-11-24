@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardModuleGrid, DashboardQuickAction, type DashboardModule } from "@/components/DashboardModuleGrid";
 import { useAuth } from "@/hooks/use-auth";
 import {
  LayoutDashboard, Users, Briefcase, Calendar, DollarSign,
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-type NavItem = { to: string; label: string; icon: typeof Users; exact?: boolean };
+type NavItem = DashboardModule & { exact?: boolean };
 type NavGroup = { label: string; items: NavItem[] };
 
 type BadgeCounts = Record<string, number>;
@@ -129,6 +130,7 @@ const GROUPS: NavGroup[] = [
 function AdminLayout() {
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isHome = pathname === "/admin" || pathname === "/admin/";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -174,10 +176,10 @@ function AdminLayout() {
   return (
     <div className="min-h-screen md:flex bg-slate-50">
       {/* Mobile top bar */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-slate-100 px-4 py-3 border-b border-slate-800">
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-primary text-primary-foreground px-4 py-2 border-b border-border">
         <button
           onClick={() => setMobileOpen(true)}
-          className="relative inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-slate-800"
+          className="relative inline-flex items-center justify-center size-12 rounded-2xl bg-primary-foreground/10 hover:bg-primary-foreground/20"
           aria-label="Abrir menu"
         >
           <Menu className="h-5 w-5" />
@@ -189,9 +191,15 @@ function AdminLayout() {
         </button>
         <div className="text-center">
           <div className="text-sm font-bold leading-none">Gersepa</div>
-          <div className="text-[10px] text-slate-400">Painel Admin</div>
+          <div className="text-xs opacity-90">Super Admin</div>
         </div>
-        <div className="h-9 w-9" />
+        <Link
+          to="/admin"
+          aria-label="Início do Super Admin"
+          className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary-foreground/10 hover:bg-primary-foreground/20"
+        >
+          <LayoutDashboard className="size-5" aria-hidden="true" />
+        </Link>
       </header>
 
       {/* Mobile overlay */}
@@ -232,7 +240,24 @@ function AdminLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 min-w-0"><Outlet /></main>
+      <main className={`flex-1 min-w-0 ${isHome ? "pb-28 md:pb-0" : ""}`}>
+        {isHome && (
+          <div className="mx-auto max-w-[430px] space-y-5 px-4 pt-4 md:hidden">
+            <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground">
+              <div className="text-sm text-muted-foreground">Painel de administração</div>
+              <div className="mt-1 text-xl font-bold">Gersepa Solutions</div>
+            </div>
+            {GROUPS.slice(1).map(({ label, items }) => (
+              <section key={label}>
+                <h2 className="mb-2 text-sm font-semibold text-foreground">{label}</h2>
+                <DashboardModuleGrid label={label} modules={items} badges={badges} />
+              </section>
+            ))}
+            <DashboardQuickAction to="/admin/bookings" label="Agendamentos" icon={Calendar} />
+          </div>
+        )}
+        <Outlet />
+      </main>
     </div>
   );
 }
