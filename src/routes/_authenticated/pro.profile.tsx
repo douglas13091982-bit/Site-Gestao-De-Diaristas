@@ -21,6 +21,17 @@ export const Route = createFileRoute("/_authenticated/pro/profile")({
   component: ProfilePage,
 });
 
+type City = { id: number; nome: string };
+type CityDraft = { state: string; text: string; city: City | null };
+
+function normalizeCity(value: string) {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+}
+
+function citySlug(name: string) {
+  return normalizeCity(name).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
 function ProfilePage() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -38,8 +49,24 @@ function ProfilePage() {
     },
     staleTime: 24 * 60 * 60 * 1000,
   });
-  const [selectedState, setSelectedState] = useState("");
-  const [citySearch, setCitySearch] = useState("");
+  const [cityDraft, setCityDraft] = useState<CityDraft | null>(null);
+  const savedCitySlug = profile.data?.city_slug;
+  const savedCity = useQuery({
+    queryKey: ["profile-city-state", savedCitySlug],
+    enabled: !!savedCitySlug,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("available_cities")
+        .select("name, state").eq("slug", savedCitySlug!).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+  const registeredCity = profile.data?.city ?? "";
+  const savedState = savedCity.data && normalizeCity(savedCity.data.name) === normalizeCity(registeredCity)
+    ? savedCity.data.state
+    : null;
+  const selectedState = cityDraft?.state ?? savedState ?? "";
+  const citySearch = cityDraft?.text ?? registeredCity;
   const [cityOpen, setCityOpen] = useState(false);
   const ibgeCities = useQuery({
     queryKey: ["ibge-cities", selectedState],
@@ -47,12 +74,10 @@ function ProfilePage() {
     queryFn: async () => {
       const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(selectedState)}/municipios?orderBy=nome`);
       if (!response.ok) throw new Error("Não foi possível carregar as cidades.");
-      return await response.json() as Array<{ id: number; nome: string }>;
+      return await response.json() as City[];
     },
     staleTime: 24 * 60 * 60 * 1000,
   });
-  const normalizeCity = (value: string) => value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim();
-  const citySlug = (name: string) => normalizeCity(name).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const filteredCities = (ibgeCities.data ?? []).filter((city) => normalizeCity(city.nome).includes(normalizeCity(citySearch))).slice(0, 50);
 
 
@@ -70,7 +95,6 @@ function ProfilePage() {
         experience: profile.data.experience ?? "",
         specialties: (profile.data.specialties ?? []).join(", "),
         profile_photo: profile.data.profile_photo ?? "",
-        city_slug: profile.data.city_slug ?? "",
         pix_key: profile.data.pix_key ?? "",
         pix_key_type: profile.data.pix_key_type ?? "cpf",
       });
@@ -78,24 +102,21 @@ function ProfilePage() {
     }
   }, [profile.data]);
 
-  useEffect(() => {
-    if (!profile.data?.city_slug || !states.data?.length || !profile.data.city) return;
-    // Seleção de UF é recuperada por município apenas quando o estado ainda não foi escolhido.
-    if (selectedState) return;
-    const matching = states.data.find((s) => s.sigla === (profile.data as { state?: string }).state);
-    if (matching) setSelectedState(matching.sigla);
-    setCitySearch(profile.data.city);
-  }, [profile.data, states.data, selectedState]);
-
   const save = useMutation({
     mutationFn: async () => {
       if (!user) return;
-      const cityName = ibgeCities.data?.find((city) => citySlug(city.nome) === f.city_slug)?.nome ?? null;
-      if (!selectedState || !cityName) throw new Error("Selecione um estado e uma cidade da lista.");
-      const { error: cityError } = await supabase.rpc("register_professional_city", {
-        p_name: cityName, p_state: selectedState, p_slug: f.city_slug,
-      });
-      if (cityError) throw cityError;
+      let cityFields: { city?: string; city_slug?: string } = {};
+      if (cityDraft) {
+        const { state, city } = cityDraft;
+        if (!state || !city) throw new Error("Selecione um estado e uma cidade da lista.");
+        const slug = citySlug(city.nome);
+        const { error: cityError } = await supabase.rpc("register_professional_city", {
+          p_name: city.nome, p_state: state, p_slug: slug,
+        });
+        if (cityError) throw new Error(cityError.message);
+        cityFields = { city: city.nome, city_slug: slug };
+      }
+
       const { error } = await supabase.from("profiles").update({
         full_name: sanitizeText(f.full_name, { maxLength: 120, collapseWhitespace: true }),
         phone: sanitizeDigits(f.phone, 15),
@@ -106,15 +127,18 @@ function ProfilePage() {
           { maxLength: 60, maxItems: 30 },
         ),
         profile_photo: f.profile_photo || null,
-        city_slug: sanitizeTextOrNull(f.city_slug, { maxLength: 80 }),
-        city: sanitizeTextOrNull(cityName, { maxLength: 80, collapseWhitespace: true }),
+        ...cityFields,
         pix_key: sanitizeTextOrNull(f.pix_key, { maxLength: 120, collapseWhitespace: true }),
         pix_key_type: sanitizeText(f.pix_key_type, { maxLength: 20 }),
         is_available: isAvailable,
       }).eq("id", user.id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
+    onSuccess: async () => {
+      await qc.invalidateQueries();
+      setCityDraft(null);
+      setCityOpen(false);
+    },
   });
 
   const upd = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
@@ -198,7 +222,10 @@ function ProfilePage() {
         <Row label="Experiência"><Textarea rows={2} value={f.experience ?? ""} onChange={upd("experience")} /></Row>
         <Row label="Estado (UF)">
           <select className="w-full h-10 rounded-md border bg-background px-3 text-sm"
-            value={selectedState} onChange={(e) => { setSelectedState(e.target.value); setCitySearch(""); setCityOpen(false); setF((prev) => ({ ...prev, city_slug: "" })); }}>
+            value={selectedState} disabled={save.isPending} onChange={(e) => {
+              setCityDraft({ state: e.target.value, text: "", city: null });
+              setCityOpen(false);
+            }}>
             <option value="">Selecione o estado</option>
             {states.data?.map((state) => <option key={state.id} value={state.sigla}>{state.nome} — {state.sigla}</option>)}
           </select>
@@ -208,15 +235,16 @@ function ProfilePage() {
           <div className="relative">
             <Input role="combobox" aria-expanded={cityOpen} aria-autocomplete="list"
               placeholder={!selectedState ? "Selecione primeiro o estado" : ibgeCities.isLoading ? "Carregando cidades…" : "Digite o nome da cidade"}
-              disabled={!selectedState || ibgeCities.isLoading} value={citySearch}
+              disabled={!selectedState || ibgeCities.isLoading || save.isPending} value={citySearch}
               onFocus={() => setCityOpen(true)}
-              onChange={(e) => { setCitySearch(e.target.value); setF((prev) => ({ ...prev, city_slug: "" })); setCityOpen(true); }} />
+              onChange={(e) => { setCityDraft({ state: selectedState, text: e.target.value, city: null }); setCityOpen(true); }} />
             {cityOpen && selectedState && !ibgeCities.isLoading && (
               <div role="listbox" className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-md border bg-background shadow-lg">
                 {filteredCities.map((city) => (
-                  <button key={city.id} type="button" role="option" aria-selected={f.city_slug === citySlug(city.nome)}
+                  <button key={city.id} type="button" role="option" aria-selected={cityDraft ? cityDraft.city?.id === city.id : normalizeCity(registeredCity) === normalizeCity(city.nome)}
                     className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                    onClick={() => { setCitySearch(city.nome); setF((prev) => ({ ...prev, city_slug: citySlug(city.nome) })); setCityOpen(false); }}>
+                    disabled={save.isPending}
+                    onClick={() => { setCityDraft({ state: selectedState, text: city.nome, city }); setCityOpen(false); }}>
                     {city.nome}
                   </button>
                 ))}
@@ -225,7 +253,8 @@ function ProfilePage() {
             )}
           </div>
           {ibgeCities.isError && <p className="text-sm text-destructive">Falha ao carregar cidades deste estado.</p>}
-          {citySearch && !f.city_slug && <p className="text-xs text-muted-foreground">Escolha uma cidade nas sugestões para confirmar.</p>}
+          {cityDraft && !cityDraft.city && <p className="text-xs text-muted-foreground">Escolha uma cidade nas sugestões para confirmar.</p>}
+          {cityDraft && registeredCity && <Button type="button" variant="ghost" size="sm" disabled={save.isPending} onClick={() => { setCityDraft(null); setCityOpen(false); }}>Manter cidade atual</Button>}
         </Row>
         <Row label="Especialidades (separadas por vírgula)"><Input value={f.specialties ?? ""} onChange={upd("specialties")} /></Row>
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 space-y-1">
