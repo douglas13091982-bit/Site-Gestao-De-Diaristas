@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { requestPushToken, onForegroundMessage } from "@/lib/firebase";
+import { requestPushToken, onForegroundMessage, FCM_WORKER_SCOPE } from "@/lib/firebase";
 import { toast } from "sonner";
 
 type Status = "unsupported" | NotificationPermission;
@@ -73,10 +73,27 @@ export function usePushNotifications({ listen = false } = {}) {
       const off = await onForegroundMessage((raw) => {
         const payload = raw as {
           notification?: { title?: string; body?: string };
-          data?: { title?: string; body?: string };
+          data?: { title?: string; body?: string; tag?: string; link?: string; image?: string; systemNotification?: string };
         };
         const title = payload.data?.title || payload.notification?.title || "Nova notificação";
         const body = payload.data?.body || payload.notification?.body || "";
+        if (payload.data?.systemNotification === "true") {
+          const { tag, link, image } = payload.data;
+          const scope = new URL(FCM_WORKER_SCOPE, window.location.origin).href;
+          void navigator.serviceWorker.getRegistration(scope).then(async (registration) => {
+            if (!registration) throw new Error("Service worker do Firebase indisponível");
+            const options: NotificationOptions & { image?: string } = {
+              body,
+              tag,
+              icon: "/icons/icon-192.png",
+              badge: "/icons/badge-96-v3.png",
+              image,
+              data: { url: link || "/" },
+            };
+            await registration.showNotification(title, options);
+          }).catch((error) => console.warn("[push] falha ao exibir notificação do sistema", error));
+          return;
+        }
         // Vibra o aparelho ao receber push com o app aberto.
         try {
           navigator.vibrate?.([300, 120, 300, 120, 400]);

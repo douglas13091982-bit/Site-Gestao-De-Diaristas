@@ -2,6 +2,8 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported, type Messaging } from "firebase/messaging";
 import { getFirebaseConfig } from "./firebase-config.functions";
 
+export const FCM_WORKER_SCOPE = "/firebase-cloud-messaging-push-scope";
+
 type FirebaseConfig = Awaited<ReturnType<typeof getFirebaseConfig>>;
 
 let appPromise: Promise<{ app: FirebaseApp; messaging: Messaging | null; config: FirebaseConfig } | null> | null = null;
@@ -45,8 +47,30 @@ export async function requestPushToken(): Promise<string | null> {
   if (!ctx?.messaging) return null;
   const swRegistration = await navigator.serviceWorker.register(
     "/firebase-messaging-sw.js",
-    { scope: "/firebase-cloud-messaging-push-scope" },
+    { scope: FCM_WORKER_SCOPE },
   );
+
+  if (!swRegistration.active) {
+    const worker = swRegistration.installing ?? swRegistration.waiting;
+    if (!worker) throw new Error("O service worker do Firebase não foi instalado.");
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        worker.removeEventListener("statechange", onStateChange);
+        reject(new Error("O service worker demorou para ativar."));
+      }, 10_000);
+
+      function onStateChange() {
+        if (worker.state !== "activated" && worker.state !== "redundant") return;
+        window.clearTimeout(timeout);
+        worker.removeEventListener("statechange", onStateChange);
+        if (worker.state === "activated") resolve();
+        else reject(new Error("O service worker do Firebase não foi ativado."));
+      }
+
+      worker.addEventListener("statechange", onStateChange);
+      onStateChange();
+    });
+  }
 
   const token = await getToken(ctx.messaging, {
     vapidKey: ctx.config.vapidKey,
