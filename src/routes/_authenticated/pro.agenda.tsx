@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { cancelPaidProfessionalBooking } from "@/lib/push.functions";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 import { toast } from "sonner";
+import { Clock3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro/agenda")({
   component: AgendaPage,
@@ -146,13 +147,20 @@ function AgendaPage() {
                 const canCancel = isPaid && (b.status === "confirmed" || b.status === "in_progress");
                 return (
                   <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {isPaid ? (BOOKING_STATUS[b.status] ?? b.status) : "Aguardando pagamento do cliente"}
-                        {isPaid && b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
-                      </div>
+                      {isPaid ? (
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {BOOKING_STATUS[b.status] ?? b.status}
+                          {b.total_price ? <> · <span className="font-semibold text-emerald-600">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
+                        </div>
+                      ) : (
+                        <div className="mt-3 flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-amber-400/70 bg-amber-100 px-3 py-2.5 text-sm font-bold text-amber-950 dark:border-amber-500/60 dark:bg-amber-950 dark:text-amber-100">
+                          <Clock3 className="size-5 shrink-0" aria-hidden="true" />
+                          <span>Aguardando pagamento do cliente</span>
+                        </div>
+                      )}
                     </div>
                     {canCancel && (
                       <div className="flex flex-col gap-2 shrink-0">
