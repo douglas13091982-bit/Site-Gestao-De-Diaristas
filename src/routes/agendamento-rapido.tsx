@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { BOOKING_SHIFT_HOURS, BOOKING_SHIFTS, BOOKING_SHIFT_STARTS } from "@/shared/lib/booking-shifts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
@@ -20,7 +21,7 @@ const schema = z.object({
   service_type: z.string().min(1),
   property_type: z.string().min(1),
   booking_date: z.string().min(1),
-  start_time: z.string().min(1),
+  start_time: z.enum(BOOKING_SHIFT_STARTS),
   package_id: z.coerce.number().int().positive(),
   rooms: z.coerce.number().min(0).max(20),
   bathrooms: z.coerce.number().min(0).max(20),
@@ -77,7 +78,7 @@ function QuickBookingPage() {
   });
   const packages = useQuery({
     queryKey: ["qb-packages"],
-    queryFn: async () => (await supabase.from("pricing_packages").select("id, duration_hours, price, start_time").eq("is_enabled", true).order("display_order")).data ?? [],
+    queryFn: async () => (await supabase.from("pricing_packages").select("id, duration_hours, price").eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_SHIFT_HOURS).order("display_order")).data ?? [],
   });
 
   const paySettings = useQuery({
@@ -283,7 +284,13 @@ function QuickBookingPage() {
               </select>
             </div>
             <div><Label>Data</Label><Input name="booking_date" type="date" min={brNow.date} defaultValue={formData?.booking_date ?? ""} required /></div>
-            <div><Label>Início</Label><Input name="start_time" type="time" defaultValue={formData?.start_time ?? "08:00"} required /></div>
+            <div>
+              <Label htmlFor="quick-booking-shift">Turno</Label>
+              <select id="quick-booking-shift" name="start_time" required defaultValue={formData?.start_time ?? ""} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">Selecione um turno…</option>
+                {BOOKING_SHIFTS.map((shift) => <option key={shift.start} value={shift.start}>{shift.label}</option>)}
+              </select>
+            </div>
             <div><Label>Quartos</Label><Input name="rooms" type="number" min={0} defaultValue={formData?.rooms ?? 2} required /></div>
             <div><Label>Banheiros</Label><Input name="bathrooms" type="number" min={0} defaultValue={formData?.bathrooms ?? 1} required /></div>
           </div>

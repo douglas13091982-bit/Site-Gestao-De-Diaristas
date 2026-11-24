@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { cancelPaidProfessionalBooking } from "@/lib/push.functions";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 import { toast } from "sonner";
+import { BOOKING_SHIFTS } from "@/shared/lib/booking-shifts";
 import { Clock3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro/agenda")({
@@ -25,10 +26,10 @@ const BOOKING_STATUS: Record<string, string> = {
 const DAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const PERIODS = [
-  { value: "off", label: "Não atende", start: "08:00", end: "18:00" },
-  { value: "morning", label: "Manhã · 08h às 12h", start: "08:00", end: "12:00" },
-  { value: "afternoon", label: "Tarde · 12h às 18h", start: "12:00", end: "18:00" },
-  { value: "all", label: "Manhã e tarde · 08h às 18h", start: "08:00", end: "18:00" },
+  { value: "off", label: "Não atende", start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[1].end },
+  { value: "morning", label: BOOKING_SHIFTS[0].label, start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[0].end },
+  { value: "afternoon", label: BOOKING_SHIFTS[1].label, start: BOOKING_SHIFTS[1].start, end: BOOKING_SHIFTS[1].end },
+  { value: "all", label: "Manhã e tarde", start: BOOKING_SHIFTS[0].start, end: BOOKING_SHIFTS[1].end },
 ] as const;
 
 type Period = (typeof PERIODS)[number];
@@ -249,7 +250,7 @@ function AgendaPage() {
               const start = row?.start_time.slice(0, 5);
               const end = row?.end_time.slice(0, 5);
               const saved = row?.is_available
-                ? PERIODS.find((period) => period.value !== "off" && period.start === start && period.end === end)?.value ?? "custom"
+                ? PERIODS.find((period) => period.value !== "off" && period.start === start && period.end === end)?.value ?? (start === "08:00" && end === "18:00" ? "all" : start === "12:00" && end === "18:00" ? "afternoon" : "custom")
                 : "off";
               const value = savePeriod.isPending && savePeriod.variables.day === index ? savePeriod.variables.period.value : saved;
 
