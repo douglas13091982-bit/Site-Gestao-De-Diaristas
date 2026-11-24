@@ -965,6 +965,7 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_professional_booking: { Args: { booking_id: number }; Returns: string }
       get_professional_blocked_dates: {
         Args: { _pro: string }
         Returns: {
