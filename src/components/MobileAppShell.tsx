@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Home, Search, Sparkles, Menu as MenuIcon, X, LogIn, UserPlus, Info, Phone, LayoutDashboard, Calendar, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { ProfessionalFloatingMenu } from "@/components/ProfessionalFloatingMenu";
 
 /**
  * Barra inferior estilo app nativo (4 abas): Início · Buscar · Trabalhe · Menu.
@@ -14,8 +15,15 @@ export function MobileAppShell() {
   const { user, roles, loading, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const path = loc.pathname;
+  const route = path.replace(/\/$/, "");
+  const isNotifications = route === "/notificacoes" || route === "/diagnostico-push";
 
   useEffect(() => { setOpen(false); }, [path]);
+
+  if (isNotifications) {
+    if (loading) return null;
+    if (roles.includes("professional") && !roles.includes("admin")) return <ProfessionalFloatingMenu />;
+  }
 
   const hiddenPrefixes = ["/pro", "/cliente", "/admin", "/auth", "/cadastro", "/onboarding", "/dashboard", "/bookings"];
   if (hiddenPrefixes.some((p) => path === p || path.startsWith(p + "/"))) return null;

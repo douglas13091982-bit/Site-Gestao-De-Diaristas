@@ -1,23 +1,15 @@
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { DashboardModuleGrid, DashboardQuickAction, type DashboardModule } from "@/components/DashboardModuleGrid";
+import { DashboardModuleGrid } from "@/components/DashboardModuleGrid";
+import { PROFESSIONAL_TABS, PRO_MODULES, ProfessionalFloatingMenu } from "@/components/ProfessionalFloatingMenu";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Briefcase, Calendar, Wallet, User, Home, Bell, LayoutGrid } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   head: () => ({ meta: [{ title: "Área da diarista — Gersepa Solutions" }, { name: "description", content: "Painel da diarista." }] }),
   component: ProLayout,
 });
-
-const PRO_MODULES = [
-  { to: "/pro/leads", label: "Serviços", icon: Briefcase, primary: true },
-  { to: "/pro/agenda", label: "Agenda", icon: Calendar },
-  { to: "/pro/carteira", label: "Carteira", icon: Wallet },
-  { to: "/pro/profile", label: "Meu perfil", icon: User },
-] satisfies DashboardModule[];
 
 function ProLayout() {
   const { user } = useAuth();
@@ -44,7 +36,6 @@ function ProLayout() {
   }
 
   const isHome = loc.pathname === "/pro" || loc.pathname === "/pro/";
-  const tabs = [{ to: "/pro", label: "Início", icon: Home }, ...PRO_MODULES];
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,13 +65,12 @@ function ProLayout() {
               <Stat label="Serviços realizados" value={String(profile.data?.total_bookings ?? 0)} />
             </div>
             <DashboardModuleGrid label="Menu da diarista" modules={PRO_MODULES} />
-            <DashboardQuickAction to="/notificacoes" label="Notificações" icon={Bell} />
           </div>
         )}
         {!isHome && (
           <>
             <nav className="mt-4 sm:mt-6 hidden md:flex gap-1 border-b">
-              {tabs.map((t) => {
+              {PROFESSIONAL_TABS.map((t) => {
                 const active = t.to !== "/pro" && loc.pathname.startsWith(t.to);
                 const Icon = t.icon;
                 return (
@@ -95,43 +85,7 @@ function ProLayout() {
           </>
         )}
       </main>
-      {!isHome && (
-        <DropdownMenu.Root key={loc.pathname} modal={false}>
-          <DropdownMenu.Trigger
-            type="button"
-            aria-label="Abrir menu da diarista"
-            className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
-          >
-            <LayoutGrid className="size-6" aria-hidden="true" />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              side="top"
-              align="end"
-              sideOffset={10}
-              collisionPadding={12}
-              aria-label="Menu da diarista"
-              className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-48 overflow-y-auto rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg md:hidden"
-            >
-              {tabs.map(({ to, label, icon: Icon }) => {
-                const active = to !== "/pro" && loc.pathname.startsWith(to);
-                return (
-                  <DropdownMenu.Item key={to} asChild>
-                    <Link
-                      to={to}
-                      aria-current={active ? "page" : undefined}
-                      className={`flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-medium outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground ${active ? "bg-primary/10 text-primary" : ""}`}
-                    >
-                      <Icon className="size-5 shrink-0" aria-hidden="true" />
-                      {label}
-                    </Link>
-                  </DropdownMenu.Item>
-                );
-              })}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      )}
+      <ProfessionalFloatingMenu />
     </div>
   );
 }
