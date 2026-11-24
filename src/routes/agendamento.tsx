@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { BOOKING_SHIFT_HOURS, BOOKING_SHIFTS } from "@/shared/lib/booking-shifts";
+import { BOOKING_MAX_HOURS, BOOKING_SHIFT_HOURS, BOOKING_SHIFT_STARTS, bookingEndMinute, bookingShiftLabel } from "@/shared/lib/booking-shifts";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -143,7 +143,7 @@ function AgendamentoPage() {
     queryKey: ["ag-pkgs"],
     queryFn: async () => (await supabase.from("pricing_packages")
       .select("id, duration_hours, price")
-      .eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_SHIFT_HOURS).order("duration_hours")).data ?? [],
+      .eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_MAX_HOURS).order("duration_hours")).data ?? [],
   });
 
   const blocked = useQuery({
@@ -205,13 +205,15 @@ function AgendamentoPage() {
 
   const times = useMemo(() => {
     const duration = Number(selectedPkg?.duration_hours ?? s.dur ?? 1);
-    if (!date || selectedDay?.blocked || duration <= 0 || duration > BOOKING_SHIFT_HOURS) return [];
-    let slots: string[] = BOOKING_SHIFTS.filter(({ start }) => {
-      if (!selectedAvailability?.is_available) return true;
-      const startMinute = timeToMinutes(start);
-      return startMinute >= timeToMinutes(selectedAvailability.start_time)
-        && startMinute + duration * 60 <= timeToMinutes(selectedAvailability.end_time);
-    }).map(({ start }) => start);
+    if (!date || selectedDay?.blocked || availability.isLoading || availability.isError) return [];
+    let slots: string[] = BOOKING_SHIFT_STARTS.filter((start) => {
+      const end = bookingEndMinute(start, duration);
+      if (end === null) return false;
+      const usesBothShifts = duration > BOOKING_SHIFT_HOURS;
+      if (!selectedAvailability?.is_available) return !usesBothShifts && !availability.data?.length;
+      return timeToMinutes(start) >= timeToMinutes(selectedAvailability.start_time)
+        && (usesBothShifts ? 17 * 60 : end) <= timeToMinutes(selectedAvailability.end_time);
+    });
     // Se a data escolhida é hoje (fuso America/Sao_Paulo), esconde horários
     // já passados e exige pelo menos 1h de antecedência.
     try {
@@ -228,7 +230,7 @@ function AgendamentoPage() {
       }
     } catch { /* noop */ }
     return slots;
-  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date, selectedDay?.blocked]);
+  }, [s.dur, selectedAvailability, selectedPkg?.duration_hours, date, selectedDay?.blocked, availability.isLoading, availability.isError, availability.data?.length]);
 
   useEffect(() => {
     if (date && selectedDay?.blocked) {
@@ -480,7 +482,7 @@ function AgendamentoPage() {
                   <Label className="text-sm font-semibold text-[var(--bc-navy)]">Selecione o turno</Label>
                   <p className="mt-1 text-xs text-muted-foreground">Pausa para almoço das 12h às 13h.</p>
                   {times.length === 0 && (
-                    <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário disponível para a duração escolhida nesta data." : "Escolha uma data para ver os horários disponíveis."}</p>
+                    <p className="mt-3 text-sm text-muted-foreground">{date ? "Nenhum horário para este pacote na data escolhida. Pacotes de 6h e 8h exigem disponibilidade nos dois turnos." : "Escolha uma data para ver os horários disponíveis."}</p>
                   )}
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {times.map(t => {
@@ -488,7 +490,7 @@ function AgendamentoPage() {
                       return (
                         <button key={t} type="button" onClick={() => setTime(t)} aria-pressed={active}
                           className={`rounded-xl border py-2.5 text-center text-sm font-bold transition ${active ? selectedBtn : idleBtn}`}>
-                          {BOOKING_SHIFTS.find((shift) => shift.start === t)?.label ?? t}
+                          {bookingShiftLabel(t, Number(selectedPkg?.duration_hours ?? s.dur))}
                         </button>
                       );
                     })}

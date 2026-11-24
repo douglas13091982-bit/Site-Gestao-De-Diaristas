@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { BOOKING_SHIFT_HOURS, BOOKING_SHIFT_STARTS } from "@/shared/lib/booking-shifts";
+import { BOOKING_SHIFT_HOURS, BOOKING_SHIFT_STARTS, bookingEndMinute } from "@/shared/lib/booking-shifts";
 import {
   sanitizeText,
   sanitizeTextOrNull,
@@ -160,9 +160,11 @@ export const createPayment = createServerFn({ method: "POST" })
     if (!Number.isFinite(trustedPrice) || trustedPrice <= 0) {
       throw new Error("Pacote de preço inválido.");
     }
-    if (!Number.isFinite(trustedDuration) || trustedDuration <= 0 || trustedDuration > BOOKING_SHIFT_HOURS) {
-      throw new Error("Escolha um pacote que caiba em um turno de até quatro horas.");
+    const endMinute = bookingEndMinute(data.start_time, trustedDuration);
+    if (endMinute === null) {
+      throw new Error("Pacotes acima de quatro horas precisam começar às 08h e incluem a pausa para almoço.");
     }
+    const usesBothShifts = trustedDuration > BOOKING_SHIFT_HOURS;
 
     if (!isQuick && data.professional_id) {
       const weekday = new Date(`${data.booking_date}T00:00:00Z`).getUTCDay();
@@ -204,21 +206,12 @@ export const createPayment = createServerFn({ method: "POST" })
           !Number.isFinite(scheduleStart) ||
           !Number.isFinite(scheduleEnd) ||
           requestedStart < scheduleStart ||
-          requestedStart + trustedDuration * 60 > scheduleEnd
+          (usesBothShifts ? 17 * 60 : endMinute) > scheduleEnd
         ) {
           throw new Error("O horário escolhido está fora da disponibilidade da profissional.");
         }
-      } else {
-        // Match the fallback slots shown by the UI when no weekly schedule exists.
-        const [requestedHour, requestedMinute] = data.start_time.split(":").map(Number);
-        const requestedStart = requestedHour * 60 + requestedMinute;
-        if (
-          requestedStart < 6 * 60 ||
-          requestedStart > 20 * 60 ||
-          requestedStart + trustedDuration * 60 > 24 * 60
-        ) {
-          throw new Error("O horário escolhido está fora do período permitido (06:00–20:00).");
-        }
+      } else if (usesBothShifts) {
+        throw new Error("A profissional precisa ter disponibilidade nos dois turnos para este pacote.");
       }
     }
 

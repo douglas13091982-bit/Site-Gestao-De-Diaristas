@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { BOOKING_SHIFT_HOURS, BOOKING_SHIFTS, BOOKING_SHIFT_STARTS } from "@/shared/lib/booking-shifts";
+import { BOOKING_MAX_HOURS, BOOKING_SHIFT_STARTS, bookingEndMinute, bookingShiftLabel } from "@/shared/lib/booking-shifts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
@@ -48,6 +48,8 @@ function QuickBookingPage() {
   const runCreatePayment = useServerFn(createPayment);
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
+  const [packageId, setPackageId] = useState("");
+  const [startTime, setStartTime] = useState("");
   const [formData, setFormData] = useState<z.infer<typeof schema> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [cardHolder, setCardHolder] = useState("");
@@ -78,7 +80,7 @@ function QuickBookingPage() {
   });
   const packages = useQuery({
     queryKey: ["qb-packages"],
-    queryFn: async () => (await supabase.from("pricing_packages").select("id, duration_hours, price").eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_SHIFT_HOURS).order("display_order")).data ?? [],
+    queryFn: async () => (await supabase.from("pricing_packages").select("id, duration_hours, price").eq("is_enabled", true).gt("duration_hours", 0).lte("duration_hours", BOOKING_MAX_HOURS).order("display_order")).data ?? [],
   });
 
   const paySettings = useQuery({
@@ -112,6 +114,7 @@ function QuickBookingPage() {
   const pixEnabled = paySettings.data?.pixEnabled ?? true;
   const cardEnabled = (paySettings.data?.cardEnabled ?? true) && platform === "mercadopago";
   const selectedPkg = packages.data?.find(p => p.id === formData?.package_id) ?? null;
+  const duration = Number(packages.data?.find(p => String(p.id) === packageId)?.duration_hours ?? 0);
 
   useEffect(() => {
     if (paymentMethod === "pix" && !pixEnabled && cardEnabled) setPaymentMethod("card");
@@ -130,6 +133,9 @@ function QuickBookingPage() {
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse(Object.fromEntries(fd));
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Preencha os campos"); return; }
+    if (bookingEndMinute(parsed.data.start_time, duration) === null) {
+      toast.error("Escolha um horário para o pacote selecionado."); return;
+    }
     // Bloqueia data/hora no passado (fuso America/Sao_Paulo, buffer 1h).
     if (parsed.data.booking_date < brNow.date) {
       toast.error("Escolha uma data futura."); return;
@@ -274,7 +280,10 @@ function QuickBookingPage() {
               </select>
             </div>
             <div><Label>Plano</Label>
-              <select name="package_id" required defaultValue={formData?.package_id ?? ""} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              <select name="package_id" required value={packageId} onChange={(event) => {
+                setPackageId(event.target.value);
+                setStartTime("");
+              }} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
                 <option value="">Selecione um plano…</option>
                 {packages.data?.map(p => (
                   <option key={p.id} value={p.id}>
@@ -286,9 +295,9 @@ function QuickBookingPage() {
             <div><Label>Data</Label><Input name="booking_date" type="date" min={brNow.date} defaultValue={formData?.booking_date ?? ""} required /></div>
             <div>
               <Label htmlFor="quick-booking-shift">Turno</Label>
-              <select id="quick-booking-shift" name="start_time" required defaultValue={formData?.start_time ?? ""} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+              <select id="quick-booking-shift" name="start_time" required value={startTime} onChange={(event) => setStartTime(event.target.value)} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                 <option value="">Selecione um turno…</option>
-                {BOOKING_SHIFTS.map((shift) => <option key={shift.start} value={shift.start}>{shift.label}</option>)}
+                {BOOKING_SHIFT_STARTS.filter((start) => bookingEndMinute(start, duration) !== null).map((start) => <option key={start} value={start}>{bookingShiftLabel(start, duration)}</option>)}
               </select>
               <p className="mt-1 text-xs text-muted-foreground">Pausa para almoço das 12h às 13h.</p>
             </div>
@@ -306,7 +315,7 @@ function QuickBookingPage() {
             </button>
             <div className="rounded-xl bg-secondary/40 p-4 text-sm space-y-1">
               <div className="flex justify-between"><span>Plano</span><span className="font-medium">{selectedPkg.duration_hours}h</span></div>
-              <div className="flex justify-between"><span>Data</span><span className="font-medium">{formData.booking_date} · {formData.start_time}</span></div>
+              <div className="flex justify-between"><span>Data</span><span className="font-medium">{formData.booking_date} · {bookingShiftLabel(formData.start_time, Number(selectedPkg.duration_hours))}</span></div>
               <div className="flex justify-between text-base pt-2 border-t border-border/60"><span>Total</span><span className="font-bold text-primary">R$ {Number(selectedPkg.price).toFixed(2).replace(".", ",")}</span></div>
             </div>
 
