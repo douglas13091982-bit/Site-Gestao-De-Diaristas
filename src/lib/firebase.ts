@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getMessaging, getToken, onMessage, isSupported, type Messaging } from "firebase/messaging";
+import { deleteToken, getMessaging, getToken, onMessage, isSupported, type Messaging } from "firebase/messaging";
 import { getFirebaseConfig } from "./firebase-config.functions";
 
 export const FCM_WORKER_SCOPE = "/firebase-cloud-messaging-push-scope";
@@ -78,6 +78,12 @@ export async function requestPushToken(): Promise<string | null> {
     serviceWorkerRegistration: swRegistration,
   });
   return token || null;
+}
+
+export async function renewPushToken(): Promise<string | null> {
+  const ctx = await initFirebase();
+  if (!ctx?.messaging || !(await deleteToken(ctx.messaging))) return null;
+  return requestPushToken();
 }
 
 /** Ouve mensagens push com o app em primeiro plano (aba aberta). */

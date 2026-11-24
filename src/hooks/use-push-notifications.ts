@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { registerPushDevice } from "@/lib/push-device";
 import { useAuth } from "@/hooks/use-auth";
-import { requestPushToken, onForegroundMessage, FCM_WORKER_SCOPE } from "@/lib/firebase";
+import { onForegroundMessage, FCM_WORKER_SCOPE } from "@/lib/firebase";
 import { toast } from "sonner";
 
 type Status = "unsupported" | NotificationPermission;
@@ -109,70 +109,17 @@ export function usePushNotifications({ listen = false } = {}) {
     };
   }, [listen, status, user]);
 
-  const enable = useCallback(async () => {
-    if (!user) {
-      toast.error("Faça login para ativar as notificações.");
-      return;
-    }
-    if (status === "unsupported") {
-      toast.error("Seu navegador não suporta notificações push.");
-      return;
-    }
-    if (getPushStatus() === "denied") {
-      setStatus("denied");
-      showBlockedInstructions();
-      return;
-    }
-    if (isInsideFrame()) {
-      showFrameInstructions();
-      return;
-    }
-    setBusy(true);
-    try {
-      const token = await requestPushToken();
-      if (!token) {
-        const next = getPushStatus();
-        setStatus(next);
-        if (next === "denied") showBlockedInstructions();
-        else toast.error("Não foi possível registrar este dispositivo para notificações.");
-        return;
-      }
-      // Guarda o token FCM no campo endpoint; p256dh/auth são NOT NULL,
-      // usamos marcadores fixos porque o FCM não usa esses campos VAPID.
-      const { error } = await supabase
-        .from("push_subscriptions")
-        .upsert(
-          { user_id: user.id, endpoint: token, p256dh: "fcm", auth: "fcm" },
-          { onConflict: "endpoint" },
-        );
-      if (error) throw error;
-      setStatus("granted");
-      toast.success("Notificações ativadas!");
-    } catch (err) {
-      console.error("[push] falha ao ativar", err);
-      const next = getPushStatus();
-      setStatus(next);
-      if (next === "denied") showBlockedInstructions();
-      else toast.error("Não foi possível ativar as notificações. Abra o app fora do preview e tente novamente.");
-    } finally {
-      setBusy(false);
-    }
-  }, [user, status]);
-
-  /**
-   * Força a geração e o salvamento do token FCM para a conta logada,
-   * mesmo quando a permissão do Android já está concedida.
-   */
   const registerDevice = useCallback(async () => {
     if (!user) {
       toast.error("Faça login para registrar este dispositivo.");
       return false;
     }
-    if (getPushStatus() === "unsupported") {
+    const currentStatus = getPushStatus();
+    if (currentStatus === "unsupported") {
       toast.error("Seu navegador não suporta notificações push.");
       return false;
     }
-    if (getPushStatus() === "denied") {
+    if (currentStatus === "denied") {
       setStatus("denied");
       showBlockedInstructions();
       return false;
@@ -181,34 +128,26 @@ export function usePushNotifications({ listen = false } = {}) {
       showFrameInstructions();
       return false;
     }
+
     setBusy(true);
     try {
-      const token = await requestPushToken();
-      if (!token) {
-        const next = getPushStatus();
-        setStatus(next);
-        if (next === "denied") showBlockedInstructions();
-        else toast.error("Não foi possível gerar o token deste dispositivo.");
+      if (!(await registerPushDevice(user.id))) {
+        if (getPushStatus() === "denied") showBlockedInstructions();
+        else toast.error("Não foi possível obter o registro de push deste dispositivo.");
         return false;
       }
-      const { error } = await supabase
-        .from("push_subscriptions")
-        .upsert(
-          { user_id: user.id, endpoint: token, p256dh: "fcm", auth: "fcm" },
-          { onConflict: "endpoint" },
-        );
-      if (error) throw error;
-      setStatus("granted");
       toast.success("Dispositivo registrado para esta conta!");
       return true;
-    } catch (err) {
-      console.error("[push] falha ao registrar dispositivo", err);
-      toast.error("Não foi possível registrar este dispositivo. Tente novamente fora do preview.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível registrar este dispositivo.");
       return false;
     } finally {
+      setStatus(getPushStatus());
       setBusy(false);
     }
   }, [user]);
+
+  const enable = registerDevice;
 
   return { status, busy, enable, registerDevice, inFrame };
 }

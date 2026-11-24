@@ -5,7 +5,6 @@ import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PushNotificationButton } from "@/components/PushNotificationButton";
 import { Briefcase, Calendar, Wallet, User, Home, Bell, LayoutGrid } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pro")({
@@ -74,7 +73,6 @@ function ProLayout() {
               <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
               <Stat label="Serviços realizados" value={String(profile.data?.total_bookings ?? 0)} />
             </div>
-            <PushNotificationButton label="Ativar alertas de leads" />
             <DashboardModuleGrid label="Menu da diarista" modules={PRO_MODULES} />
             <DashboardQuickAction to="/notificacoes" label="Notificações" icon={Bell} />
           </div>
