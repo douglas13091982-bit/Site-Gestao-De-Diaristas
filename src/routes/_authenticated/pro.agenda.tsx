@@ -82,19 +82,25 @@ function AgendaPage() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const update = supabase.from("bookings").update({ status })
-        .eq("id", id).eq("professional_id", user!.id);
-      // Cancelar devolve o pedido ao pool, retirando o acesso ao registro.
-      const { error } = status === "cancelled" ? await update : await update.select("id").single();
+      if (status === "cancelled") {
+        const { data, error } = await supabase.rpc("cancel_professional_booking", { booking_id: id });
+        if (error) throw new Error(error.message);
+        return data;
+      }
+
+      const { error } = await supabase.from("bookings").update({ status })
+        .eq("id", id).eq("professional_id", user!.id).select("id").single();
       if (error) throw new Error(error.message);
     },
     onError: (error: Error) => toast.error(error.message),
-    onSuccess: (_d, vars) => {
+    onSuccess: (nextStatus, vars) => {
       qc.invalidateQueries({ queryKey: ["pro-bookings", user?.id] });
       qc.invalidateQueries({ queryKey: ["my-offers", user?.id] });
       qc.invalidateQueries({ queryKey: ["pro-wallet", user?.id] });
       if (vars.status === "cancelled") {
-        toast.warning("Serviço cancelado. Você ficará suspensa por alguns dias sem receber novas propostas.");
+        toast.warning(nextStatus === "awaiting_payment"
+          ? "Serviço cancelado. O pedido só volta à fila após o pagamento."
+          : "Serviço cancelado e devolvido à fila.");
       }
       if (vars.status === "awaiting_client_confirmation") {
         toast.success("Serviço marcado como concluído. Aguardando confirmação do cliente para liberar o pagamento.");

@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/cliente/agendamentos")({
 
 const STATUS: Record<string, { label: string; color: string }> = {
   pending:     { label: "Aguardando", color: "bg-amber-100 text-amber-700" },
+  awaiting_payment: { label: "Aguardando pagamento", color: "bg-amber-100 text-amber-700" },
   confirmed:   { label: "Confirmado", color: "bg-emerald-100 text-emerald-700" },
   in_progress: { label: "Em andamento", color: "bg-blue-100 text-blue-700" },
   awaiting_client_confirmation: { label: "Confirme a conclusão", color: "bg-amber-100 text-amber-800" },
@@ -118,7 +119,7 @@ function ClienteAgendamentos() {
                 </div>
               )}
 
-              {b.status === "pending" && b.payment_status === "pending" && (
+              {(b.status === "pending" || b.status === "awaiting_payment") && b.payment_status === "pending" && (
                 <div className="mt-3">
                   <Link to="/agendamento-sucesso/$id" params={{ id: String(b.id) }} search={{ t: b.guest_token ?? "" }} className="text-xs font-semibold text-primary">Concluir pagamento →</Link>
                 </div>
