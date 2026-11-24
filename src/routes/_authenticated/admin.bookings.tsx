@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminBookingSoundSettings } from "@/components/AdminBookingAlarm";
 import { AdminPageHeader } from "./admin";
 
 export const Route = createFileRoute("/_authenticated/admin/bookings")({
@@ -25,6 +26,7 @@ function BookingsList() {
   return (
     <div className="p-4 md:p-8">
       <AdminPageHeader title="Agendamentos" subtitle="Todas as reservas da plataforma" />
+      <AdminBookingSoundSettings />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[820px]">
