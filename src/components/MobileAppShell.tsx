@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 export function MobileAppShell() {
   const loc = useLocation();
   const navigate = useNavigate();
-  const { user, roles, signOut } = useAuth();
+  const { user, roles, loading, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const path = loc.pathname;
 
@@ -20,9 +20,10 @@ export function MobileAppShell() {
   const hiddenPrefixes = ["/pro", "/cliente", "/admin", "/auth", "/cadastro", "/onboarding", "/dashboard", "/bookings"];
   if (hiddenPrefixes.some((p) => path === p || path.startsWith(p + "/"))) return null;
 
+  const showCatalog = !user || (!loading && (!roles.includes("professional") || roles.includes("admin")));
   const tabs = [
     { to: "/", label: "Início", icon: Home, exact: true },
-    { to: "/professionals", label: "Buscar", icon: Search },
+    ...(showCatalog ? [{ to: "/professionals", label: "Buscar", icon: Search }] : []),
     { to: "/seja-diarista", label: "Trabalhe", icon: Sparkles },
   ];
   const isActive = (t: { to: string; exact?: boolean }) =>
@@ -37,7 +38,7 @@ export function MobileAppShell() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur border-t border-border grid grid-cols-4 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+        className={`md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur border-t border-border grid pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] ${showCatalog ? "grid-cols-4" : "grid-cols-3"}`}
         aria-label="Navegação principal"
       >
         {tabs.map((t) => {
