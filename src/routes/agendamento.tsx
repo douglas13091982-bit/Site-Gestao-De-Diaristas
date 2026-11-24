@@ -173,7 +173,7 @@ function AgendamentoPage() {
 
   const days = useMemo(() => {
     const today = new Date();
-    const arr: { iso: string; label: string; weekday: string; blocked: boolean; reason?: string }[] = [];
+    const arr: { iso: string; label: string; weekday: string; blocked: boolean; availabilityLabel: string }[] = [];
     const set = new Set((blocked.data ?? []).map(b => b.blocked_date));
     const availabilityByDay = new Map((availability.data ?? []).map((a) => [a.day_of_week, a]));
     const hasAvailability = (availability.data ?? []).length > 0;
@@ -183,14 +183,28 @@ function AgendamentoPage() {
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const dayAvailability = availabilityByDay.get(d.getDay());
       const blockedByDate = set.has(iso);
-      const blockedBySchedule = hasAvailability && (!dayAvailability || !dayAvailability.is_available);
+      const blockedBySchedule = hasAvailability && !dayAvailability?.is_available;
+      let availabilityLabel = "Horário a confirmar";
+      if (blockedByDate) {
+        availabilityLabel = "Bloqueada";
+      } else if (blockedBySchedule) {
+        availabilityLabel = "Indisponível";
+      } else if (dayAvailability?.is_available) {
+        const start = timeToMinutes(dayAvailability.start_time);
+        const end = timeToMinutes(dayAvailability.end_time);
+        const morning = start <= 8 * 60 && end >= 12 * 60;
+        const afternoon = start <= 13 * 60 && end >= 17 * 60;
+        availabilityLabel = morning && afternoon ? "Dia inteiro"
+          : morning ? "Só de manhã"
+          : afternoon ? "Só à tarde"
+          : "Horário parcial";
+      }
       arr.push({
         iso,
         label: `${String(d.getDate()).padStart(2, "0")} ${MONTHS_SHORT[d.getMonth()]}`,
         weekday: DAYS_SHORT[d.getDay()],
         blocked: blockedByDate || blockedBySchedule,
-        reason: blockedByDate ? "Bloqueada" : blockedBySchedule ? "Indisponível" : undefined,
-
+        availabilityLabel,
       });
     }
     return arr;
@@ -471,7 +485,9 @@ function AgendamentoPage() {
                           }`}>
                           <div className={`text-xs ${active ? "text-white/80" : "text-muted-foreground"}`}>{d.weekday}</div>
                           <div className="font-display text-sm font-bold leading-tight sm:text-base">{d.label}</div>
-                          {d.blocked ? <div className="text-[10px] text-destructive">{d.reason ?? "Indisponível"}</div> : null}
+                          <div className={`mt-1 whitespace-normal text-xs font-medium leading-tight ${d.blocked ? "text-destructive" : active ? "text-white" : "text-muted-foreground"}`}>
+                            {d.availabilityLabel}
+                          </div>
                         </button>
                       );
                     })}
