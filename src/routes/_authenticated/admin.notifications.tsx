@@ -71,6 +71,8 @@ function AdminNotifications() {
       if (error) throw error;
       // Dispara push (FCM) para quem tem token registrado
       let pushSent = 0;
+      let pushFailed = 0;
+      let pushError = false;
       try {
         const userIds = targets.map((u) => u.id);
         const res = await sendPushToUsers({
@@ -82,17 +84,21 @@ function AdminNotifications() {
             ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
           },
         });
-        pushSent = res?.sent ?? 0;
+        pushSent = res.sent;
+        pushFailed = res.failed;
+        pushError = Boolean(res.error);
       } catch (err) {
+        pushError = true;
         console.warn("[push] falha no envio FCM", err);
       }
-      return { total: rows.length, pushSent };
+      return { total: rows.length, pushSent, pushFailed, pushError };
     },
-    onSuccess: ({ total, pushSent }) => {
-      toast.success(
-        `Notificação enviada para ${total} usuário(s)` +
-          (pushSent ? ` — ${pushSent} push entregues` : ""),
-      );
+    onSuccess: ({ total, pushSent, pushFailed, pushError }) => {
+      toast.success(`Notificação criada no app para ${total} usuário(s).`);
+      if (pushError) toast.warning("O envio de push falhou.");
+      else if (pushFailed) toast.warning(`Firebase aceitou ${pushSent} push. Falharam ${pushFailed}.`);
+      else if (pushSent) toast.info(`Firebase aceitou ${pushSent} push.`);
+      else toast.info("Nenhum dispositivo registrado para receber push.");
       setTitle(""); setBody(""); setLink(""); setImageUrl(""); setSelected(new Set());
       qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
     },
@@ -116,19 +122,26 @@ function AdminNotifications() {
       }]);
       if (error) throw error;
       let pushSent = 0;
+      let pushFailed = 0;
+      let pushError = false;
       try {
         const res = await sendPushToUsers({
           data: { userIds: [user.id], title: testTitle, body: testBody, link: "/notificacoes" },
         });
-        pushSent = res?.sent ?? 0;
+        pushSent = res.sent;
+        pushFailed = res.failed;
+        pushError = Boolean(res.error);
       } catch (err) {
+        pushError = true;
         console.warn("[push] falha no teste", err);
       }
-      return { pushSent };
+      return { pushSent, pushFailed, pushError };
     },
-    onSuccess: ({ pushSent }) => {
-      if (pushSent > 0) toast.success(`Push enviada para você (${pushSent})`);
-      else toast.warning("In-app criada, mas nenhum token FCM registrado no seu usuário. Ative as notificações no navegador/app primeiro.");
+    onSuccess: ({ pushSent, pushFailed, pushError }) => {
+      if (pushError || pushFailed) {
+        toast.warning(`Teste criado no app. Firebase aceitou ${pushSent} push e houve falha no envio.`);
+      } else if (pushSent) toast.success(`Firebase aceitou o teste para ${pushSent} dispositivo(s).`);
+      else toast.warning("Teste criado no app. Nenhum dispositivo registrado para receber push.");
       qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
     },
     onError: (e: Error) => toast.error(e.message),

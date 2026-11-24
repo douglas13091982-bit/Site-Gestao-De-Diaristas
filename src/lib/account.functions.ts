@@ -79,7 +79,7 @@ export const sendPasswordSetupEmail = createServerFn({ method: "POST" })
           await Promise.all(
             subs.map(async (s) => {
               const r = await sendFcmMessage({ token: s.endpoint, title, body, link });
-              if (!r.ok && r.error && /UNREGISTERED|INVALID_ARGUMENT|NOT_FOUND|404/i.test(r.error)) {
+              if (!r.ok && r.unregistered) {
                 stale.push(s.endpoint);
               }
             }),

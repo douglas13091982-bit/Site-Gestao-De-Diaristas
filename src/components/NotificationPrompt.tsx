@@ -12,7 +12,7 @@ const DISMISS_MS = 1000 * 60 * 60 * 24 * 3; // 3 dias
  */
 export function NotificationPrompt() {
   const { user } = useAuth();
-  const { status, busy, enable, inFrame } = usePushNotifications();
+  const { status, busy, enable, inFrame } = usePushNotifications({ listen: true });
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
@@ -34,11 +34,6 @@ export function NotificationPrompt() {
     setHidden(true);
   }
 
-  async function activate() {
-    await enable();
-    setHidden(true);
-  }
-
   if (hidden) return null;
   if (!user) return null;
   if (status === "granted" || status === "denied" || status === "unsupported") return null;
@@ -56,7 +51,7 @@ export function NotificationPrompt() {
             : "Receba alertas de novos agendamentos, confirmações e mensagens em tempo real."}
         </p>
         <button
-          onClick={activate}
+          onClick={enable}
           disabled={busy}
           className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 disabled:opacity-60"
         >

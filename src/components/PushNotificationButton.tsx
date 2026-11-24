@@ -12,7 +12,7 @@ export function PushNotificationButton({ label = "Ativar notificações" }: { la
     return (
       <div className="inline-flex items-center gap-2 flex-wrap">
         <span className="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full">
-          <BellRing className="h-4 w-4" /> Notificações ativas
+          <BellRing className="h-4 w-4" /> Permissão concedida
         </span>
         <Button onClick={enable} disabled={busy} size="sm" variant="outline" className="gap-2">
           <Bell className="h-4 w-4" />

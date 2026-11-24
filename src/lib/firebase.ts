@@ -25,33 +25,26 @@ export function initFirebase() {
       });
       const messaging = getMessaging(app);
       return { app, messaging, config };
-    })();
+    })().catch((error) => {
+      appPromise = null;
+      throw error;
+    });
   }
   return appPromise;
 }
 
 /**
  * Pede permissão ao usuário e retorna o token FCM.
- * Registra o service worker `/firebase-messaging-sw.js` passando a
- * config Firebase via query string (SW não tem acesso a env vars).
+ * Registra o service worker do Firebase no escopo dedicado.
  */
 export async function requestPushToken(): Promise<string | null> {
-  const ctx = await initFirebase();
-  if (!ctx?.messaging) return null;
-
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return null;
 
-  const params = new URLSearchParams({
-    apiKey: ctx.config.apiKey,
-    authDomain: ctx.config.authDomain,
-    projectId: ctx.config.projectId,
-    storageBucket: ctx.config.storageBucket,
-    messagingSenderId: ctx.config.messagingSenderId,
-    appId: ctx.config.appId,
-  });
+  const ctx = await initFirebase();
+  if (!ctx?.messaging) return null;
   const swRegistration = await navigator.serviceWorker.register(
-    `/firebase-messaging-sw.js?${params.toString()}`,
+    "/firebase-messaging-sw.js",
     { scope: "/firebase-cloud-messaging-push-scope" },
   );
 
