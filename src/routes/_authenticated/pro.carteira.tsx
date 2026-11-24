@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Wallet } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Clock3, ReceiptText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/pro/carteira")({
   head: () => ({ meta: [{ title: "Carteira — Gersepa Solutions" }, { name: "description", content: "Seus recebíveis e histórico de pagamentos." }] }),
@@ -19,18 +21,14 @@ type Row = {
   status: string;
   payment_status: string | null;
   total_price: number | null;
-  paid_at: string | null;
 };
 
 type Withdrawal = {
   id: number;
   amount: number;
   status: string;
-  pix_key: string;
-  pix_key_type: string | null;
   admin_notes: string | null;
   created_at: string;
-  processed_at: string | null;
 };
 
 function CarteiraPage() {
@@ -44,7 +42,7 @@ function CarteiraPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id,service_type,booking_date,status,payment_status,total_price,paid_at")
+        .select("id,service_type,booking_date,status,payment_status,total_price")
         .eq("professional_id", user!.id)
         .order("booking_date", { ascending: false });
       if (error) throw error;
@@ -58,12 +56,6 @@ function CarteiraPage() {
   const upcoming = rows.filter((r) => r.payment_status !== "paid" && r.status !== "cancelled");
 
   const sum = (list: Row[]) => list.reduce((acc, r) => acc + computePayout(r.total_price, pct), 0);
-  const now = new Date();
-  const monthRows = released.filter((r) => {
-    const d = r.paid_at ? new Date(r.paid_at) : r.booking_date ? new Date(r.booking_date) : null;
-    return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-
   const profileQ = useQuery({
     queryKey: ["pro-profile-pix", user?.id],
     enabled: !!user,
@@ -80,7 +72,7 @@ function CarteiraPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("id,amount,status,pix_key,pix_key_type,admin_notes,created_at,processed_at")
+        .select("id,amount,status,admin_notes,created_at")
         .eq("professional_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -91,7 +83,9 @@ function CarteiraPage() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`withdrawals-pro-${user.id}`)
+      .channel(`wallet-pro-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `professional_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["pro-wallet", user.id] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawal_requests", filter: `professional_id=eq.${user.id}` },
         () => qc.invalidateQueries({ queryKey: ["pro-withdrawals", user.id] }))
       .subscribe();
@@ -104,47 +98,93 @@ function CarteiraPage() {
   const paidWithdrawals = withdrawals.filter((w) => w.status === "paid").reduce((s, w) => s + Number(w.amount), 0);
   const available = Math.max(0, sum(released) - paidWithdrawals - pendingSum);
 
-  if (q.isLoading) return <p className="text-muted-foreground">Carregando carteira…</p>;
+  if (q.isLoading || withdrawalsQ.isLoading || profileQ.isLoading) {
+    return <p role="status" className="text-muted-foreground">Carregando carteira…</p>;
+  }
+
+  if (q.isError || withdrawalsQ.isError || profileQ.isError) {
+    return (
+      <div className="space-y-3">
+        <p role="alert" className="text-muted-foreground">Não foi possível carregar a carteira.</p>
+        <Button variant="outline" onClick={() => {
+          void Promise.all([q.refetch(), withdrawalsQ.refetch(), profileQ.refetch()]);
+        }}>Tentar novamente</Button>
+      </div>
+    );
+  }
+
+  const history = [
+    ...released.map((booking) => ({ booking, date: booking.booking_date ?? "", status: "Confirmada", prefix: "+ " })),
+    ...upcoming.map((booking) => ({
+      booking,
+      date: booking.booking_date ?? "",
+      status: booking.payment_status === "failed" ? "Pagamento falhou" : "Aguardando pagamento",
+      prefix: "",
+    })),
+    ...withdrawals.map((withdrawal) => ({ withdrawal, date: withdrawal.created_at })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Card title="A receber" hint="Pagos, aguardando confirmação do cliente" value={sum(paidPending)} tone="amber" />
-        <Card title="Recebido no mês" hint={now.toLocaleDateString("pt-BR", { month: "long" })} value={sum(monthRows)} tone="emerald" />
-        <Card title="Recebido (total)" hint="Serviços concluídos e pagos" value={sum(released)} tone="sky" />
+    <div className="mx-auto max-w-md space-y-4">
+      <h2 className="text-2xl font-bold tracking-tight">Minha carteira</h2>
+      <WithdrawSection available={available} pixKey={profileQ.data?.pix_key ?? null} pixKeyType={profileQ.data?.pix_key_type ?? null} />
+
+      <section className="divide-y rounded-2xl border border-border bg-card" aria-label="Detalhes da carteira">
+        <details className="group">
+          <summary className="flex min-h-14 list-none items-center gap-3 px-3 py-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"><Clock3 className="size-4" aria-hidden="true" /></span>
+            <span className="flex-1 text-sm font-semibold">A liberar</span>
+            <strong className="whitespace-nowrap text-sm tabular-nums">{brl(sum(paidPending))}</strong>
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="px-3 pb-3">
+            <p className="pb-2 text-xs text-muted-foreground">O saldo fica disponível após o cliente confirmar a conclusão.</p>
+            {paidPending.length ? (
+              <ul className="divide-y border-t">
+                {paidPending.map((booking) => <BookingEntry key={booking.id} booking={booking} pct={pct} />)}
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Nenhum serviço aguardando liberação.</p>}
+          </div>
+        </details>
+        <details className="group">
+          <summary className="flex min-h-14 list-none items-center gap-3 px-3 py-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><ReceiptText className="size-4" aria-hidden="true" /></span>
+            <span className="flex-1 text-sm font-semibold">Histórico</span>
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="px-3 pb-3">
+            {history.length ? (
+              <ul className="divide-y border-t">
+                {history.map((entry) => "withdrawal" in entry
+                  ? <WithdrawalEntry key={`withdrawal-${entry.withdrawal.id}`} withdrawal={entry.withdrawal} />
+                  : <BookingEntry key={`booking-${entry.booking.id}`} booking={entry.booking} pct={pct} status={entry.status} prefix={entry.prefix} />)}
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Nenhuma movimentação por enquanto.</p>}
+            <p className="pt-2 text-xs text-muted-foreground">Valores líquidos após a taxa da plataforma ({pct}%).</p>
+          </div>
+        </details>
       </section>
-
-      <WithdrawSection
-        available={available}
-        pixKey={profileQ.data?.pix_key ?? null}
-        pixKeyType={profileQ.data?.pix_key_type ?? null}
-        withdrawals={withdrawals}
-      />
-
-      <p className="text-xs text-muted-foreground">Repasse líquido considera a taxa da plataforma configurada ({pct}%). O valor fica disponível para saque via Pix após o cliente confirmar a conclusão.</p>
-
-      <Section title={`A receber (${paidPending.length})`} rows={paidPending} pct={pct} empty="Nenhum serviço aguardando liberação." />
-      <Section title={`Próximos / a cobrar (${upcoming.length})`} rows={upcoming} pct={pct} empty="Sem serviços pendentes de pagamento." />
-      <Section title={`Histórico recebido (${released.length})`} rows={released} pct={pct} empty="Ainda sem recebimentos." />
     </div>
   );
 }
 
-function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { available: number; pixKey: string | null; pixKeyType: string | null; withdrawals: Withdrawal[] }) {
+function WithdrawSection({ available, pixKey, pixKeyType }: { available: number; pixKey: string | null; pixKeyType: string | null }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
+  const dialog = useRef<HTMLDialogElement>(null);
 
   const create = useMutation({
     mutationFn: async () => {
-      const value = Number(amount.replace(",", "."));
+      if (!user) throw new Error("Faça login para solicitar um saque.");
+      const value = Number(amount.trim().replace(",", "."));
       if (!Number.isFinite(value) || value <= 0) throw new Error("Informe um valor válido.");
       if (value > available) throw new Error("Valor maior que o saldo disponível.");
       if (!pixKey) throw new Error("Cadastre uma chave PIX no seu perfil antes de solicitar saque.");
       const { data: inserted, error } = await supabase
         .from("withdrawal_requests")
         .insert({
-          professional_id: user!.id,
+          professional_id: user.id,
           amount: value,
           pix_key: pixKey,
           pix_key_type: pixKeyType,
@@ -152,8 +192,8 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
         })
         .select("id")
         .maybeSingle();
-      if (error) throw error;
-      if (inserted?.id) {
+      if (error || !inserted) throw new Error(error?.message ?? "Não foi possível solicitar o saque.");
+      if (inserted.id) {
         try {
           const { notifyAdminsWithdrawalRequest } = await import("@/lib/push.functions");
           await notifyAdminsWithdrawalRequest({ data: { withdrawalId: inserted.id as number } });
@@ -162,105 +202,112 @@ function WithdrawSection({ available, pixKey, pixKeyType, withdrawals }: { avail
         }
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["pro-withdrawals", user?.id] });
+      dialog.current?.close();
       toast.success("Solicitação de saque enviada. O administrador foi notificado.");
       setAmount("");
-      qc.invalidateQueries({ queryKey: ["pro-withdrawals", user?.id] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
-    <section className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-9 w-9 rounded-lg bg-emerald-100 text-emerald-700 grid place-items-center"><Wallet className="h-4 w-4" /></div>
-        <div>
-          <h2 className="font-semibold text-slate-900">Solicitar saque</h2>
-          <p className="text-xs text-muted-foreground">Saldo disponível para saque: <span className="font-bold text-emerald-700">R$ {available.toFixed(2)}</span></p>
-        </div>
-      </div>
-      {!pixKey && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2 mb-3">Cadastre sua chave PIX no perfil para poder solicitar saque.</p>}
-      <div className="grid gap-2 sm:grid-cols-[1fr,auto]">
-        <input type="text" inputMode="decimal" placeholder="Valor (R$)" value={amount} onChange={(e) => setAmount(e.target.value)}
-          className="rounded-lg border px-3 py-2 text-sm" disabled={!pixKey || create.isPending} />
-        <button onClick={() => create.mutate()} disabled={!pixKey || create.isPending || !amount}
-          className="rounded-lg bg-emerald-600 text-white text-sm font-semibold px-4 py-2 hover:bg-emerald-700 disabled:opacity-50">
-          {create.isPending ? "Enviando…" : "Solicitar saque"}
-        </button>
-      </div>
-      {pixKey && <p className="text-[11px] text-slate-500 mt-2">Será pago via PIX ({pixKeyType || "chave"}): <span className="font-mono">{pixKey}</span></p>}
+    <>
+      <section aria-label="Saldo disponível" className="space-y-2 rounded-2xl bg-primary p-5 text-primary-foreground shadow-sm">
+        <p className="text-sm font-medium">Disponível para saque</p>
+        <p className="text-3xl font-extrabold tracking-tight tabular-nums">{brl(available)}</p>
+        {pixKey ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-2 min-h-11"
+            disabled={available <= 0}
+            onClick={() => { setAmount(""); dialog.current?.showModal(); }}
+          >
+            <ArrowUpRight className="size-4" aria-hidden="true" /> Solicitar saque
+          </Button>
+        ) : (
+          <Button asChild variant="secondary" className="mt-2 min-h-11">
+            <Link to="/pro/profile">Cadastrar chave Pix</Link>
+          </Button>
+        )}
+      </section>
 
-      {withdrawals.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-sm font-semibold mb-2">Minhas solicitações</h3>
-          <ul className="grid gap-2">
-            {withdrawals.map((w) => (
-              <li key={w.id} className="rounded-lg border p-2.5 flex items-center justify-between gap-3 text-sm">
-                <div className="min-w-0">
-                  <div className="font-medium">R$ {Number(w.amount).toFixed(2)}</div>
-                  <div className="text-[11px] text-muted-foreground">{new Date(w.created_at).toLocaleString("pt-BR")}{w.admin_notes ? ` · ${w.admin_notes}` : ""}</div>
-                </div>
-                <StatusBadge status={w.status} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </section>
+      <dialog
+        ref={dialog}
+        aria-labelledby="withdraw-title"
+        className="m-auto w-[calc(100%_-_2rem)] max-w-sm rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xl backdrop:bg-black/50"
+        onCancel={(event) => { if (create.isPending) event.preventDefault(); }}
+      >
+        <form className="space-y-3" onSubmit={(event) => {
+          event.preventDefault();
+          if (!create.isPending) create.mutate();
+        }}>
+          <div>
+            <h2 id="withdraw-title" className="text-lg font-bold">Solicitar saque</h2>
+            <p className="text-sm text-muted-foreground">Saldo disponível de {brl(available)}</p>
+          </div>
+          <label htmlFor="withdraw-amount" className="block text-sm font-medium">Valor do saque em reais</label>
+          <Input id="withdraw-amount" type="text" inputMode="decimal" placeholder="0,00" value={amount}
+            onChange={(event) => setAmount(event.target.value)} required autoFocus disabled={create.isPending} className="min-h-11 text-base" />
+          {pixKey && <p className="text-xs text-muted-foreground">Pix cadastrado · •••• {pixKey.slice(-4)}</p>}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="outline" disabled={create.isPending} onClick={() => dialog.current?.close()}>Voltar</Button>
+            <Button type="submit" disabled={!pixKey || create.isPending || !amount.trim()}>
+              {create.isPending ? "Enviando…" : "Confirmar saque"}
+            </Button>
+          </div>
+        </form>
+      </dialog>
+    </>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    pending: { label: "Pendente", cls: "bg-amber-100 text-amber-800" },
-    approved: { label: "Aprovado", cls: "bg-sky-100 text-sky-800" },
-    paid: { label: "Pago", cls: "bg-emerald-100 text-emerald-800" },
-    rejected: { label: "Recusado", cls: "bg-rose-100 text-rose-800" },
-  };
-  const s = map[status] ?? { label: status, cls: "bg-slate-100 text-slate-700" };
-  return <span className={`text-[11px] font-semibold px-2 py-1 rounded-full ${s.cls}`}>{s.label}</span>;
+const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const shortDate = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: "America/Sao_Paulo" });
+
+function brl(value: number) {
+  return currency.format(value);
 }
 
-function Card({ title, hint, value, tone }: { title: string; hint: string; value: number; tone: "amber" | "emerald" | "sky" }) {
-  const tones = {
-    amber: "from-amber-500 to-amber-600",
-    emerald: "from-emerald-500 to-emerald-600",
-    sky: "from-sky-500 to-sky-600",
-  } as const;
+function formatDate(date: string | null) {
+  if (!date) return "Sem data";
+  const value = new Date(date.length === 10 ? `${date}T12:00:00Z` : date);
+  return Number.isNaN(value.getTime()) ? "Sem data" : shortDate.format(value);
+}
+
+function BookingEntry({ booking, pct, status, prefix = "" }: { booking: Row; pct: number; status?: string; prefix?: string }) {
   return (
-    <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} text-white p-4 shadow-sm`}>
-      <div className="text-xs uppercase tracking-wide opacity-90 font-semibold">{title}</div>
-      <div className="text-3xl font-extrabold mt-1">R$ {value.toFixed(2)}</div>
-      <div className="text-[11px] opacity-90 mt-1">{hint}</div>
-    </div>
+    <li className="flex items-start justify-between gap-2 py-2.5 text-sm">
+      <div className="min-w-0">
+        <div className="break-words font-medium">{booking.service_type ?? "Serviço"} · {formatDate(booking.booking_date)}</div>
+        {status && <div className="text-xs text-muted-foreground">{status}</div>}
+      </div>
+      <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums">{prefix}{brl(computePayout(booking.total_price, pct))}</span>
+    </li>
   );
 }
 
-function Section({ title, rows, pct, empty }: { title: string; rows: Row[]; pct: number; empty: string }) {
+const withdrawalLabels: Record<string, string> = {
+  pending: "Pendente",
+  approved: "Aprovado",
+  paid: "Pago",
+  rejected: "Recusado",
+};
+
+function WithdrawalEntry({ withdrawal }: { withdrawal: Withdrawal }) {
   return (
-    <section>
-      <h2 className="text-base font-semibold mb-2">{title}</h2>
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground rounded-xl border bg-card p-4">{empty}</p>
-      ) : (
-        <ul className="grid gap-2">
-          {rows.map((r) => (
-            <li key={r.id} className="rounded-xl border bg-card p-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-medium truncate">{r.service_type ?? "Serviço"}</div>
-                <div className="text-xs text-muted-foreground">
-                  {r.booking_date ? new Date(r.booking_date).toLocaleDateString("pt-BR") : "Sem data"} · {r.status}
-                  {r.payment_status ? ` · pgto ${r.payment_status}` : ""}
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-lg font-extrabold text-emerald-700 whitespace-nowrap">R$ {computePayout(r.total_price, pct).toFixed(2)}</div>
-                <div className="text-[10px] text-muted-foreground">líquido</div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <li className="flex items-start justify-between gap-2 py-2.5 text-sm">
+      <div className="min-w-0">
+        <div className="font-medium">Saque Pix · {formatDate(withdrawal.created_at)}</div>
+        <div className="break-words text-xs text-muted-foreground">
+          {withdrawalLabels[withdrawal.status] ?? "Em análise"}
+          {withdrawal.admin_notes && ` · ${withdrawal.admin_notes}`}
+        </div>
+      </div>
+      <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums">
+        {withdrawal.status === "paid" ? "− " : ""}{brl(Number(withdrawal.amount))}
+      </span>
+    </li>
   );
 }
