@@ -12,6 +12,14 @@ export const Route = createFileRoute("/_authenticated/pro/agenda")({
   component: AgendaPage,
 });
 
+const BOOKING_STATUS: Record<string, string> = {
+  pending: "Aguardando confirmação",
+  awaiting_payment: "Aguardando pagamento",
+  confirmed: "Confirmado",
+  in_progress: "Em andamento",
+  awaiting_client_confirmation: "Aguardando confirmação do cliente",
+};
+
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function AgendaPage() {
@@ -24,7 +32,7 @@ function AgendaPage() {
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase.from("bookings")
-        .select("id,service_type,booking_date,start_time,duration_hours,address,city,status,total_price,client_email")
+        .select("id,service_type,booking_date,start_time,duration_hours,address,city,status,payment_status,total_price,client_email")
         .eq("professional_id", user!.id)
         .order("booking_date", { ascending: true });
       return data ?? [];
@@ -74,11 +82,17 @@ function AgendaPage() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      await supabase.from("bookings").update({ status }).eq("id", id);
+      const update = supabase.from("bookings").update({ status })
+        .eq("id", id).eq("professional_id", user!.id);
+      // Cancelar devolve o pedido ao pool, retirando o acesso ao registro.
+      const { error } = status === "cancelled" ? await update : await update.select("id").single();
+      if (error) throw new Error(error.message);
     },
+    onError: (error: Error) => toast.error(error.message),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["pro-bookings", user?.id] });
       qc.invalidateQueries({ queryKey: ["my-offers", user?.id] });
+      qc.invalidateQueries({ queryKey: ["pro-wallet", user?.id] });
       if (vars.status === "cancelled") {
         toast.warning("Serviço cancelado. Você ficará suspensa por alguns dias sem receber novas propostas.");
       }
@@ -109,51 +123,57 @@ function AgendaPage() {
             <p className="text-sm text-muted-foreground">Nenhum serviço confirmado ainda.</p>
           ) : (
             <ul className="divide-y">
-              {upcoming.map((b) => (
-                <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
-                    <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      Status: {b.status}
-                      {b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
+              {upcoming.map((b) => {
+                const isPaid = b.payment_status === "paid";
+                const awaitingClient = b.status === "awaiting_client_confirmation";
+                return (
+                  <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm sm:text-base">{b.service_type ?? "Serviço"} · {b.booking_date ? new Date(b.booking_date).toLocaleDateString("pt-BR") : "—"} {b.start_time ? `às ${b.start_time}` : ""}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground break-words">{b.address ?? ""} {b.city ? `— ${b.city}` : ""}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Status: {BOOKING_STATUS[b.status] ?? b.status}
+                        {b.total_price ? <> · <span className="text-emerald-600 font-semibold">Você recebe R$ {computePayout(b.total_price, pct).toFixed(2)}</span></> : null}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    {b.status !== "in_progress" && b.status !== "awaiting_client_confirmation" && (
-                      <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>
-                    )}
-                    {b.status !== "awaiting_client_confirmation" ? (
-                      <Button
-                        size="sm"
-                        className="flex-1 sm:flex-none min-h-10"
-                        onClick={() => {
-                          if (confirm("Marcar como concluído? O cliente precisará confirmar antes do pagamento ser liberado.")) {
-                            updateStatus.mutate({ id: b.id, status: "awaiting_client_confirmation" });
-                          }
-                        }}
-                      >
-                        Concluir
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-md self-center">Aguardando cliente confirmar</span>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="flex-1 sm:flex-none min-h-10 text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        const d = suspensionDays.data ?? 2;
-                        if (confirm(`Cancelar este serviço? Você ficará suspensa por ${d} dia(s) sem receber novas propostas.`)) {
-                          updateStatus.mutate({ id: b.id, status: "cancelled" });
-                        }
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </li>
-              ))}
+                    <div className="flex gap-2 shrink-0">
+                      {isPaid && b.status === "confirmed" && (
+                        <Button size="sm" variant="outline" className="flex-1 sm:flex-none min-h-10" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: b.id, status: "in_progress" })}>Iniciar</Button>
+                      )}
+                      {isPaid && b.status === "in_progress" && (
+                        <Button
+                          size="sm"
+                          disabled={updateStatus.isPending}
+                          className="flex-1 sm:flex-none min-h-10"
+                          onClick={() => {
+                            if (confirm("Marcar como concluído? O cliente precisará confirmar antes do pagamento ser liberado.")) {
+                              updateStatus.mutate({ id: b.id, status: "awaiting_client_confirmation" });
+                            }
+                          }}
+                        >
+                          Concluir
+                        </Button>
+                      )}
+                      {!awaitingClient && (
+                        <Button
+                          disabled={updateStatus.isPending}
+                          size="sm"
+                          variant="ghost"
+                          className="flex-1 sm:flex-none min-h-10 text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            const d = suspensionDays.data ?? 2;
+                            if (confirm(`Cancelar este serviço? Você ficará suspensa por ${d} dia(s) sem receber novas propostas.`)) {
+                              updateStatus.mutate({ id: b.id, status: "cancelled" });
+                            }
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

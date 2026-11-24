@@ -109,7 +109,7 @@ function CarteiraPage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-3 sm:grid-cols-3">
-        <Card title="A receber" hint="Pagos pelo cliente, aguardando conclusão" value={sum(paidPending)} tone="amber" />
+        <Card title="A receber" hint="Pagos, aguardando confirmação do cliente" value={sum(paidPending)} tone="amber" />
         <Card title="Recebido no mês" hint={now.toLocaleDateString("pt-BR", { month: "long" })} value={sum(monthRows)} tone="emerald" />
         <Card title="Recebido (total)" hint="Serviços concluídos e pagos" value={sum(released)} tone="sky" />
       </section>
@@ -121,7 +121,7 @@ function CarteiraPage() {
         withdrawals={withdrawals}
       />
 
-      <p className="text-xs text-muted-foreground">Repasse líquido considera a taxa da plataforma configurada ({pct}%). Pagamentos são liberados após a conclusão do serviço via chave PIX cadastrada no seu perfil.</p>
+      <p className="text-xs text-muted-foreground">Repasse líquido considera a taxa da plataforma configurada ({pct}%). O valor fica disponível para saque via Pix após o cliente confirmar a conclusão.</p>
 
       <Section title={`A receber (${paidPending.length})`} rows={paidPending} pct={pct} empty="Nenhum serviço aguardando liberação." />
       <Section title={`Próximos / a cobrar (${upcoming.length})`} rows={upcoming} pct={pct} empty="Sem serviços pendentes de pagamento." />
