@@ -6,7 +6,8 @@ import { UserMenu } from "@/components/UserMenu";
 import { useBranding } from "@/hooks/use-branding";
 
 export function Header({ dashboardHome = false }: { dashboardHome?: boolean }) {
-  const { user } = useAuth();
+  const { user, roles, loading } = useAuth();
+  const showCatalog = !user || (!loading && (!roles.includes("professional") || roles.includes("admin")));
   const { logoUrl, siteName } = useBranding();
   const [brand, sub] = siteName.includes(" ")
     ? [siteName.split(" ")[0], siteName.split(" ").slice(1).join(" ")]
@@ -26,7 +27,7 @@ export function Header({ dashboardHome = false }: { dashboardHome?: boolean }) {
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
           <Link to="/" className="hover:text-primary transition">Início</Link>
-          <Link to="/professionals" className="hover:text-primary transition">Diaristas</Link>
+          {showCatalog && <Link to="/professionals" className="hover:text-primary transition">Diaristas</Link>}
           <a href="/#sobre" className="hover:text-primary transition">Sobre</a>
           <a
             href="https://wa.me/5547999999999"

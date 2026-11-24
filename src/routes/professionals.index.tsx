@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { Search, SlidersHorizontal, X, MapPin, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,8 +30,24 @@ export const Route = createFileRoute("/professionals/")({
       { property: "og:description", content: "Encontre a diarista ideal na sua região." },
     ],
   }),
-  component: ProfessionalsPage,
+  component: ProfessionalsCatalog,
 });
+
+function ProfessionalsCatalog() {
+  const { loading, roles } = useAuth();
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="p-6 text-muted-foreground" role="status">Carregando…</main>
+      </>
+    );
+  }
+  if (roles.includes("professional") && !roles.includes("admin")) {
+    return <Navigate to="/pro" replace />;
+  }
+  return <ProfessionalsPage />;
+}
 
 function ProfessionalsPage() {
   const s = Route.useSearch();
