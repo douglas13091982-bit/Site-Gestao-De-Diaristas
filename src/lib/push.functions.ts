@@ -7,7 +7,8 @@ const sendSchema = z.object({
   title: z.string().min(1).max(120),
   body: z.string().min(1).max(300),
   link: z.string().max(300).optional(),
-  imageUrl: z.string().url().max(500).optional(),
+  imageUrl: z.string().url().max(2000).optional(),
+  systemNotification: z.boolean().optional(),
 });
 
 export const sendPushToUsers = createServerFn({ method: "POST" })
@@ -28,6 +29,8 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
     const { data: subs, error } = await supabaseAdmin
       .from("push_subscriptions")
       .select("user_id, endpoint")
+      .eq("p256dh", "fcm")
+      .eq("auth", "fcm")
       .in("user_id", data.userIds);
     if (error) return { sent: 0, failed: 0, error: error.message };
     if (!subs || subs.length === 0) return { sent: 0, failed: 0 };
@@ -35,6 +38,9 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
     let sent = 0;
     let failed = 0;
     const stale: string[] = [];
+    const notificationData = data.systemNotification
+      ? { systemNotification: "true", tag: crypto.randomUUID() }
+      : undefined;
     await Promise.all(
       subs.map(async (s) => {
         const r = await sendFcmMessage({
@@ -43,6 +49,7 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
           body: data.body,
           link: data.link,
           imageUrl: data.imageUrl,
+          data: notificationData,
         });
         if (r.ok) sent++;
         else {
@@ -57,6 +64,69 @@ export const sendPushToUsers = createServerFn({ method: "POST" })
       await supabaseAdmin.from("push_subscriptions").delete().in("endpoint", stale);
     }
     return { sent, failed };
+  });
+
+export const listAdminPushRecipients = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Apenas administradores podem consultar os destinatários.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [roles, profiles, subscriptions] = await Promise.all([
+      readAllRoles(),
+      readAllProfiles(),
+      readAllSubscriptions(),
+    ]);
+    const adminIds = new Set(roles.filter(({ role }) => role === "admin").map(({ user_id }) => user_id));
+    const professionalIds = new Set(roles.filter(({ role }) => role === "professional").map(({ user_id }) => user_id));
+    const accounts = new Map(profiles.map((profile) => [profile.id, profile]));
+    for (const { user_id: id } of roles) {
+      if (!accounts.has(id)) accounts.set(id, { id, full_name: null, email: null, is_professional: false });
+    }
+    const counts = new Map<string, number>();
+    for (const { user_id } of subscriptions) counts.set(user_id, (counts.get(user_id) ?? 0) + 1);
+    return [...accounts.values()].filter(({ id }) => !adminIds.has(id)).map((profile) => ({
+      ...profile,
+      is_professional: profile.is_professional || professionalIds.has(profile.id),
+      devices: counts.get(profile.id) ?? 0,
+    })).sort((a, b) => (a.full_name ?? a.email ?? "").localeCompare(b.full_name ?? b.email ?? "", "pt-BR"));
+
+    async function readAllRoles() {
+      const rows: { user_id: string; role: string }[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabaseAdmin.from("user_roles")
+          .select("user_id, role").order("user_id").order("role").range(offset, offset + 499);
+        if (error) throw new Error("Não foi possível carregar os grupos de usuários.");
+        rows.push(...data);
+        if (data.length < 500) return rows;
+      }
+    }
+
+    async function readAllProfiles() {
+      const rows: { id: string; full_name: string | null; email: string | null; is_professional: boolean }[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabaseAdmin.from("profiles")
+          .select("id, full_name, email, is_professional").order("id").range(offset, offset + 499);
+        if (error) throw new Error("Não foi possível carregar os destinatários.");
+        rows.push(...data);
+        if (data.length < 500) return rows;
+      }
+    }
+
+    async function readAllSubscriptions() {
+      const rows: { user_id: string }[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabaseAdmin.from("push_subscriptions")
+          .select("user_id").eq("p256dh", "fcm").eq("auth", "fcm").order("endpoint").range(offset, offset + 499);
+        if (error) throw new Error("Não foi possível carregar os dispositivos.");
+        rows.push(...data);
+        if (data.length < 500) return rows;
+      }
+    }
   });
 
 /**

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Bell, Send, Users, Briefcase, UserCheck, CheckSquare, Square, Loader2, Upload, X, Zap } from "lucide-react";
-import { sendPushToUsers } from "@/lib/push.functions";
+import { listAdminPushRecipients, sendPushToUsers } from "@/lib/push.functions";
 import { PushNotificationButton } from "@/components/PushNotificationButton";
 
 type Audience = "all" | "professionals" | "clients" | "select";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/notifications")({
 
 function AdminNotifications() {
   const qc = useQueryClient();
+  const [lastPush, setLastPush] = useState<{ sent: number; failed: number; unknown: number } | null>(null);
   const [audience, setAudience] = useState<Audience>("all");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -30,11 +31,7 @@ function AdminNotifications() {
 
   const users = useQuery({
     queryKey: ["admin-notif-users"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name, email, is_professional").order("full_name")).data ?? [],
-  });
-  const recent = useQuery({
-    queryKey: ["admin-notif-recent"],
-    queryFn: async () => (await supabase.from("notifications").select("id, user_id, title, body, created_at, is_read").order("created_at", { ascending: false }).limit(30)).data ?? [],
+    queryFn: () => listAdminPushRecipients(),
   });
 
   const targets = useMemo(() => {
@@ -52,99 +49,70 @@ function AdminNotifications() {
     return all.filter((u) => (u.full_name ?? "").toLowerCase().includes(q) || (u.email ?? "").toLowerCase().includes(q));
   }, [users.data, search]);
 
+  const eligible = targets.filter((recipient) => recipient.devices > 0);
+  const devices = eligible.reduce((total, recipient) => total + recipient.devices, 0);
+
   const send = useMutation({
     mutationFn: async () => {
-      if (!title.trim()) throw new Error("Título obrigatório");
-      if (!body.trim()) throw new Error("Mensagem obrigatória");
-      if (targets.length === 0) throw new Error("Nenhum destinatário selecionado");
-      const trimmedImage = imageUrl.trim();
-      const trimmedLink = link.trim();
-      const rows = targets.map((u) => ({
-        user_id: u.id,
+      if (!title.trim() || !body.trim()) throw new Error("Informe o título e a mensagem.");
+      if (!eligible.length) throw new Error("Nenhum destinatário tem um dispositivo registrado.");
+      const payload = {
         title: title.trim(),
         body: body.trim(),
-        link: trimmedLink || null,
-        image_url: trimmedImage || null,
-        is_read: false,
-      }));
-      const { error } = await supabase.from("notifications").insert(rows);
-      if (error) throw error;
-      // Dispara push (FCM) para quem tem token registrado
-      let pushSent = 0;
-      let pushFailed = 0;
-      let pushError = false;
-      try {
-        const userIds = targets.map((u) => u.id);
-        const res = await sendPushToUsers({
-          data: {
-            userIds,
-            title: title.trim(),
-            body: body.trim(),
-            link: trimmedLink || "/notificacoes",
-            ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
-          },
-        });
-        pushSent = res.sent;
-        pushFailed = res.failed;
-        pushError = Boolean(res.error);
-      } catch (err) {
-        pushError = true;
-        console.warn("[push] falha no envio FCM", err);
+        link: link.trim() || "/",
+        ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+        systemNotification: true,
+      };
+      let sent = 0;
+      let failed = 0;
+      let unknown = 0;
+      for (let start = 0; start < eligible.length; start += 100) {
+        const batch = eligible.slice(start, start + 100);
+        try {
+          const result = await sendPushToUsers({ data: { ...payload, userIds: batch.map(({ id }) => id) } });
+          if (result.error) throw new Error(result.error);
+          sent += result.sent;
+          failed += result.failed;
+        } catch (error) {
+          console.warn("[push] lote sem retorno confirmado", error);
+          unknown += batch.length;
+        }
       }
-      return { total: rows.length, pushSent, pushFailed, pushError };
+      return { sent, failed, unknown };
     },
-    onSuccess: ({ total, pushSent, pushFailed, pushError }) => {
-      toast.success(`Notificação criada no app para ${total} usuário(s).`);
-      if (pushError) toast.warning("O envio de push falhou.");
-      else if (pushFailed) toast.warning(`Firebase aceitou ${pushSent} push. Falharam ${pushFailed}.`);
-      else if (pushSent) toast.info(`Firebase aceitou ${pushSent} push.`);
-      else toast.info("Nenhum dispositivo registrado para receber push.");
-      setTitle(""); setBody(""); setLink(""); setImageUrl(""); setSelected(new Set());
-      qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
+    onSuccess: (result) => {
+      setLastPush(result);
+      if (!result.sent) toast.warning("Nenhum push aceito pelo Firebase. Veja o resultado abaixo.");
+      else if (result.failed || result.unknown) toast.warning("Envio parcial. Veja o resultado abaixo.");
+      else toast.success(`Firebase aceitou o push para ${result.sent} dispositivo(s).`);
+      if (result.sent && !result.failed && !result.unknown) {
+        setTitle(""); setBody(""); setLink(""); setImageUrl(""); setSelected(new Set());
+      }
+      void qc.invalidateQueries({ queryKey: ["admin-notif-users"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const sendTestToMe = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Você precisa estar logado");
-      // Simula exatamente o formato de push enviado em novos pedidos:
-      // "Diarista • em Cidade • DD/MM às HH:MM • Você recebe R$ XX,XX"
-      const now = new Date();
-      const dateStr = now.toLocaleDateString("pt-BR");
-      const timeStr = now.toTimeString().slice(0, 5);
-      const payoutStr = (150 * 0.8).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-      const testTitle = "Novo pedido disponível! (teste)";
-      const testBody = `Diarista • em Joinville • ${dateStr} às ${timeStr} • Você recebe ${payoutStr}`;
-      const { error } = await supabase.from("notifications").insert([{
-        user_id: user.id, title: testTitle, body: testBody, link: "/notificacoes", is_read: false,
-      }]);
-      if (error) throw error;
-      let pushSent = 0;
-      let pushFailed = 0;
-      let pushError = false;
-      try {
-        const res = await sendPushToUsers({
-          data: { userIds: [user.id], title: testTitle, body: testBody, link: "/notificacoes" },
-        });
-        pushSent = res.sent;
-        pushFailed = res.failed;
-        pushError = Boolean(res.error);
-      } catch (err) {
-        pushError = true;
-        console.warn("[push] falha no teste", err);
-      }
-      return { pushSent, pushFailed, pushError };
+      if (!user) throw new Error("Você precisa estar logado.");
+      const result = await sendPushToUsers({ data: {
+        userIds: [user.id],
+        title: "Teste de notificação push",
+        body: "Este aviso foi enviado pelo Super Admin.",
+        link: "/",
+        systemNotification: true,
+      } });
+      if (result.error) throw new Error("Não foi possível consultar os dispositivos registrados.");
+      return result;
     },
-    onSuccess: ({ pushSent, pushFailed, pushError }) => {
-      if (pushError || pushFailed) {
-        toast.warning(`Teste criado no app. Firebase aceitou ${pushSent} push e houve falha no envio.`);
-      } else if (pushSent) toast.success(`Firebase aceitou o teste para ${pushSent} dispositivo(s).`);
-      else toast.warning("Teste criado no app. Nenhum dispositivo registrado para receber push.");
-      qc.invalidateQueries({ queryKey: ["admin-notif-recent"] });
+    onSuccess: ({ sent, failed }) => {
+      if (sent) toast.success(`Firebase aceitou o teste para ${sent} dispositivo(s). Confira a central de notificações do aparelho.`);
+      else if (failed) toast.error("O Firebase rejeitou o teste neste dispositivo.");
+      else toast.warning("Nenhum dispositivo registrado. Ative ou registre este dispositivo.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: () => toast.error("O teste de push falhou. Confira a configuração do Firebase."),
   });
 
   const toggleUser = (id: string) => {
@@ -172,7 +140,7 @@ function AdminNotifications() {
 
   return (
     <div className="p-4 md:p-8">
-      <AdminPageHeader title="Notificações Push" subtitle="Envie notificações in-app para clientes e diaristas da plataforma" />
+      <AdminPageHeader title="Notificações Push" subtitle="Envie notificações do sistema para clientes e diaristas com dispositivos registrados" />
 
       <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -213,8 +181,8 @@ function AdminNotifications() {
                   >
                     {on ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4 text-slate-400" />}
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-slate-900 truncate">{u.full_name || u.email}</div>
-                      <div className="text-xs text-slate-500 truncate">{u.email}</div>
+                      <div className="text-sm text-slate-900 truncate">{u.full_name || u.email || "Conta sem perfil"}</div>
+                      <div className="text-xs text-slate-500 truncate">{u.email ? `${u.email} · ` : ""}{u.devices ? `${u.devices} dispositivo(s)` : "Sem push registrado"}</div>
                     </div>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded ${u.is_professional ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"}`}>
                       {u.is_professional ? "Diarista" : "Cliente"}
@@ -236,12 +204,12 @@ function AdminNotifications() {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={4}
-          maxLength={500}
+          maxLength={300}
           className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm resize-none mb-4"
         />
 
         <label className="text-xs font-medium text-slate-700 mb-1 block">Link (opcional)</label>
-        <Input placeholder="Ex: /dashboard ou https://..." value={link} onChange={(e) => setLink(e.target.value)} className="mb-5" />
+        <Input placeholder="Ex: / ou https://..." maxLength={300} value={link} onChange={(e) => setLink(e.target.value)} className="mb-5" />
 
         <label className="text-xs font-medium text-slate-700 mb-1 block">Imagem (opcional)</label>
         <div className="flex flex-col sm:flex-row gap-2 mb-2">
@@ -313,9 +281,9 @@ function AdminNotifications() {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm text-slate-500">
-            Será enviada para <span className="font-semibold text-slate-900">{targets.length}</span> usuário(s)
+            {users.isError ? "Não foi possível carregar a cobertura de push." : users.isLoading ? "Carregando destinatários…" : <><strong>{eligible.length} de {targets.length}</strong> conta(s) com push · <strong>{devices}</strong> dispositivo(s) registrado(s)</>}
           </div>
           <div className="flex gap-2">
             <Button
@@ -328,43 +296,22 @@ function AdminNotifications() {
               {sendTestToMe.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
               Enviar teste para mim
             </Button>
-            <Button onClick={() => send.mutate()} disabled={send.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+            <Button onClick={() => send.mutate()} disabled={send.isPending || uploading || !eligible.length} className="bg-emerald-500 hover:bg-emerald-600 text-white">
               {send.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-              Enviar Notificação
+              Enviar push
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div className="text-sm font-semibold text-slate-900">Últimas notificações enviadas</div>
-          <div className="text-xs text-slate-500">{recent.data?.length ?? 0} registros</div>
+      {lastPush && (
+        <div role="status" className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="font-semibold text-slate-900">Resultado da última tentativa</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            {lastPush.sent} dispositivo(s) aceitos pelo Firebase · {lastPush.failed} falha(s) · {lastPush.unknown} conta(s) sem retorno confirmado
+          </p>
         </div>
-        <div className="divide-y divide-slate-100">
-          {(recent.data ?? []).map((n) => {
-            const u = users.data?.find((x) => x.id === n.user_id);
-            return (
-              <div key={n.id} className="p-4 flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.is_read ? "bg-slate-100 text-slate-400" : "bg-emerald-100 text-emerald-600"}`}>
-                  <Bell className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-900">{n.title}</div>
-                  <div className="text-sm text-slate-600 truncate">{n.body}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    Para: {u?.full_name || u?.email || "usuário"} · {new Date(n.created_at).toLocaleString("pt-BR")}
-                  </div>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${n.is_read ? "bg-slate-100 text-slate-500" : "bg-emerald-100 text-emerald-700"}`}>
-                  {n.is_read ? "Lida" : "Enviada"}
-                </span>
-              </div>
-            );
-          })}
-          {(recent.data?.length ?? 0) === 0 && <div className="p-8 text-center text-sm text-slate-500">Nenhuma notificação enviada ainda.</div>}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
