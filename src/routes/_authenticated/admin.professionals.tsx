@@ -26,6 +26,12 @@ type Pro = {
   is_available: boolean;
 };
 
+function whatsappUrl(phone: string | null) {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  const number = /^(\d{10}|\d{11})$/.test(digits) ? "55" + digits : digits;
+  return /^55\d{10,11}$/.test(number) ? "https://wa.me/" + number : null;
+}
+
 function ProsPage() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
@@ -137,17 +143,17 @@ function ProsPage() {
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed text-xs min-w-[880px]">
+          <table className="w-full table-fixed text-xs min-w-[980px]">
             <colgroup>
               <col className="w-[15%]" />
               <col className="w-[9%]" />
               <col className="w-[7%]" />
               <col className="w-[6%]" />
-              <col className="w-[10%]" />
+              <col className="w-[15%]" />
               <col className="w-[14%]" />
               <col className="w-[10%]" />
               <col className="w-[8%]" />
-              <col className="w-[21%]" />
+              <col className="w-[16%]" />
             </colgroup>
             <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
               <tr>
@@ -177,7 +183,20 @@ function ProsPage() {
                     </span>
                   </td>
                   <td className="p-2 text-slate-700">{p.total_bookings ?? 0}</td>
-                  <td className="p-2 text-slate-600 truncate">{p.phone ?? "—"}</td>
+                  <td className="p-2 text-slate-600">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <span>{p.phone ?? "—"}</span>
+                      {whatsappUrl(p.phone) && (
+                        <a href={whatsappUrl(p.phone)!} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex shrink-0 items-center justify-center rounded-md bg-green-600 p-1.5 text-white hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-500"
+                          title="Conversar no WhatsApp" aria-label={`Conversar com ${p.full_name ?? "profissional"} no WhatsApp`}>
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2a10 10 0 0 0-8.65 15.02L2 22l5.1-1.33A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.13l-.36-.21-2.65.69.7-2.57-.23-.37A8 8 0 1 1 12 20Zm4.4-5.96c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.93-1.19-.71-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.47-.39-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.39 1.37.5.57.18 1.1.16 1.51.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z"/>
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  </td>
                   <td className="p-2">
                     <button onClick={() => editPix(p)} className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 w-full">
                       <span className="truncate">{p.pix_key ?? "—"}</span>
