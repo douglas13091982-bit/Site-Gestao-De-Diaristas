@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -53,32 +52,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [uf, setUf] = useState("");
-  const [cityText, setCityText] = useState("");
-  const [chosenCity, setChosenCity] = useState("");
-  const [showCities, setShowCities] = useState(false);
-  const states = useQuery({
-    queryKey: ["signup-ibge-states"],
-    enabled: mode === "signup" && role === "professional",
-    queryFn: async () => {
-      const response = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
-      if (!response.ok) throw new Error("Falha ao carregar estados");
-      return await response.json() as Array<{ id: number; sigla: string; nome: string }>;
-    },
-    staleTime: 86400000,
-  });
-  const cities = useQuery({
-    queryKey: ["signup-ibge-cities", uf],
-    enabled: mode === "signup" && role === "professional" && !!uf,
-    queryFn: async () => {
-      const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios?orderBy=nome`);
-      if (!response.ok) throw new Error("Falha ao carregar municípios");
-      return await response.json() as Array<{ id: number; nome: string }>;
-    },
-    staleTime: 86400000,
-  });
-  const normalize = (text: string) => text.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase();
-  const cityMatches = (cities.data ?? []).filter((city) => normalize(city.nome).includes(normalize(cityText))).slice(0, 40);
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [sending, setSending] = useState(false);
   const sendSetup = useServerFn(sendPasswordSetupEmail);
@@ -86,26 +60,26 @@ function AuthPage() {
   useEffect(() => {
     if (loading || !user) return;
     const home = roles.includes("admin") ? "/admin"
-      : roles.includes("professional") ? "/pro"
+      : roles.includes("professional") ? (mode === "signup" ? "/pro/profile" : "/pro")
       : roles.includes("client") ? "/cliente"
       : "/";
     const target = search.redirect ?? home;
     navigate({ to: target as "/" });
-  }, [user, loading, roles, navigate, search.redirect]);
+  }, [user, loading, roles, navigate, search.redirect, mode]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
-        if (role === "professional" && (!uf || !chosenCity)) {
-          throw new Error("Selecione um estado e escolha a cidade nas sugestões.");
+        if (role === "professional" && ! /^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(phone.replace(/\D/g, ""))) {
+          throw new Error("Informe um WhatsApp válido com DDD.");
         }
         await signUpAccount({ email, password, fullName, role,
-          ...(role === "professional" ? { city: chosenCity, state: uf } : {}),
+          ...(role === "professional" ? { phone: phone.replace(/\D/g, "") } : {}),
         });
         toast.success("Conta criada! Complete seu perfil.");
-        navigate({ to: role === "professional" ? "/pro" : "/cliente" });
+        navigate({ to: role === "professional" ? "/pro/profile" : "/cliente" });
         return;
       } else {
         await signInWithPassword(email, password);
@@ -158,43 +132,11 @@ function AuthPage() {
               </div>
             )}
             {mode === "signup" && role === "professional" && (
-              <>
-                <div className="space-y-1">
-                  <Label htmlFor="signup-state">Estado (UF)</Label>
-                  <select id="signup-state" required value={uf}
-                    className="w-full h-10 rounded-md border bg-background px-3 text-sm"
-                    onChange={(e) => { setUf(e.target.value); setCityText(""); setChosenCity(""); setShowCities(false); }}>
-                    <option value="">Selecione o estado</option>
-                    {states.data?.map((state) => <option key={state.id} value={state.sigla}>{state.nome} — {state.sigla}</option>)}
-                  </select>
-                  {states.isError && <p className="text-xs text-destructive">Não foi possível carregar os estados.</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="signup-city">Cidade</Label>
-                  <div className="relative">
-                    <Input id="signup-city" role="combobox" aria-expanded={showCities}
-                      required disabled={!uf || cities.isLoading}
-                      placeholder={!uf ? "Selecione o estado primeiro" : cities.isLoading ? "Carregando municípios…" : "Digite sua cidade"}
-                      value={cityText}
-                      onFocus={() => setShowCities(true)}
-                      onChange={(e) => { setCityText(e.target.value); setChosenCity(""); setShowCities(true); }} />
-                    {showCities && !!uf && !cities.isLoading && (
-                      <div role="listbox" className="absolute z-30 mt-1 max-h-52 w-full overflow-auto rounded-md border bg-background shadow-lg">
-                        {cityMatches.map((city) => (
-                          <button type="button" key={city.id} role="option" aria-selected={chosenCity === city.nome}
-                            className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                            onClick={() => { setCityText(city.nome); setChosenCity(city.nome); setShowCities(false); }}>
-                            {city.nome}
-                          </button>
-                        ))}
-                        {!cityMatches.length && <p className="px-3 py-2 text-sm text-muted-foreground">Nenhuma cidade encontrada.</p>}
-                      </div>
-                    )}
-                  </div>
-                  {cities.isError && <p className="text-xs text-destructive">Não foi possível carregar as cidades.</p>}
-                  {cityText && !chosenCity && <p className="text-xs text-muted-foreground">Selecione a cidade nas sugestões.</p>}
-                </div>
-              </>
+              <div className="space-y-1">
+                <Label htmlFor="signup-phone">WhatsApp com DDD</Label>
+                <Input id="signup-phone" type="tel" autoComplete="tel" placeholder="(47) 99999-9999" required value={phone} onChange={e => setPhone(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Confirme seu WhatsApp e complete os demais dados após entrar.</p>
+              </div>
             )}
             <div className="space-y-1">
               <Label htmlFor="email">E-mail</Label>
