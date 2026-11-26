@@ -58,14 +58,14 @@ function AuthPage() {
   const sendSetup = useServerFn(sendPasswordSetupEmail);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading || !user || busy) return;
     const home = roles.includes("admin") ? "/admin"
       : roles.includes("professional") ? (mode === "signup" ? "/pro/profile" : "/pro")
       : roles.includes("client") ? "/cliente"
       : "/";
     const target = search.redirect ?? home;
     navigate({ to: target as "/" });
-  }, [user, loading, roles, navigate, search.redirect, mode]);
+  }, [user, loading, roles, navigate, search.redirect, mode, busy]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,10 +75,15 @@ function AuthPage() {
         if (role === "professional" && ! /^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(phone.replace(/\D/g, ""))) {
           throw new Error("Informe um WhatsApp válido com DDD.");
         }
-        await signUpAccount({ email, password, fullName, role,
+        const result = await signUpAccount({ email, password, fullName, role,
           ...(role === "professional" ? { phone: phone.replace(/\D/g, "") } : {}),
         });
-        toast.success("Conta criada! Complete seu perfil.");
+        if (result.pendingEmail) {
+          toast.info("Confira seu e-mail para confirmar o cadastro. Se já tiver uma conta, entre com sua senha.");
+          setMode("signin");
+          return;
+        }
+        toast.success("Conta criada! Confirme seu WhatsApp.");
         navigate({ to: role === "professional" ? "/pro/profile" : "/cliente" });
         return;
       } else {
