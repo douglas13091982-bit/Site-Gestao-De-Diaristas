@@ -3,7 +3,8 @@ import { DashboardModuleGrid } from "@/components/DashboardModuleGrid";
 import { PROFESSIONAL_TABS, PRO_MODULES, ProfessionalFloatingMenu } from "@/components/ProfessionalFloatingMenu";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/pro")({
@@ -14,6 +15,10 @@ export const Route = createFileRoute("/_authenticated/pro")({
 function ProLayout() {
   const { user } = useAuth();
   const loc = useLocation();
+  const qc = useQueryClient();
+  const [code, setCode] = useState("");
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const rpc = supabase.rpc.bind(supabase) as unknown as (name: string, args?: Record<string, unknown>) => Promise<{data: unknown; error: {message: string} | null}>;
   const profile = useQuery({
     queryKey: ["me-profile", user?.id],
     enabled: !!user,
@@ -30,6 +35,29 @@ function ProLayout() {
       if (result.error) throw new Error(result.error.message);
       return result.data === true;
     },
+  });
+  const config = useQuery({
+    queryKey: ["onboarding-company-whatsapp", user?.id],
+    enabled: !!user && !!profile.data?.is_professional && verification.data !== true,
+    queryFn: async () => {
+      const result = await rpc("whatsapp_manual_config");
+      if (result.error) throw new Error(result.error.message);
+      return result.data as string | null;
+    },
+  });
+  const request = useMutation({
+    mutationFn: async () => {
+      const phone = (phoneDraft || profile.data?.phone || String(user?.user_metadata?.phone ?? "")).replace(/\D/g, "");
+      if (!/^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(phone)) throw new Error("Informe um WhatsApp válido com DDD.");
+      if (phone !== profile.data?.phone) {
+        const {error} = await supabase.from("profiles").update({phone}).eq("id", user!.id);
+        if (error) throw error;
+      }
+      const result = await rpc("whatsapp_manual_request");
+      if (result.error) throw new Error(result.error.message);
+      return String(result.data);
+    },
+    onSuccess: async (value) => {setCode(value); await qc.invalidateQueries({queryKey:["me-profile",user?.id]});},
   });
   const steps = [
     {label: "Confirmar WhatsApp", done: verification.data === true},
@@ -54,6 +82,20 @@ function ProLayout() {
     );
   }
 
+  if (profile.data?.is_professional && verification.data !== true) {
+    return <div className="min-h-screen bg-background"><Header/><main className="mx-auto max-w-md p-5"><section className="rounded-2xl border bg-card p-6 space-y-4">
+      <h1 className="text-2xl font-bold">Confirme seu WhatsApp</h1>
+      <p className="text-sm text-muted-foreground">Etapa obrigatória. Gere seu código e envie pelo WhatsApp cadastrado para nossa equipe confirmar.</p>
+      <label className="block text-sm font-medium">Seu WhatsApp<input className="mt-1 w-full rounded-md border bg-background p-3" type="tel" value={phoneDraft || profile.data.phone || String(user?.user_metadata?.phone ?? "")} onChange={e=>{setPhoneDraft(e.target.value);setCode("");}} disabled={request.isPending}/></label>
+      {verification.isError && <p className="text-sm text-destructive">Falha ao consultar a verificação. Atualize o status.</p>}
+      {config.isError && <p className="text-sm text-destructive">Falha ao consultar o WhatsApp da empresa.</p>}
+      {config.isSuccess && !config.data && <p className="text-sm">A empresa ainda precisa configurar seu WhatsApp de recebimento.</p>}
+      <button className="w-full rounded-md bg-primary p-3 text-primary-foreground disabled:opacity-50" disabled={!config.data || request.isPending || verification.isLoading || verification.isError} onClick={()=>request.mutate()}>{request.isPending ? "Gerando…" : "Gerar código"}</button>
+      {request.isError && <p className="text-sm text-destructive">{request.error.message}</p>}
+      {code && config.data && <div className="space-y-3 text-center"><p className="text-3xl font-bold tracking-widest">{code}</p><a className="block rounded-md bg-emerald-600 p-3 text-white" href={`https://wa.me/${config.data}?text=${encodeURIComponent("Meu código de confirmação Gersepa: "+code)}`} target="_blank" rel="noopener noreferrer">Enviar código pelo WhatsApp</a><p className="text-sm">Aguardando confirmação da equipe.</p></div>}
+      <button className="w-full rounded-md border p-3" onClick={()=>{verification.refetch();config.refetch();}}>Atualizar status</button>
+    </section></main></div>;
+  }
   const isHome = loc.pathname === "/pro" || loc.pathname === "/pro/";
 
   return (
