@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "./admin";
 import { Star, Search, Eye, Ban, Trash2, Pencil, CheckCircle2, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
@@ -36,6 +36,20 @@ function ProsPage() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const pct = useCommissionPct();
+  type WhatsStatus = "active" | "inactive" | "unchecked";
+  const [statuses, setStatuses] = useState<Record<string, WhatsStatus>>({});
+  const [selected, setSelected] = useState<string[]>([]);
+  useEffect(() => {
+    try { setStatuses(JSON.parse(localStorage.getItem("gersepa-admin-whatsapp-status-v1") || "{}")); } catch {}
+  }, []);
+  const statusKey = (p: Pro) => p.id + ":" + (p.phone ?? "");
+  const setStatus = (p: Pro, status: WhatsStatus) => {
+    const next = { ...statuses, [statusKey(p)]: status };
+    setStatuses(next);
+    try { localStorage.setItem("gersepa-admin-whatsapp-status-v1", JSON.stringify(next)); }
+    catch { toast.error("Não foi possível salvar a marcação neste navegador"); }
+  };
+  const toggleSelection = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const list = useQuery({
     queryKey: ["admin-pros"],
@@ -118,6 +132,22 @@ function ProsPage() {
     onError: (e: any) => toast.error(e.message ?? "Erro"),
   });
 
+  const bulkDelete = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data, error } = await supabase.from("profiles").delete().eq("is_professional", true).in("id", ids).select("id");
+      if (error) throw error;
+      return (data ?? []).map(p => p.id);
+    },
+    onSuccess: (ids, requested) => {
+      setSelected(prev => prev.filter(id => !ids.includes(id)));
+      qc.invalidateQueries({ queryKey: ["admin-pros"] });
+      qc.invalidateQueries({ queryKey: ["admin-pros-balances"] });
+      if (ids.length === requested.length) toast.success(`${ids.length} profissionais removidas`);
+      else toast.error(`${ids.length} de ${requested.length} removidas. Verifique as permissões ou vínculos restantes.`);
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Erro ao excluir"),
+  });
+
   const editPix = async (p: Pro) => {
     const v = window.prompt("Nova chave PIX", p.pix_key ?? "");
     if (v === null) return;
@@ -141,27 +171,28 @@ function ProsPage() {
         />
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="text-sm text-slate-600">{selected.length} selecionadas</span>
+        <button type="button" disabled={bulkDelete.isPending} onClick={() => setSelected(filtered.filter(p => statuses[statusKey(p)] === "inactive").map(p => p.id))} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Selecionar inativas visíveis</button>
+        <button type="button" disabled={!selected.length || bulkDelete.isPending} onClick={() => setSelected([])} className="rounded-md border border-slate-200 px-3 py-2 text-xs disabled:opacity-50">Limpar seleção</button>
+        <button type="button" disabled={!selected.length || bulkDelete.isPending} onClick={() => { if (confirm(`Excluir definitivamente ${selected.length} profissionais selecionadas (inclusive fora do filtro)? Esta ação não pode ser desfeita.`)) bulkDelete.mutate([...selected]); }} className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Trash2 className="h-4 w-4" />{bulkDelete.isPending ? "Excluindo..." : "Excluir selecionadas"}</button>
+        <span className="text-xs text-slate-500">Status WhatsApp manual, salvo neste navegador.</span>
+      </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed text-xs min-w-[980px]">
+          <table className="w-full table-fixed text-xs min-w-[1250px]">
             <colgroup>
-              <col className="w-[15%]" />
-              <col className="w-[9%]" />
-              <col className="w-[7%]" />
-              <col className="w-[6%]" />
-              <col className="w-[15%]" />
-              <col className="w-[14%]" />
-              <col className="w-[10%]" />
-              <col className="w-[8%]" />
-              <col className="w-[16%]" />
+              {["4%","15%","14%","12%","8%","5%","5%","12%","8%","6%","11%"].map((width, i) => <col key={i} style={{ width }} />)}
             </colgroup>
             <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
               <tr>
+                <th className="p-2"><input type="checkbox" aria-label="Selecionar todas as profissionais visíveis" disabled={bulkDelete.isPending || !filtered.length} checked={filtered.length > 0 && filtered.every(p => selected.includes(p.id))} onChange={e => setSelected(prev => e.target.checked ? Array.from(new Set([...prev, ...filtered.map(p => p.id)])) : prev.filter(id => !filtered.some(p => p.id === id)))} className="h-4 w-4 accent-emerald-600" /></th>
                 <th className="text-left p-2 font-medium">Profissional</th>
+                <th className="text-left p-2 font-medium">Telefone / WhatsApp</th>
+                <th className="text-left p-2 font-medium">Status WhatsApp</th>
                 <th className="text-left p-2 font-medium">Cidade</th>
                 <th className="text-left p-2 font-medium">Aval.</th>
                 <th className="text-left p-2 font-medium">Limp.</th>
-                <th className="text-left p-2 font-medium">Telefone</th>
                 <th className="text-left p-2 font-medium">Chave PIX</th>
                 <th className="text-left p-2 font-medium">Saldo</th>
                 <th className="text-left p-2 font-medium">Verif.</th>
@@ -170,19 +201,14 @@ function ProsPage() {
             </thead>
             <tbody>
               {list.isLoading && (
-                <tr><td colSpan={9} className="p-6 text-center text-slate-500">Carregando...</td></tr>
+                <tr><td colSpan={11} className="p-6 text-center text-slate-500">Carregando...</td></tr>
               )}
               {!list.isLoading && filtered.map(p => (
                 <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/50">
-                  <td className="p-2 font-medium text-slate-900 truncate">{p.full_name ?? "—"}</td>
-                  <td className="p-2 text-slate-600 truncate">{p.city ?? "—"}</td>
                   <td className="p-2">
-                    <span className="inline-flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      <span className="font-medium">{Number(p.rating ?? 0).toFixed(1)}</span>
-                    </span>
+                    <input type="checkbox" checked={selected.includes(p.id)} disabled={bulkDelete.isPending} onChange={() => toggleSelection(p.id)} aria-label={`Selecionar ${p.full_name ?? "profissional"}`} className="h-4 w-4 accent-emerald-600" />
                   </td>
-                  <td className="p-2 text-slate-700">{p.total_bookings ?? 0}</td>
+                  <td className="p-2 font-medium text-slate-900 truncate">{p.full_name ?? "—"}</td>
                   <td className="p-2 text-slate-600">
                     <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span>{p.phone ?? "—"}</span>
@@ -197,6 +223,21 @@ function ProsPage() {
                       )}
                     </div>
                   </td>
+                  <td className="p-2">
+                    <select value={statuses[statusKey(p)] ?? "unchecked"} onChange={e => setStatus(p, e.target.value as WhatsStatus)} aria-label={`Status WhatsApp de ${p.full_name ?? "profissional"}`} className={`w-full rounded-md border border-slate-200 px-1 py-1.5 text-xs font-medium ${statuses[statusKey(p)] === "active" ? "bg-emerald-50 text-emerald-700" : statuses[statusKey(p)] === "inactive" ? "bg-rose-50 text-rose-700" : "bg-slate-50 text-slate-600"}`}>
+                      <option value="unchecked">Não verificada</option>
+                      <option value="active">Ativa</option>
+                      <option value="inactive">Inativa</option>
+                    </select>
+                  </td>
+                  <td className="p-2 text-slate-600 truncate">{p.city ?? "—"}</td>
+                  <td className="p-2">
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-medium">{Number(p.rating ?? 0).toFixed(1)}</span>
+                    </span>
+                  </td>
+                  <td className="p-2 text-slate-700">{p.total_bookings ?? 0}</td>
                   <td className="p-2">
                     <button onClick={() => editPix(p)} className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 w-full">
                       <span className="truncate">{p.pix_key ?? "—"}</span>
