@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -55,6 +55,10 @@ function CadastroPage() {
   const nav = useNavigate();
   const [tipo, setTipo] = useState<Tipo>(normalizeTipo(tipoParam));
 
+  useEffect(() => {
+    if (normalizeTipo(tipoParam) === "professional") nav({ to: "/auth", search: { mode: "signup", role: "professional" }, replace: true });
+  }, [tipoParam, nav]);
+
   // Dados comuns
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -93,6 +97,10 @@ function CadastroPage() {
   const cities = useCitiesQuery();
 
   function selectTipo(t: SignupTipo) {
+    if (t === "professional") {
+      nav({ to: "/auth", search: { mode: "signup", role: "professional" }, replace: true });
+      return;
+    }
     setTipo(t);
     nav({ to: "/cadastro", search: { tipo: t }, replace: true });
   }
@@ -152,6 +160,8 @@ function CadastroPage() {
       setBusy(false);
     }
   }
+
+  if (normalizeTipo(tipoParam) === "professional") return null;
 
   return (
     <div className="min-h-screen bg-secondary/40">
