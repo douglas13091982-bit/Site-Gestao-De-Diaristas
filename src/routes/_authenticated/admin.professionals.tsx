@@ -73,6 +73,31 @@ function ProsPage() {
     );
   }, [list.data, q]);
 
+  const rpc = supabase.rpc.bind(supabase) as unknown as (name: string, args?: Record<string, unknown>) => Promise<{data: unknown; error: {message: string} | null}>;
+  const config = useQuery({queryKey: ["whatsapp-company"], queryFn: async () => {
+    const r = await rpc("whatsapp_manual_config"); if (r.error) throw new Error(r.error.message); return r.data as string | null;
+  }});
+  const verified = useQuery({queryKey: ["whatsapp-confirmed", (list.data ?? []).map(p => [p.id,p.phone])], enabled: !!list.data, queryFn: async () => {
+    const entries = await Promise.all((list.data ?? []).map(async p => {
+      const r = await rpc("whatsapp_manual_status", {p_id:p.id}); if (r.error) throw new Error(r.error.message); return [p.id,r.data === true] as const;
+    })); return Object.fromEntries(entries);
+  }});
+  const configure = async () => {
+    const phone = window.prompt("WhatsApp da empresa (DDD + número)", config.data ?? "");
+    if (phone === null) return;
+    const r = await rpc("whatsapp_manual_config", {p_phone:phone});
+    if (r.error) return toast.error(r.error.message);
+    await config.refetch(); toast.success("WhatsApp configurado");
+  };
+  const confirmWhatsapp = async (p: Pro) => {
+    const sender = window.prompt("Informe o número REMETENTE que aparece na mensagem recebida (não copie o número do cadastro).");
+    if (!sender) return;
+    const code = window.prompt("Código de seis dígitos recebido pelo WhatsApp");
+    if (!code || !/^\d{6}$/.test(code.trim())) return toast.error("Informe seis dígitos");
+    const r = await rpc("whatsapp_manual_confirm", {p_id:p.id,p_sender:sender,p_code:code.trim()});
+    if (r.error) return toast.error(r.error.message);
+    await verified.refetch(); toast.success("WhatsApp confirmado");
+  };
   const balances = useQuery({
     queryKey: ["admin-pros-balances", pct],
     queryFn: async () => {
@@ -161,6 +186,11 @@ function ProsPage() {
     <div className="p-4 md:p-8">
       <AdminPageHeader title="Profissionais" subtitle="Gerenciar profissionais cadastrados" />
 
+      <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3">
+        <span className="text-sm">WhatsApp da empresa: {config.isError ? "Erro ao consultar" : config.data ?? "Não configurado"}</span>
+        <button type="button" onClick={() => void configure()} className="rounded-md bg-emerald-600 px-3 py-2 text-xs text-white">Configurar WhatsApp</button>
+        <button type="button" onClick={() => void verified.refetch()} className="rounded-md border px-3 py-2 text-xs">Atualizar verificações</button>
+      </div>
       <div className="mb-4 relative">
         <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
@@ -208,7 +238,10 @@ function ProsPage() {
                   <td className="p-2">
                     <input type="checkbox" checked={selected.includes(p.id)} disabled={bulkDelete.isPending} onChange={() => toggleSelection(p.id)} aria-label={`Selecionar ${p.full_name ?? "profissional"}`} className="h-4 w-4 accent-emerald-600" />
                   </td>
-                  <td className="p-2 font-medium text-slate-900 truncate">{p.full_name ?? "—"}</td>
+                  <td className="p-2 font-medium text-slate-900">
+                    <div className="truncate" title={p.full_name ?? ""}>{p.full_name ?? "—"}</div>
+                    {verified.data?.[p.id] ? <span className="text-xs text-emerald-700">✓ WhatsApp confirmado</span> : <button type="button" onClick={() => void confirmWhatsapp(p)} className="mt-1 text-xs text-emerald-700 underline">Confirmar código</button>}
+                  </td>
                   <td className="p-2 text-slate-600">
                     <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span>{p.phone ?? "—"}</span>
