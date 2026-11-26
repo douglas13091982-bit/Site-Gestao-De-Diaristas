@@ -17,9 +17,28 @@ function ProLayout() {
   const profile = useQuery({
     queryKey: ["me-profile", user?.id],
     enabled: !!user,
-    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,rating,total_bookings,profile_photo").eq("id", user!.id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("profiles").select("is_professional,full_name,is_available,rating,total_bookings,profile_photo,phone,city,bio,experience,specialties,pix_key").eq("id", user!.id).maybeSingle()).data,
   });
 
+  const verification = useQuery({
+    queryKey: ["onboarding-whatsapp", user?.id, profile.data?.phone],
+    enabled: !!user && !!profile.data?.is_professional,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const rpc = supabase.rpc.bind(supabase) as unknown as (name: string, args: Record<string, unknown>) => Promise<{data: unknown; error: {message: string} | null}>;
+      const result = await rpc("whatsapp_manual_status", {p_id: user!.id});
+      if (result.error) throw new Error(result.error.message);
+      return result.data === true;
+    },
+  });
+  const steps = [
+    {label: "Confirmar WhatsApp", done: verification.data === true},
+    {label: "Foto de perfil", done: !!profile.data?.profile_photo},
+    {label: "Cidade de atendimento", done: !!profile.data?.city},
+    {label: "Experiência e especialidades", done: !!profile.data?.experience && !!profile.data?.specialties?.length},
+    {label: "Dados para recebimento", done: !!profile.data?.pix_key},
+  ];
+  const progress = Math.round(100 * steps.filter(s => s.done).length / steps.length);
   if (profile.isLoading) return <div className="min-h-screen bg-background"><Header /><main className="p-10 text-muted-foreground">Carregando…</main></div>;
 
   if (profile.data && !profile.data.is_professional) {
@@ -60,6 +79,7 @@ function ProLayout() {
         </div>
         {isHome && (
           <div className="mt-4 space-y-4">
+            {progress < 100 && <section className="rounded-2xl border bg-card p-4 space-y-3"><h2 className="font-bold">Complete seu perfil</h2><p className="text-sm text-muted-foreground">Finalize os dados para começar a trabalhar.</p><div className="flex justify-between text-sm"><span>Progresso</span><strong>{progress}%</strong></div><progress className="w-full" value={progress} max={100}/>{steps.map(s => <div key={s.label} className="text-sm">{s.done ? "✓" : "○"} {s.label}</div>)}<Link to="/pro/profile" className="block rounded-md bg-primary p-3 text-center text-primary-foreground">Completar meu perfil</Link></section>}
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Nota" value={Number(profile.data?.rating ?? 0).toFixed(1)} />
               <Stat label="Serviços realizados" value={String(profile.data?.total_bookings ?? 0)} />

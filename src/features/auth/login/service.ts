@@ -22,18 +22,23 @@ export async function signUpAccount(args: {
   password: string;
   fullName: string;
   role: LoginRole;
+  phone?: string;
   city?: string;
   state?: string;
 }) {
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: args.email,
     password: args.password,
     options: {
       emailRedirectTo: `${window.location.origin}/${args.role === "professional" ? "pro" : "dashboard"}`,
-      data: { full_name: args.fullName, role: args.role, ...(args.role === "professional" ? { city: args.city, state: args.state } : {}) },
+      data: { full_name: args.fullName, role: args.role, ...(args.role === "professional" ? { phone: args.phone, city: args.city, state: args.state } : {}) },
     },
   });
   if (error) throw error;
+  if (args.role === "professional" && args.phone && data.session && data.user) {
+    const result = await supabase.from("profiles").update({ phone: args.phone }).eq("id", data.user.id);
+    if (result.error) throw result.error;
+  }
   return { ok: true as const };
 }
 
