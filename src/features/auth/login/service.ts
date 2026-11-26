@@ -30,16 +30,21 @@ export async function signUpAccount(args: {
     email: args.email,
     password: args.password,
     options: {
-      emailRedirectTo: `${window.location.origin}/${args.role === "professional" ? "pro" : "dashboard"}`,
+      emailRedirectTo: `${window.location.origin}/${args.role === "professional" ? "pro/profile" : "dashboard"}`,
       data: { full_name: args.fullName, role: args.role, ...(args.role === "professional" ? { phone: args.phone, city: args.city, state: args.state } : {}) },
     },
   });
   if (error) throw error;
-  if (args.role === "professional" && args.phone && data.session && data.user) {
-    const result = await supabase.from("profiles").update({ phone: args.phone }).eq("id", data.user.id);
-    if (result.error) throw result.error;
+  if (!data.user) throw new Error("Não foi possível criar a conta.");
+  if (!data.session) return { ok: true as const, pendingEmail: true as const };
+  if (args.role === "professional") {
+    const result = await supabase.from("profiles").update({ phone: args.phone, full_name: args.fullName }).eq("id", data.user.id).select("id,is_professional,phone").single();
+    if (result.error) throw new Error("Falha ao salvar perfil: " + result.error.message);
+    if (!result.data?.is_professional || !result.data.phone) throw new Error("O perfil profissional não foi criado corretamente. Entre em contato com o suporte.");
+    const roles = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("role","professional").maybeSingle();
+    if (roles.error || !roles.data) throw new Error("Não foi possível confirmar a permissão profissional.");
   }
-  return { ok: true as const };
+  return { ok: true as const, pendingEmail: false as const };
 }
 
 /**
