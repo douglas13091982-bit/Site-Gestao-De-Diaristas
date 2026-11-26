@@ -40,6 +40,27 @@ function ProfilePage() {
     enabled: !!user,
     queryFn: async () => (await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle()).data,
   });
+  const rpc = supabase.rpc.bind(supabase) as unknown as (name: string, args?: Record<string, unknown>) => Promise<{data: unknown; error: {message: string} | null}>;
+  const whatsapp = useQuery({
+    queryKey: ["whatsapp-manual", user?.id, profile.data?.phone],
+    enabled: !!user && !!profile.data,
+    queryFn: async () => {
+      const [status, config] = await Promise.all([rpc("whatsapp_manual_status", {p_id: user!.id}), rpc("whatsapp_manual_config")]);
+      if (status.error || config.error) throw new Error(status.error?.message ?? config.error?.message);
+      return {verified: status.data === true, phone: config.data as string | null};
+    },
+  });
+  const [code, setCode] = useState("");
+  useEffect(() => { setCode(""); }, [profile.data?.phone]);
+  const requestCode = useMutation({
+    mutationFn: async () => {
+      const result = await rpc("whatsapp_manual_request");
+      if (result.error) throw new Error(result.error.message);
+      return String(result.data);
+    },
+    onSuccess: setCode,
+    onError: (e: Error) => toast.error(e.message),
+  });
   const states = useQuery({
     queryKey: ["ibge-states"],
     queryFn: async () => {
@@ -174,6 +195,16 @@ function ProfilePage() {
 
   return (
     <div className="max-w-3xl space-y-4">
+      <div className="rounded-xl border bg-card p-5 space-y-3">
+        <h2 className="font-semibold">Confirmação do WhatsApp</h2>
+        {whatsapp.isError ? <p className="text-sm text-destructive">Não foi possível consultar a verificação.</p> : whatsapp.data?.verified ? <p className="text-sm font-semibold text-emerald-700">WhatsApp verificado</p> : <p className="text-sm text-muted-foreground">Salve seu telefone, gere o código e envie pelo próprio WhatsApp cadastrado. Aguarde a confirmação da empresa.</p>}
+        {!whatsapp.data?.verified && whatsapp.data?.phone && <>
+          <Button type="button" disabled={requestCode.isPending} onClick={() => requestCode.mutate()}>Gerar código</Button>
+          {code && <div className="space-y-2"><p className="text-2xl font-bold tracking-widest">{code}</p><p className="text-xs">Válido por até 24 horas.</p><a className="inline-block rounded-md bg-emerald-600 px-4 py-2 text-white" href={`https://wa.me/${whatsapp.data.phone}?text=${encodeURIComponent("Meu código de confirmação Gersepa: " + code)}`} target="_blank" rel="noopener noreferrer">Enviar código pelo WhatsApp</a></div>}
+        </>}
+        {!whatsapp.data?.phone && !whatsapp.isLoading && !whatsapp.isError && <p className="text-sm">A empresa ainda não configurou o número de recebimento.</p>}
+        <Button type="button" variant="outline" size="sm" onClick={() => whatsapp.refetch()}>Atualizar status</Button>
+      </div>
       <div className="rounded-xl border bg-card p-5 flex items-center justify-between">
         <div>
           <div className="font-semibold">Status de atendimento</div>
