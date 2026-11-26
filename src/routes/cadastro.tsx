@@ -56,7 +56,8 @@ function CadastroPage() {
   const [tipo, setTipo] = useState<Tipo>(normalizeTipo(tipoParam));
 
   useEffect(() => {
-    if (normalizeTipo(tipoParam) === "professional") nav({ to: "/auth", search: { mode: "signup", role: "professional" }, replace: true });
+    const selected = normalizeTipo(tipoParam);
+    if (selected) nav({ to: "/auth", search: { mode: "signup", role: selected }, replace: true });
   }, [tipoParam, nav]);
 
   // Dados comuns
@@ -97,12 +98,7 @@ function CadastroPage() {
   const cities = useCitiesQuery();
 
   function selectTipo(t: SignupTipo) {
-    if (t === "professional") {
-      nav({ to: "/auth", search: { mode: "signup", role: "professional" }, replace: true });
-      return;
-    }
-    setTipo(t);
-    nav({ to: "/cadastro", search: { tipo: t }, replace: true });
+    nav({ to: "/auth", search: { mode: "signup", role: t }, replace: true });
   }
 
   function patchClient(p: Partial<typeof clientFields>) {
@@ -161,7 +157,7 @@ function CadastroPage() {
     }
   }
 
-  if (normalizeTipo(tipoParam) === "professional") return null;
+  if (normalizeTipo(tipoParam)) return null;
 
   return (
     <div className="min-h-screen bg-secondary/40">

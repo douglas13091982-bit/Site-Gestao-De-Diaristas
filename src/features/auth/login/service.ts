@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { sendPasswordSetupEmail } from "@/lib/account.functions";
 
+export function normalizeLoginPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (!/^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(digits)) throw new Error("Informe um WhatsApp válido com DDD.");
+  return "+" + (digits.length === 11 ? "55" + digits : digits);
+}
 export type LoginRole = "client" | "professional";
 
 /**
@@ -8,7 +13,7 @@ export type LoginRole = "client" | "professional";
  * inválidas, apenas propaga o erro para exibição genérica na UI.
  */
 export async function signInWithPassword(email: string, password: string) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword(email.includes("@") ? { email, password } : { phone: normalizeLoginPhone(email), password });
   if (error) throw error;
   return { ok: true as const };
 }
@@ -18,7 +23,7 @@ export async function signInWithPassword(email: string, password: string) {
  * Supabase decidir. Em qualquer erro do provedor, propaga para a UI.
  */
 export async function signUpAccount(args: {
-  email: string;
+  email?: string;
   password: string;
   fullName: string;
   role: LoginRole;
@@ -27,22 +32,21 @@ export async function signUpAccount(args: {
   state?: string;
 }) {
   const { data, error } = await supabase.auth.signUp({
-    email: args.email,
+    phone: normalizeLoginPhone(args.phone ?? ""),
     password: args.password,
     options: {
-      emailRedirectTo: `${window.location.origin}/${args.role === "professional" ? "pro/profile" : "dashboard"}`,
-      data: { full_name: args.fullName, role: args.role, ...(args.role === "professional" ? { phone: args.phone, city: args.city, state: args.state } : {}) },
+      data: { full_name: args.fullName, role: args.role, phone: normalizeLoginPhone(args.phone ?? "").slice(1) },
     },
   });
   if (error) throw error;
   if (!data.user) throw new Error("Não foi possível criar a conta.");
-  if (!data.session) return { ok: true as const, pendingEmail: true as const };
-  if (args.role === "professional") {
+  if (!data.session) throw new Error("A autenticação por telefone exige configuração no servidor. Procure o suporte.");
+  {
     const result = await supabase.from("profiles").update({ phone: args.phone, full_name: args.fullName }).eq("id", data.user.id).select("id,is_professional,phone").single();
     if (result.error) throw new Error("Falha ao salvar perfil: " + result.error.message);
-    if (!result.data?.is_professional || !result.data.phone) throw new Error("O perfil profissional não foi criado corretamente. Entre em contato com o suporte.");
-    const roles = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("role","professional").maybeSingle();
-    if (roles.error || !roles.data) throw new Error("Não foi possível confirmar a permissão profissional.");
+    if (!result.data || (args.role === "professional" && !result.data.is_professional) || !result.data.phone) throw new Error("O perfil profissional não foi criado corretamente. Entre em contato com o suporte.");
+    const roles = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("role",args.role).maybeSingle();
+    if (roles.error || !roles.data) throw new Error("Não foi possível confirmar a permissão da conta.");
   }
   return { ok: true as const, pendingEmail: false as const };
 }
