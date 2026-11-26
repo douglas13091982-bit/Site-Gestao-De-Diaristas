@@ -54,6 +54,7 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
+  const [legacy, setLegacy] = useState(false);
   const [sending, setSending] = useState(false);
   const sendSetup = useServerFn(sendPasswordSetupEmail);
 
@@ -72,28 +73,21 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        if (role === "professional" && ! /^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(phone.replace(/\D/g, ""))) {
+        if (! /^(?:55)?[1-9][0-9]9[0-9]{8}$/.test(phone.replace(/\D/g, ""))) {
           throw new Error("Informe um WhatsApp válido com DDD.");
         }
-        const result = await signUpAccount({ email, password, fullName, role,
-          ...(role === "professional" ? { phone: phone.replace(/\D/g, "") } : {}),
-        });
-        if (result.pendingEmail) {
-          toast.info("Confira seu e-mail para confirmar o cadastro. Se já tiver uma conta, entre com sua senha.");
-          setMode("signin");
-          return;
-        }
-        toast.success("Conta criada! Confirme seu WhatsApp.");
+        await signUpAccount({ password, fullName, role, phone: phone.replace(/\D/g, "") });
+        toast.success(role === "professional" ? "Conta criada! Confirme seu WhatsApp." : "Conta criada!");
         navigate({ to: role === "professional" ? "/pro/profile" : "/cliente" });
         return;
       } else {
-        await signInWithPassword(email, password);
+        await signInWithPassword(legacy ? email : phone, password);
       }
     } catch (err) {
       // Mensagem genérica evita enumeração de contas.
       toast.error(
         mode === "signin"
-          ? "E-mail ou senha inválidos. Se esqueceu a senha, use 'Criar / redefinir senha'."
+          ? "WhatsApp ou senha inválidos. Para contas antigas, use o acesso por e-mail."
           : toMessage(err, "Não foi possível criar a conta."),
       );
     } finally {
@@ -136,17 +130,17 @@ function AuthPage() {
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
             )}
-            {mode === "signup" && role === "professional" && (
+            {(mode === "signup" || !legacy) && (
               <div className="space-y-1">
                 <Label htmlFor="signup-phone">WhatsApp com DDD</Label>
                 <Input id="signup-phone" type="tel" autoComplete="tel" placeholder="(47) 99999-9999" required value={phone} onChange={e => setPhone(e.target.value)} />
-                <p className="text-xs text-muted-foreground">Confirme seu WhatsApp e complete os demais dados após entrar.</p>
+                {mode === "signup" && role === "professional" && <p className="text-xs text-muted-foreground">Confirme seu WhatsApp após entrar.</p>}
               </div>
             )}
-            <div className="space-y-1">
+            {mode === "signin" && legacy && <div className="space-y-1">
               <Label htmlFor="email">E-mail</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
+            </div>}
             <div className="space-y-1">
               <Label htmlFor="password">Senha</Label>
               <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={mode === "signin" ? "current-password" : "new-password"} />
@@ -156,7 +150,8 @@ function AuthPage() {
             </Button>
           </form>
 
-          {mode === "signin" && (
+          {mode === "signin" && <button type="button" className="text-sm text-primary" onClick={()=>setLegacy(!legacy)}>{legacy ? "Entrar com WhatsApp" : "Acesso de contas antigas / administrador"}</button>}
+          {mode === "signin" && legacy && (
             <PasswordSetupCard
               highlighted={false}
               sending={sending}
