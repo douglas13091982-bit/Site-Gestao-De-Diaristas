@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Upload, Loader2 } from "lucide-react";
+import { Camera, Upload, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useCategoriesQuery, useCategorySpecialtiesQuery } from "@/features/auth/signup/queries";
 import { ChipToggle, toggleInArray } from "@/features/auth/signup/components/ChipToggle";
@@ -104,6 +104,10 @@ function ProfilePage() {
   const filteredCities = (ibgeCities.data ?? []).filter((city) => normalizeCity(city.nome).includes(normalizeCity(citySearch))).slice(0, 50);
 
 
+  const [editMode, setEditMode] = useState<boolean | null>(null);
+  const p = profile.data;
+  const incomplete = !p?.full_name || !p?.phone || !p?.profile_photo || !p?.experience || !p?.profession_category || !p?.specialties?.length || !p?.city || !p?.pix_key;
+  const editing = editMode ?? incomplete;
   const [f, setF] = useState<Record<string, string>>({});
   const categories = useCategoriesQuery();
   const categoryKey = (name: string) => name.trim().toLocaleLowerCase("pt-BR");
@@ -149,7 +153,7 @@ function ProfilePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!user) throw new Error("Faça login.");
       if (categories.isLoading || categories.isError || (category && !specialties.isSuccess)) throw new Error("Aguarde o carregamento das especialidades antes de salvar.");
       if (!category) throw new Error("Selecione uma categoria profissional válida.");
       let cityFields: { city?: string; city_slug?: string } = {};
@@ -178,13 +182,15 @@ function ProfilePage() {
         ...cityFields,
         pix_key: sanitizeTextOrNull(f.pix_key, { maxLength: 120, collapseWhitespace: true }),
         pix_key_type: sanitizeText(f.pix_key_type, { maxLength: 20 }),
-      }).eq("id", user.id);
+      }).eq("id", user.id).select("id").single();
       if (error) throw error;
     },
     onSuccess: async () => {
       await qc.invalidateQueries();
       setCityDraft(null);
       setCityOpen(false);
+      setEditMode(false);
+      toast.success("Perfil atualizado.");
     },
   });
 
@@ -218,6 +224,7 @@ function ProfilePage() {
   };
 
   if (profile.isLoading) return <p className="text-muted-foreground">Carregando…</p>;
+  if (!p) return <p className="text-muted-foreground">Não foi possível carregar o perfil.</p>;
 
   return (
     <div className="max-w-3xl space-y-4">
@@ -233,6 +240,22 @@ function ProfilePage() {
         <Button size="sm" variant="ghost" onClick={()=>whatsapp.refetch()}>Atualizar</Button>
       </div>}
 
+      {!editing ? (
+        <section className="space-y-5 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Meu perfil</h2>
+            <Button type="button" variant="outline" size="sm" onClick={()=>{save.reset();setEditMode(true);}}><Pencil className="mr-1.5 h-4 w-4"/>Editar perfil</Button>
+          </div>
+          <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+            {[
+              ["Nome",p.full_name],["Telefone",p.phone],["Experiência",p.experience],["Categoria profissional",categoryValue],
+              ["Cidade",p.city],["Estado",savedState],["Tipo de chave PIX",({cpf:"CPF",email:"E-mail",phone:"Telefone",random:"Aleatória"} as Record<string,string>)[p.pix_key_type ?? ""]],["Chave PIX",p.pix_key],
+            ].map(([label,value])=><div key={label} className="min-w-0 border-b border-border/50 pb-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-medium">{value || "Não informado"}</dd></div>)}
+            <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Bio</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm">{p.bio || "Não informada"}</dd></div>
+            <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Especialidades</dt><dd className="mt-2 flex flex-wrap gap-2">{selectedSpecialties.length ? selectedSpecialties.map(name=><span key={name} className="rounded-full bg-muted px-3 py-1 text-xs font-medium">{name}</span>) : <span className="text-sm text-muted-foreground">{specialties.isLoading?"Carregando…":"Nenhuma informada"}</span>}</dd></div>
+          </dl>
+        </section>
+      ) : (
       <div className="rounded-xl border bg-card p-5 grid gap-4">
         <div className="flex items-center gap-4">
           <div className="relative h-20 w-20 rounded-full overflow-hidden bg-muted border shrink-0">
@@ -335,11 +358,11 @@ function ProfilePage() {
           <Row label="Chave PIX"><Input value={f.pix_key ?? ""} onChange={upd("pix_key")} /></Row>
         </div>
         <div className="pt-2 flex justify-end">
-          <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Salvando…" : "Salvar alterações"}</Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending || uploading}>{save.isPending ? "Salvando…" : "Salvar alterações"}</Button>
         </div>
         {save.isError && <p className="text-sm text-destructive">{(save.error as Error).message}</p>}
-        {save.isSuccess && <p className="text-sm text-emerald-600">Perfil atualizado.</p>}
       </div>
+      )}
     </div>
   );
 }
