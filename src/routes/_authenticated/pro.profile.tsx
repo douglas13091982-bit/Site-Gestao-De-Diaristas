@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Upload, Loader2, Pencil } from "lucide-react";
+import { Camera, Upload, Loader2, Pencil, UserRound, Phone, MapPin, BriefcaseBusiness, Clock, Wallet, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useCategoriesQuery, useCategorySpecialtiesQuery } from "@/features/auth/signup/queries";
 import { ChipToggle, toggleInArray } from "@/features/auth/signup/components/ChipToggle";
@@ -241,19 +241,42 @@ function ProfilePage() {
       </div>}
 
       {!editing ? (
-        <section className="space-y-5 py-2">
+        <section className="space-y-6 py-2">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">Meu perfil</h2>
-            <Button type="button" variant="outline" size="sm" onClick={()=>{save.reset();setEditMode(true);}}><Pencil className="mr-1.5 h-4 w-4"/>Editar perfil</Button>
+            <h2 className="text-xl font-bold tracking-tight">Meu perfil</h2>
+            <Button type="button" variant="outline" size="sm" className="min-h-10 rounded-full px-4" onClick={()=>{save.reset();setEditMode(true);}}><Pencil className="mr-1.5 h-4 w-4"/>Editar</Button>
           </div>
-          <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-            {[
-              ["Nome",p.full_name],["Telefone",p.phone],["Experiência",p.experience],["Categoria profissional",categoryValue],
-              ["Cidade",p.city],["Estado",savedState],["Tipo de chave PIX",({cpf:"CPF",email:"E-mail",phone:"Telefone",random:"Aleatória"} as Record<string,string>)[p.pix_key_type ?? ""]],["Chave PIX",p.pix_key],
-            ].map(([label,value])=><div key={label} className="min-w-0 border-b border-border/50 pb-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-medium">{value || "Não informado"}</dd></div>)}
-            <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Bio</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm">{p.bio || "Não informada"}</dd></div>
-            <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Especialidades</dt><dd className="mt-2 flex flex-wrap gap-2">{selectedSpecialties.length ? selectedSpecialties.map(name=><span key={name} className="rounded-full bg-muted px-3 py-1 text-xs font-medium">{name}</span>) : <span className="text-sm text-muted-foreground">{specialties.isLoading?"Carregando…":"Nenhuma informada"}</span>}</dd></div>
-          </dl>
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold">Dados pessoais</h3>
+            <dl className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <ProfileDetail icon={UserRound} label="Nome" value={p.full_name} />
+              <ProfileDetail icon={Phone} label="Telefone" value={p.phone} />
+              <ProfileDetail icon={MapPin} label="Cidade" value={p.city} />
+              <ProfileDetail icon={MapPin} label="Estado" value={savedState} />
+            </dl>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold">Informações profissionais</h3>
+            <dl className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <ProfileDetail icon={BriefcaseBusiness} label="Categoria" value={categoryValue} />
+              <ProfileDetail icon={Clock} label="Experiência" value={p.experience} />
+            </dl>
+            <div className="space-y-1.5 px-1">
+              <h4 className="text-sm font-semibold">Sobre mim</h4>
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{p.bio || "Não informada"}</p>
+            </div>
+            <div className="space-y-2 px-1">
+              <h4 className="text-sm font-semibold">Especialidades</h4>
+              <div className="flex flex-wrap gap-2">{selectedSpecialties.length ? selectedSpecialties.map(name=><span key={name} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-foreground"><Check className="h-3.5 w-3.5 shrink-0 text-primary"/><span className="break-words min-w-0">{name}</span></span>) : <span className="text-sm text-muted-foreground">{specialties.isLoading?"Carregando…":"Nenhuma informada"}</span>}</div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold">Dados para recebimento</h3>
+            <dl className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <ProfileDetail icon={Wallet} label="Tipo de chave PIX" value={({"cpf":"CPF","email":"E-mail","phone":"Telefone","random":"Aleatória"} as Record<string,string>)[p.pix_key_type ?? ""]} />
+              <ProfileDetail icon={Wallet} label="Chave PIX" value={p.pix_key} />
+            </dl>
+          </div>
         </section>
       ) : (
       <div className="rounded-xl border bg-card p-5 grid gap-4">
@@ -369,4 +392,11 @@ function ProfilePage() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>;
+}
+
+function ProfileDetail({icon: Icon,label,value}: {icon: typeof UserRound;label:string;value?:string|null}) {
+  return <div className="min-w-0 rounded-xl bg-muted/40 px-3 py-3.5 sm:px-4">
+    <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Icon className="h-4 w-4 shrink-0 text-primary"/><span>{label}</span></dt>
+    <dd className="mt-2 text-base font-semibold leading-snug text-foreground [overflow-wrap:anywhere]">{value || "Não informado"}</dd>
+  </div>;
 }
