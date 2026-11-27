@@ -109,7 +109,21 @@ function ProfilePage() {
   const category = categories.data?.find(c => c.name === f.profession_category);
   const specialties = useCategorySpecialtiesQuery(category?.id);
   const selectedSpecialties = (f.specialties ?? "").split(",").map(s => s.trim()).filter(Boolean);
-  const [isAvailable, setIsAvailable] = useState(true);
+  const isAvailable = profile.data?.is_available ?? false;
+  const availability = useMutation({
+    mutationFn: async (next: boolean) => {
+      if (!user) throw new Error("Faça login.");
+      const { error } = await supabase.from("profiles").update({is_available:next}).eq("id",user.id).select("id").single();
+      if (error) throw new Error(error.message);
+      return next;
+    },
+    onSuccess: (next) => {
+      qc.setQueryData(["me-full",user?.id], (old: typeof profile.data) => old ? {...old,is_available:next} : old);
+      void qc.invalidateQueries({queryKey:["me-profile",user?.id]});
+      toast.success(next?"Online — recebendo serviços":"Offline — recebimento pausado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -126,9 +140,8 @@ function ProfilePage() {
         pix_key: profile.data.pix_key ?? "",
         pix_key_type: profile.data.pix_key_type ?? "cpf",
       });
-      setIsAvailable(profile.data.is_available ?? true);
     }
-  }, [profile.data]);
+  }, [profile.data?.id, profile.data?.full_name, profile.data?.phone, profile.data?.bio, profile.data?.experience, profile.data?.profession_category, profile.data?.specialties, profile.data?.profile_photo, profile.data?.pix_key, profile.data?.pix_key_type]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -159,7 +172,6 @@ function ProfilePage() {
         ...cityFields,
         pix_key: sanitizeTextOrNull(f.pix_key, { maxLength: 120, collapseWhitespace: true }),
         pix_key_type: sanitizeText(f.pix_key_type, { maxLength: 20 }),
-        is_available: isAvailable,
       }).eq("id", user.id);
       if (error) throw error;
     },
@@ -203,26 +215,22 @@ function ProfilePage() {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="rounded-xl border bg-card p-5 space-y-3">
-        <h2 className="font-semibold">Confirmação do WhatsApp</h2>
-        {whatsapp.isError ? <p className="text-sm text-destructive">Não foi possível consultar a verificação.</p> : whatsapp.data?.verified ? <p className="text-sm font-semibold text-emerald-700">WhatsApp verificado</p> : <p className="text-sm text-muted-foreground">Salve seu telefone, gere o código e envie pelo próprio WhatsApp cadastrado. Aguarde a confirmação da empresa.</p>}
-        {!whatsapp.data?.verified && whatsapp.data?.phone && <>
-          <Button type="button" disabled={requestCode.isPending} onClick={() => requestCode.mutate()}>Gerar código</Button>
-          {code && <div className="space-y-2"><p className="text-2xl font-bold tracking-widest">{code}</p><p className="text-xs">Válido por até 24 horas.</p><a className="inline-block rounded-md bg-emerald-600 px-4 py-2 text-white" href={`https://wa.me/${whatsapp.data.phone}?text=${encodeURIComponent("Meu código de confirmação Gersepa: " + code)}`} target="_blank" rel="noopener noreferrer">Enviar código pelo WhatsApp</a></div>}
-        </>}
-        {!whatsapp.data?.phone && !whatsapp.isLoading && !whatsapp.isError && <p className="text-sm">A empresa ainda não configurou o número de recebimento.</p>}
-        <Button type="button" variant="outline" size="sm" onClick={() => whatsapp.refetch()}>Atualizar status</Button>
-      </div>
-      <div className="rounded-xl border bg-card p-5 flex items-center justify-between">
-        <div>
-          <div className="font-semibold">Status de atendimento</div>
-          <p className="text-sm text-muted-foreground">Desative para pausar temporariamente o recebimento de leads.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Status de atendimento</span>
+          <button type="button" role="switch" aria-checked={isAvailable} aria-label="Receber serviços" disabled={availability.isPending || !profile.data} onClick={()=>availability.mutate(!isAvailable)} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold disabled:opacity-50 ${isAvailable?"border-emerald-500/40 text-emerald-600":"border-red-500/40 text-red-600"}`}>
+            <span className={`h-2 w-2 rounded-full ${isAvailable?"bg-emerald-500":"bg-red-500"}`}/>{isAvailable?"Online":"Offline"}
+          </button>
         </div>
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" className="h-5 w-5" checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />
-          <span className="text-sm">{isAvailable ? "Disponível" : "Pausada"}</span>
-        </label>
+        <span className={`ml-auto inline-flex items-center gap-1.5 text-xs font-medium ${whatsapp.data?.verified?"text-emerald-600":"text-muted-foreground"}`}>
+          <span className={`h-2 w-2 rounded-full ${whatsapp.data?.verified?"bg-emerald-500":"bg-amber-500"}`}/>{whatsapp.data?.verified?"WhatsApp verificado":whatsapp.isLoading?"Verificando…":whatsapp.isError?"Status indisponível":"WhatsApp pendente"}
+        </span>
       </div>
+      {!whatsapp.data?.verified && !whatsapp.isLoading && <div className="flex flex-wrap items-center gap-2 text-sm">
+        {whatsapp.data?.phone && <Button size="sm" variant="outline" disabled={requestCode.isPending} onClick={()=>requestCode.mutate()}>Gerar código</Button>}
+        {code && whatsapp.data?.phone && <a className="text-primary underline" href={`https://wa.me/${whatsapp.data.phone}?text=${encodeURIComponent("Meu código de confirmação Gersepa: "+code)}`} target="_blank" rel="noopener noreferrer">Enviar código {code}</a>}
+        <Button size="sm" variant="ghost" onClick={()=>whatsapp.refetch()}>Atualizar</Button>
+      </div>}
 
       <div className="rounded-xl border bg-card p-5 grid gap-4">
         <div className="flex items-center gap-4">
