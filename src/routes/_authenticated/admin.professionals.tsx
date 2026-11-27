@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useServerFn } from "@tanstack/react-start";
+import { sendPushToUsers } from "@/lib/push.functions";
 import { toast } from "sonner";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
@@ -38,6 +40,7 @@ function whatsappUrl(phone: string | null) {
 
 function ProsPage() {
   const qc = useQueryClient();
+  const sendPush = useServerFn(sendPushToUsers);
   const [q, setQ] = useState("");
   const [modal, setModal] = useState<{kind:"config"|"verify"|"pix"|"delete"|"bulk"; pro?:Pro; ids?:string[]} | null>(null);
   const [value, setValue] = useState("");
@@ -178,7 +181,15 @@ function ProsPage() {
         if (!/^\d{6}$/.test(code)) throw new Error("Informe seis dígitos.");
         const r = await rpc("whatsapp_manual_confirm", {p_id:modal.pro!.id,p_sender:value,p_code:code});
         if (r.error) throw new Error(r.error.message);
+        if (r.data !== true) throw new Error("Não foi possível confirmar o WhatsApp.");
         await verified.refetch(); toast.success("WhatsApp confirmado");
+        try {
+          const push = await sendPush({data:{userIds:[modal.pro!.id],title:"Seu WhatsApp foi aprovado!",body:"Seu acesso está liberado. Entre no aplicativo e complete seu perfil.",link:"/pro",systemNotification:true}});
+          if (push.sent > 0) toast.success("Notificação push enviada");
+          else toast.info("WhatsApp confirmado, mas não foi possível entregar a notificação push.");
+        } catch {
+          toast.warning("WhatsApp confirmado, mas houve falha no envio da notificação.");
+        }
       } else if (modal.kind === "config") {
         const r = await rpc("whatsapp_manual_config", {p_phone:value});
         if (r.error) throw new Error(r.error.message);
