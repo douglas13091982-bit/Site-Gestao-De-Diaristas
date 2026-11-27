@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useCategoriesQuery, useCategorySpecialtiesQuery } from "@/features/auth/signup/queries";
+import { ChipToggle, toggleInArray } from "@/features/auth/signup/components/ChipToggle";
 import { compressImage } from "@/lib/image-utils";
 import {
   sanitizeText,
@@ -103,6 +105,10 @@ function ProfilePage() {
 
 
   const [f, setF] = useState<Record<string, string>>({});
+  const categories = useCategoriesQuery();
+  const category = categories.data?.find(c => c.name === f.profession_category);
+  const specialties = useCategorySpecialtiesQuery(category?.id);
+  const selectedSpecialties = (f.specialties ?? "").split(",").map(s => s.trim()).filter(Boolean);
   const [isAvailable, setIsAvailable] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +120,7 @@ function ProfilePage() {
         phone: profile.data.phone ?? "",
         bio: profile.data.bio ?? "",
         experience: profile.data.experience ?? "",
+        profession_category: profile.data.profession_category ?? "",
         specialties: (profile.data.specialties ?? []).join(", "),
         profile_photo: profile.data.profile_photo ?? "",
         pix_key: profile.data.pix_key ?? "",
@@ -143,6 +150,7 @@ function ProfilePage() {
         phone: sanitizeDigits(f.phone, 15),
         bio: sanitizeTextOrNull(f.bio, { maxLength: 1000 }),
         experience: sanitizeText(f.experience, { maxLength: 500 }),
+        profession_category: sanitizeText(f.profession_category ?? "", { maxLength: 60 }),
         specialties: sanitizeStringArray(
           f.specialties.split(","),
           { maxLength: 60, maxItems: 30 },
@@ -250,7 +258,24 @@ function ProfilePage() {
         <Row label="Nome"><Input value={f.full_name ?? ""} onChange={upd("full_name")} /></Row>
         <Row label="Telefone"><Input value={f.phone ?? ""} onChange={upd("phone")} /></Row>
         <Row label="Bio"><Textarea rows={3} value={f.bio ?? ""} onChange={upd("bio")} /></Row>
-        <Row label="Experiência"><Textarea rows={2} value={f.experience ?? ""} onChange={upd("experience")} /></Row>
+        <Row label="Experiência"><Input placeholder="Ex.: 3 anos" value={f.experience ?? ""} onChange={upd("experience")} /></Row>
+        <Row label="Categoria profissional">
+          <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={f.profession_category ?? ""} disabled={categories.isLoading || save.isPending} onChange={e=>setF(p=>({...p,profession_category:e.target.value,specialties:""}))}>
+            <option value="">Selecione uma categoria</option>
+            {f.profession_category && !category && <option value={f.profession_category}>{f.profession_category}</option>}
+            {categories.data?.map(c=><option key={c.id} value={c.name}>{c.name}</option>)}
+          </select>
+          {categories.isError && <p className="text-sm text-destructive">Não foi possível carregar as categorias.</p>}
+        </Row>
+        <Row label="Especialidades">
+          <p className="text-xs text-muted-foreground">Toque nas especialidades que você oferece. Pode selecionar várias.</p>
+          {!category && <p className="text-sm text-muted-foreground">Selecione sua categoria profissional.</p>}
+          {category && specialties.isLoading && <p className="text-sm">Carregando especialidades…</p>}
+          {specialties.isError && <p className="text-sm text-destructive">Não foi possível carregar as especialidades.</p>}
+          <div className="flex flex-wrap gap-2">
+            {Array.from(new Set([...(specialties.data ?? []).map(s=>s.name),...selectedSpecialties])).map(name=><ChipToggle key={name} active={selectedSpecialties.includes(name)} onClick={()=>setF(p=>({...p,specialties:toggleInArray((p.specialties ?? "").split(",").map(s=>s.trim()).filter(Boolean),name).join(", ")}))}>{name}</ChipToggle>)}
+          </div>
+        </Row>
         <Row label="Estado (UF)">
           <select className="w-full h-10 rounded-md border bg-background px-3 text-sm"
             value={selectedState} disabled={save.isPending} onChange={(e) => {
@@ -287,7 +312,7 @@ function ProfilePage() {
           {cityDraft && !cityDraft.city && <p className="text-xs text-muted-foreground">Escolha uma cidade nas sugestões para confirmar.</p>}
           {cityDraft && registeredCity && <Button type="button" variant="ghost" size="sm" disabled={save.isPending} onClick={() => { setCityDraft(null); setCityOpen(false); }}>Manter cidade atual</Button>}
         </Row>
-        <Row label="Especialidades (separadas por vírgula)"><Input value={f.specialties ?? ""} onChange={upd("specialties")} /></Row>
+
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 space-y-1">
           <div className="text-sm font-semibold text-emerald-800">Dados para recebimento</div>
           <p className="text-xs text-emerald-700/80">Informe sua chave PIX para receber os pagamentos dos serviços realizados.</p>
