@@ -111,7 +111,8 @@ function ProfilePage() {
     ?? categories.data?.find(c => categoryKey(c.name) === categoryKey(f.profession_category ?? ""));
   const categoryValue = category?.name ?? f.profession_category ?? "";
   const specialties = useCategorySpecialtiesQuery(category?.id);
-  const selectedSpecialties = (f.specialties ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  const officialSpecialties = Array.from(new Set((specialties.data ?? []).map(s => s.name)));
+  const selectedSpecialties = (f.specialties ?? "").split(",").map(s => s.trim()).filter(s => officialSpecialties.includes(s));
   const isAvailable = profile.data?.is_available ?? false;
   const availability = useMutation({
     mutationFn: async (next: boolean) => {
@@ -149,6 +150,8 @@ function ProfilePage() {
   const save = useMutation({
     mutationFn: async () => {
       if (!user) return;
+      if (categories.isLoading || categories.isError || (category && !specialties.isSuccess)) throw new Error("Aguarde o carregamento das especialidades antes de salvar.");
+      if (!category) throw new Error("Selecione uma categoria profissional válida.");
       let cityFields: { city?: string; city_slug?: string } = {};
       if (cityDraft) {
         const { state, city } = cityDraft;
@@ -168,7 +171,7 @@ function ProfilePage() {
         experience: sanitizeText(f.experience, { maxLength: 500 }),
         profession_category: sanitizeText(categoryValue, { maxLength: 60 }),
         specialties: sanitizeStringArray(
-          f.specialties.split(","),
+          selectedSpecialties,
           { maxLength: 60, maxItems: 30 },
         ),
         profile_photo: f.profile_photo || null,
@@ -279,7 +282,7 @@ function ProfilePage() {
           {category && specialties.isLoading && <p className="text-sm">Carregando especialidades…</p>}
           {specialties.isError && <p className="text-sm text-destructive">Não foi possível carregar as especialidades.</p>}
           <div className="flex flex-wrap gap-2">
-            {Array.from(new Set([...(specialties.data ?? []).map(s=>s.name),...selectedSpecialties])).map(name=><ChipToggle key={name} active={selectedSpecialties.includes(name)} onClick={()=>setF(p=>({...p,specialties:toggleInArray((p.specialties ?? "").split(",").map(s=>s.trim()).filter(Boolean),name).join(", ")}))}>{name}</ChipToggle>)}
+            {officialSpecialties.map(name=><ChipToggle key={name} active={selectedSpecialties.includes(name)} onClick={()=>setF(p=>({...p,specialties:toggleInArray((p.specialties ?? "").split(",").map(s=>s.trim()).filter(s=>officialSpecialties.includes(s)),name).join(", ")}))}>{name}</ChipToggle>)}
           </div>
         </Row>
         <Row label="Estado (UF)">
