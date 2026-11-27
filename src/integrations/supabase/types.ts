@@ -874,6 +874,53 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_manual_checks: {
+        Row: {
+          code: string
+          expires_at: string
+          phone: string
+          professional_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          code: string
+          expires_at: string
+          phone: string
+          professional_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          code?: string
+          expires_at?: string
+          phone?: string
+          professional_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_manual_checks_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_manual_settings: {
+        Row: {
+          id: boolean
+          phone: string
+        }
+        Insert: {
+          id?: boolean
+          phone: string
+        }
+        Update: {
+          id?: boolean
+          phone?: string
+        }
+        Relationships: []
+      }
       withdrawal_requests: {
         Row: {
           admin_notes: string | null
@@ -1050,6 +1097,14 @@ export type Database = {
         Args: { p_name: string; p_slug: string; p_state: string }
         Returns: number
       }
+      whatsapp_manual_config: { Args: { p_phone?: string }; Returns: string }
+      whatsapp_manual_confirm: {
+        Args: { p_code: string; p_id: string; p_sender: string }
+        Returns: boolean
+      }
+      whatsapp_manual_request: { Args: never; Returns: string }
+      whatsapp_manual_status: { Args: { p_id: string }; Returns: boolean }
+      whatsapp_normalize: { Args: { p: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "professional" | "client"
