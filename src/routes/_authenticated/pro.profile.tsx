@@ -106,7 +106,10 @@ function ProfilePage() {
 
   const [f, setF] = useState<Record<string, string>>({});
   const categories = useCategoriesQuery();
-  const category = categories.data?.find(c => c.name === f.profession_category);
+  const categoryKey = (name: string) => name.trim().toLocaleLowerCase("pt-BR");
+  const category = categories.data?.find(c => c.name === f.profession_category)
+    ?? categories.data?.find(c => categoryKey(c.name) === categoryKey(f.profession_category ?? ""));
+  const categoryValue = category?.name ?? f.profession_category ?? "";
   const specialties = useCategorySpecialtiesQuery(category?.id);
   const selectedSpecialties = (f.specialties ?? "").split(",").map(s => s.trim()).filter(Boolean);
   const isAvailable = profile.data?.is_available ?? false;
@@ -163,7 +166,7 @@ function ProfilePage() {
         phone: sanitizeDigits(f.phone, 15),
         bio: sanitizeTextOrNull(f.bio, { maxLength: 1000 }),
         experience: sanitizeText(f.experience, { maxLength: 500 }),
-        profession_category: sanitizeText(f.profession_category ?? "", { maxLength: 60 }),
+        profession_category: sanitizeText(categoryValue, { maxLength: 60 }),
         specialties: sanitizeStringArray(
           f.specialties.split(","),
           { maxLength: 60, maxItems: 30 },
@@ -263,7 +266,7 @@ function ProfilePage() {
         <Row label="Bio"><Textarea rows={3} value={f.bio ?? ""} onChange={upd("bio")} /></Row>
         <Row label="Experiência"><Input placeholder="Ex.: 3 anos" value={f.experience ?? ""} onChange={upd("experience")} /></Row>
         <Row label="Categoria profissional">
-          <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={f.profession_category ?? ""} disabled={categories.isLoading || save.isPending} onChange={e=>setF(p=>({...p,profession_category:e.target.value,specialties:""}))}>
+          <select className="w-full h-10 rounded-md border bg-background px-3 text-sm" value={categoryValue} disabled={categories.isLoading || save.isPending} onChange={e=>setF(p=>({...p,profession_category:e.target.value,specialties:""}))}>
             <option value="">Selecione uma categoria</option>
             {f.profession_category && !category && <option value={f.profession_category}>{f.profession_category}</option>}
             {categories.data?.map(c=><option key={c.id} value={c.name}>{c.name}</option>)}
