@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "./admin";
 import { Star, Search, Eye, Ban, Trash2, Pencil, CheckCircle2, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useCommissionPct, computePayout } from "@/hooks/use-commission";
 
@@ -35,6 +39,14 @@ function whatsappUrl(phone: string | null) {
 function ProsPage() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const [modal, setModal] = useState<{kind:"config"|"verify"|"pix"|"delete"|"bulk"; pro?:Pro; ids?:string[]} | null>(null);
+  const [value, setValue] = useState("");
+  const [code, setCode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [modalError, setModalError] = useState("");
+  const openModal = (next: NonNullable<typeof modal>, initial = "") => {
+    setValue(initial); setCode(""); setModalError(""); setModal(next);
+  };
   const pct = useCommissionPct();
   type WhatsStatus = "active" | "inactive" | "unchecked";
   const [statuses, setStatuses] = useState<Record<string, WhatsStatus>>({});
@@ -82,22 +94,6 @@ function ProsPage() {
       const r = await rpc("whatsapp_manual_status", {p_id:p.id}); if (r.error) throw new Error(r.error.message); return [p.id,r.data === true] as const;
     })); return Object.fromEntries(entries);
   }});
-  const configure = async () => {
-    const phone = window.prompt("WhatsApp da empresa (DDD + número)", config.data ?? "");
-    if (phone === null) return;
-    const r = await rpc("whatsapp_manual_config", {p_phone:phone});
-    if (r.error) return toast.error(r.error.message);
-    await config.refetch(); toast.success("WhatsApp configurado");
-  };
-  const confirmWhatsapp = async (p: Pro) => {
-    const sender = window.prompt("Informe o número REMETENTE que aparece na mensagem recebida (não copie o número do cadastro).");
-    if (!sender) return;
-    const code = window.prompt("Código de seis dígitos recebido pelo WhatsApp");
-    if (!code || !/^\d{6}$/.test(code.trim())) return toast.error("Informe seis dígitos");
-    const r = await rpc("whatsapp_manual_confirm", {p_id:p.id,p_sender:sender,p_code:code.trim()});
-    if (r.error) return toast.error(r.error.message);
-    await verified.refetch(); toast.success("WhatsApp confirmado");
-  };
   const balances = useQuery({
     queryKey: ["admin-pros-balances", pct],
     queryFn: async () => {
@@ -173,22 +169,53 @@ function ProsPage() {
     onError: (e: Error) => toast.error(e.message ?? "Erro ao excluir"),
   });
 
-  const editPix = async (p: Pro) => {
-    const v = window.prompt("Nova chave PIX", p.pix_key ?? "");
-    if (v === null) return;
-    const { error } = await supabase.from("profiles").update({ pix_key: v }).eq("id", p.id);
-    if (error) return toast.error(error.message);
-    toast.success("PIX atualizado");
-    qc.invalidateQueries({ queryKey: ["admin-pros"] });
+  const submitModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modal || saving) return;
+    setSaving(true); setModalError("");
+    try {
+      if (modal.kind === "verify") {
+        if (!/^\d{6}$/.test(code)) throw new Error("Informe seis dígitos.");
+        const r = await rpc("whatsapp_manual_confirm", {p_id:modal.pro!.id,p_sender:value,p_code:code});
+        if (r.error) throw new Error(r.error.message);
+        await verified.refetch(); toast.success("WhatsApp confirmado");
+      } else if (modal.kind === "config") {
+        const r = await rpc("whatsapp_manual_config", {p_phone:value});
+        if (r.error) throw new Error(r.error.message);
+        await config.refetch(); toast.success("WhatsApp configurado");
+      } else if (modal.kind === "pix") {
+        const {error} = await supabase.from("profiles").update({pix_key:value}).eq("id",modal.pro!.id);
+        if (error) throw error;
+        await qc.invalidateQueries({queryKey:["admin-pros"]}); toast.success("PIX atualizado");
+      } else if (modal.kind === "delete") await del.mutateAsync(modal.pro!);
+      else await bulkDelete.mutateAsync(modal.ids!);
+      setModal(null);
+    } catch(e) {setModalError(e instanceof Error ? e.message : String((e as {message?:string})?.message ?? "Não foi possível concluir."));}
+    finally {setSaving(false);}
   };
 
   return (
     <div className="p-4 md:p-8">
+      <Dialog open={!!modal} onOpenChange={open=>{if(!open && !saving) setModal(null);}}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{modal?.kind==="verify"?"Confirmar WhatsApp":modal?.kind==="config"?"Configurar WhatsApp":modal?.kind==="pix"?"Editar chave PIX":"Confirmar exclusão"}</DialogTitle>
+            <DialogDescription>{modal?.kind==="verify"?"Informe o remetente real e o código recebido na mensagem.":modal?.kind==="bulk"?"Excluir "+modal.ids?.length+" profissionais selecionadas, inclusive fora do filtro. Esta ação não pode ser desfeita.":modal?.kind==="delete"?"Esta ação não pode ser desfeita.":"Atualize os dados abaixo."}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={submitModal} className="space-y-4">
+            {modal?.pro && <div className="rounded-lg bg-muted p-3 text-sm font-medium">{modal.pro.full_name ?? "Profissional"}</div>}
+            {(modal?.kind==="verify"||modal?.kind==="config"||modal?.kind==="pix") && <div className="space-y-2"><Label htmlFor="modal-value">{modal.kind==="verify"?"Número remetente":modal.kind==="config"?"WhatsApp da empresa":"Nova chave PIX"}</Label><Input id="modal-value" value={value} onChange={e=>setValue(e.target.value)} type={modal.kind==="pix"?"text":"tel"} placeholder={modal.kind==="pix"?"Chave PIX":"(47) 99999-9999"} required={modal.kind!=="pix"} disabled={saving}/></div>}
+            {modal?.kind==="verify" && <div className="space-y-2"><Label htmlFor="modal-code">Código de confirmação</Label><Input id="modal-code" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" required value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} className="text-center text-xl tracking-widest" placeholder="000000" disabled={saving}/></div>}
+            {modalError && <p role="alert" className="text-sm text-destructive">{modalError}</p>}
+            <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={()=>setModal(null)}>Cancelar</Button><Button type="submit" disabled={saving} variant={modal?.kind==="delete"||modal?.kind==="bulk"?"destructive":"default"}>{saving?"Processando…":modal?.kind==="verify"?"Confirmar WhatsApp":modal?.kind==="delete"||modal?.kind==="bulk"?"Excluir":"Salvar"}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <AdminPageHeader title="Profissionais" subtitle="Gerenciar profissionais cadastrados" />
 
       <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 flex flex-wrap items-center gap-3">
         <span className="text-sm">WhatsApp da empresa: {config.isError ? "Erro ao consultar" : config.data ?? "Não configurado"}</span>
-        <button type="button" onClick={() => void configure()} className="rounded-md bg-emerald-600 px-3 py-2 text-xs text-white">Configurar WhatsApp</button>
+        <button type="button" onClick={() => openModal({kind:"config"},config.data ?? "")} className="rounded-md bg-emerald-600 px-3 py-2 text-xs text-white">Configurar WhatsApp</button>
         <button type="button" onClick={() => void verified.refetch()} className="rounded-md border px-3 py-2 text-xs">Atualizar verificações</button>
       </div>
       <div className="mb-4 relative">
@@ -205,7 +232,7 @@ function ProsPage() {
         <span className="text-sm text-slate-600">{selected.length} selecionadas</span>
         <button type="button" disabled={bulkDelete.isPending} onClick={() => setSelected(filtered.filter(p => statuses[statusKey(p)] === "inactive").map(p => p.id))} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Selecionar inativas visíveis</button>
         <button type="button" disabled={!selected.length || bulkDelete.isPending} onClick={() => setSelected([])} className="rounded-md border border-slate-200 px-3 py-2 text-xs disabled:opacity-50">Limpar seleção</button>
-        <button type="button" disabled={!selected.length || bulkDelete.isPending} onClick={() => { if (confirm(`Excluir definitivamente ${selected.length} profissionais selecionadas (inclusive fora do filtro)? Esta ação não pode ser desfeita.`)) bulkDelete.mutate([...selected]); }} className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Trash2 className="h-4 w-4" />{bulkDelete.isPending ? "Excluindo..." : "Excluir selecionadas"}</button>
+        <button type="button" disabled={!selected.length || bulkDelete.isPending} onClick={() => openModal({kind:"bulk",ids:[...selected]})} className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><Trash2 className="h-4 w-4" />{bulkDelete.isPending ? "Excluindo..." : "Excluir selecionadas"}</button>
         <span className="text-xs text-slate-500">Status WhatsApp manual, salvo neste navegador.</span>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -240,7 +267,7 @@ function ProsPage() {
                   </td>
                   <td className="p-2 font-medium text-slate-900">
                     <div className="truncate" title={p.full_name ?? ""}>{p.full_name ?? "—"}</div>
-                    {verified.data?.[p.id] ? <span className="text-xs text-emerald-700">✓ WhatsApp confirmado</span> : <button type="button" onClick={() => void confirmWhatsapp(p)} className="mt-1 text-xs text-emerald-700 underline">Confirmar código</button>}
+                    {verified.data?.[p.id] ? <span className="text-xs text-emerald-700">✓ WhatsApp confirmado</span> : <button type="button" onClick={() => openModal({kind:"verify",pro:p})} className="mt-1 text-xs text-emerald-700 underline">Confirmar código</button>}
                   </td>
                   <td className="p-2 text-slate-600">
                     <div className="flex items-center gap-1.5 whitespace-nowrap">
@@ -272,7 +299,7 @@ function ProsPage() {
                   </td>
                   <td className="p-2 text-slate-700">{p.total_bookings ?? 0}</td>
                   <td className="p-2">
-                    <button onClick={() => editPix(p)} className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 w-full">
+                    <button onClick={() => openModal({kind:"pix",pro:p},p.pix_key ?? "")} className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 w-full">
                       <span className="truncate">{p.pix_key ?? "—"}</span>
                       <Pencil className="h-3 w-3 shrink-0" />
                     </button>
@@ -300,7 +327,7 @@ function ProsPage() {
                         {p.is_available ? <Ban className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                       </button>
                       <button
-                        onClick={() => { if (confirm(`Remover ${p.full_name}? Esta ação não pode ser desfeita.`)) del.mutate(p); }}
+                        onClick={() => openModal({kind:"delete",pro:p})}
                         className="p-1.5 rounded hover:bg-rose-50 text-rose-500"
                         title="Excluir"
                       >
