@@ -215,16 +215,11 @@ function ProfilePage() {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Status de atendimento</span>
-          <button type="button" role="switch" aria-checked={isAvailable} aria-label="Receber serviços" disabled={availability.isPending || !profile.data} onClick={()=>availability.mutate(!isAvailable)} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold disabled:opacity-50 ${isAvailable?"border-emerald-500/40 text-emerald-600":"border-red-500/40 text-red-600"}`}>
-            <span className={`h-2 w-2 rounded-full ${isAvailable?"bg-emerald-500":"bg-red-500"}`}/>{isAvailable?"Online":"Offline"}
-          </button>
-        </div>
-        <span className={`ml-auto inline-flex items-center gap-1.5 text-xs font-medium ${whatsapp.data?.verified?"text-emerald-600":"text-muted-foreground"}`}>
-          <span className={`h-2 w-2 rounded-full ${whatsapp.data?.verified?"bg-emerald-500":"bg-amber-500"}`}/>{whatsapp.data?.verified?"WhatsApp verificado":whatsapp.isLoading?"Verificando…":whatsapp.isError?"Status indisponível":"WhatsApp pendente"}
-        </span>
+      <div className="flex items-center justify-between gap-3 py-2">
+        <span className="text-sm font-semibold">Status de atendimento</span>
+        <button type="button" role="switch" aria-checked={isAvailable} aria-label="Receber serviços" disabled={availability.isPending || !profile.data} onClick={()=>availability.mutate(!isAvailable)} className={`inline-flex min-h-11 min-w-28 items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold disabled:opacity-50 ${isAvailable?"border-emerald-500/40 text-emerald-600":"border-red-500/40 text-red-600"}`}>
+          <span className={`h-2.5 w-2.5 rounded-full ${isAvailable?"bg-emerald-500":"bg-red-500"}`}/>{isAvailable?"Online":"Offline"}
+        </button>
       </div>
       {!whatsapp.data?.verified && !whatsapp.isLoading && <div className="flex flex-wrap items-center gap-2 text-sm">
         {whatsapp.data?.phone && <Button size="sm" variant="outline" disabled={requestCode.isPending} onClick={()=>requestCode.mutate()}>Gerar código</Button>}
