@@ -3,6 +3,8 @@ import { DashboardModuleGrid } from "@/components/DashboardModuleGrid";
 import { PROFESSIONAL_TABS, PRO_MODULES, ProfessionalFloatingMenu } from "@/components/ProfessionalFloatingMenu";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { registerPushDevice, isPushDeviceRegistered } from "@/lib/push-device";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,8 @@ function ProLayout() {
   const { user } = useAuth();
   const loc = useLocation();
   const qc = useQueryClient();
+  const [pushReady, setPushReady] = useState(false);
+  const pushRegistration = useMutation({mutationFn: async () => registerPushDevice(user!.id),onSuccess: ok => {setPushReady(ok); if(ok) toast.success("Notificações ativadas"); else toast.info("Autorize as notificações no dispositivo.");},onError: (e:Error)=>toast.error(e.message)});
   const [code, setCode] = useState("");
   const [phoneDraft, setPhoneDraft] = useState("");
   const rpc = supabase.rpc.bind(supabase) as unknown as (name: string, args?: Record<string, unknown>) => Promise<{data: unknown; error: {message: string} | null}>;
@@ -93,6 +97,7 @@ function ProLayout() {
       <button className="w-full rounded-md bg-primary p-3 text-primary-foreground disabled:opacity-50" disabled={!config.data || request.isPending || verification.isLoading || verification.isError} onClick={()=>request.mutate()}>{request.isPending ? "Gerando…" : "Gerar código"}</button>
       {request.isError && <p className="text-sm text-destructive">{request.error.message}</p>}
       {code && config.data && <div className="space-y-3 text-center"><p className="text-3xl font-bold tracking-widest">{code}</p><a className="block rounded-md bg-emerald-600 p-3 text-white" href={`https://wa.me/${config.data}?text=${encodeURIComponent("Meu código de confirmação Gersepa: "+code)}`} target="_blank" rel="noopener noreferrer">Enviar código pelo WhatsApp</a><p className="text-sm">Aguardando confirmação da equipe.</p></div>}
+      {user && <button type="button" className="w-full rounded-md border p-3" disabled={pushReady || pushRegistration.isPending} onClick={()=>{if(isPushDeviceRegistered(user.id)){setPushReady(true);toast.success("Notificações já ativadas");}else pushRegistration.mutate();}}>{pushReady?"Notificações ativadas":pushRegistration.isPending?"Ativando…":"Ativar notificações de aprovação"}</button>}
       <button className="w-full rounded-md border p-3" onClick={()=>{verification.refetch();config.refetch();}}>Atualizar status</button>
     </section></main></div>;
   }
